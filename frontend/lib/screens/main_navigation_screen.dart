@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/common/custom_widgets.dart';
-import 'home/home_screen.dart';
+import 'products/product_list_screen.dart';
 import 'market_map/market_map_screen.dart';
 import 'cart/cart_screen.dart';
 import 'wallet/wallet_screen.dart';
@@ -17,7 +17,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
   late final List<Widget> _screens = [
-    const HomeScreen(),
+    const ProductListScreen(),
     const MarketMapScreen(),
     const CartScreen(),
     const WalletScreen(),
