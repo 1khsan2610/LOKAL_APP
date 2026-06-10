@@ -17,6 +17,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
     String? category,
     double? minPrice,
     double? maxPrice,
+    double? minRating,
     double radius = 5.0,
     int page = 1,
   }) async {
@@ -30,6 +31,12 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
 
       final productList = products
           .map((x) => Product.fromJson(x as Map<String, dynamic>))
+          .where((product) {
+            if (minPrice != null && product.price < minPrice) return false;
+            if (maxPrice != null && product.price > maxPrice) return false;
+            if (minRating != null && product.rating < minRating) return false;
+            return true;
+          })
           .toList();
 
       state = AsyncValue.data(productList);

@@ -11,6 +11,8 @@ import 'screens/home/home_screen.dart';
 import 'screens/consumer/consumer_home_screen.dart';
 import 'screens/profile/producer_home_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
+import 'screens/products/product_list_screen.dart';
+import 'screens/products/product_detail_screen.dart';
 import 'screens/products/product_upload_screen.dart';
 import 'screens/cart/cart_screen.dart';
 import 'screens/orders/orders_screen.dart';
@@ -63,6 +65,11 @@ class MyApp extends ConsumerWidget {
         '/orders': (context) => const OrdersScreen(),
         '/wallet': (context) => const WalletScreen(),
         '/notifications': (context) => const NotificationsScreen(),
+        '/products': (context) => const ProductListScreen(),
+        '/product-detail': (context) {
+          final productId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+          return ProductDetailScreen(productId: productId);
+        },
         
         // Producer/UMKM routes
         '/producer-home': (context) => const ProducerHomeScreen(),
