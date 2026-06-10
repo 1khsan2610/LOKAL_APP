@@ -216,6 +216,116 @@ class _MarketMapScreenState extends ConsumerState<MarketMapScreen> {
     );
   }
 
+  Widget _buildSearchSection(AsyncValue<List<UMKM>> umkmState) {
+    final foundCount = umkmState.maybeWhen(
+      data: (list) => _filterUmkm(list).length,
+      orElse: () => 0,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppNumbers.paddingMedium,
+        vertical: AppNumbers.paddingSmall,
+      ),
+      child: Material(
+        color: AppTheme.surfaceColor,
+        elevation: AppNumbers.elevationMedium,
+        borderRadius: BorderRadius.circular(AppNumbers.largeBorderRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(AppNumbers.paddingMedium),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Peta UMKM Lokal',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Temukan UMKM terbaik di sekitar Anda dengan cepat.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                controller: _searchController,
+                onChanged: (_) => _onSearchChanged(),
+                hint: 'Cari UMKM atau produk...',
+                prefixIcon:
+                    const Icon(Icons.search, color: AppTheme.textSecondary),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? const Icon(Icons.close, color: AppTheme.textSecondary)
+                    : null,
+                onSuffixTap: () {
+                  _searchController.clear();
+                  _onSearchChanged();
+                },
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  const Icon(Icons.location_searching,
+                      color: AppTheme.primaryColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Radius pencarian ${_selectedRadius.toStringAsFixed(1)} km',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: _selectedRadius,
+                min: AppConstants.minSearchRadius,
+                max: AppConstants.maxSearchRadius,
+                divisions: 19,
+                activeColor: AppTheme.primaryColor,
+                inactiveColor: AppTheme.primaryLight,
+                label: '${_selectedRadius.toStringAsFixed(1)} km',
+                onChanged: (value) {
+                  setState(() {
+                    _selectedRadius = value;
+                  });
+                },
+                onChangeEnd: (_) async {
+                  await _fetchNearbyUmkm();
+                },
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  Chip(
+                    backgroundColor:
+                        AppTheme.primaryLight.withOpacity(0.16),
+                    label: Text(
+                      '${foundCount} UMKM ditemukan',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
+                  Chip(
+                    backgroundColor:
+                        AppTheme.accentColor.withOpacity(0.16),
+                    label: Text(
+                      'Radius ${_selectedRadius.toStringAsFixed(1)} km',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: AppTheme.accentColor,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMap(List<UMKM> nearbyUmkm) {
     if (_currentPosition == null) {
       return Center(
@@ -229,46 +339,124 @@ class _MarketMapScreenState extends ConsumerState<MarketMapScreen> {
     final filteredUmkm = _filterUmkm(nearbyUmkm);
     final markers = _buildMarkers(filteredUmkm);
 
-    return Stack(
-      children: [
-        GoogleMap(
-          initialCameraPosition: CameraPosition(
-            target:
-                LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-            zoom: 14,
-          ),
-          onMapCreated: (controller) {
-            if (!_mapController.isCompleted) {
-              _mapController.complete(controller);
-            }
-          },
-          myLocationEnabled: true,
-          myLocationButtonEnabled: false,
-          markers: markers,
-          circles: {
-            Circle(
-              circleId: const CircleId('radiusCircle'),
-              center: LatLng(
-                  _currentPosition!.latitude, _currentPosition!.longitude),
-              radius: _selectedRadius * 1000,
-              fillColor: AppTheme.primaryColor.withOpacity(0.08),
-              strokeColor: AppTheme.primaryColor.withOpacity(0.35),
-              strokeWidth: 2,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppNumbers.paddingMedium,
+        vertical: AppNumbers.paddingSmall,
+      ),
+      child: Material(
+        elevation: AppNumbers.elevationMedium,
+        borderRadius: BorderRadius.circular(AppNumbers.largeBorderRadius),
+        clipBehavior: Clip.hardEdge,
+        child: Stack(
+          children: [
+            GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: LatLng(
+                  _currentPosition!.latitude,
+                  _currentPosition!.longitude,
+                ),
+                zoom: 14,
+              ),
+              onMapCreated: (controller) {
+                if (!_mapController.isCompleted) {
+                  _mapController.complete(controller);
+                }
+              },
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              markers: markers,
+              circles: {
+                Circle(
+                  circleId: const CircleId('radiusCircle'),
+                  center: LatLng(
+                    _currentPosition!.latitude,
+                    _currentPosition!.longitude,
+                  ),
+                  radius: _selectedRadius * 1000,
+                  fillColor: AppTheme.primaryColor.withOpacity(0.08),
+                  strokeColor: AppTheme.primaryColor.withOpacity(0.35),
+                  strokeWidth: 2,
+                ),
+              },
+              zoomControlsEnabled: false,
+              mapType: MapType.normal,
             ),
-          },
-          zoomControlsEnabled: false,
-          mapType: MapType.normal,
+            Positioned(
+              top: 14,
+              right: 14,
+              child: FloatingActionButton.small(
+                onPressed: _moveCameraToCurrentLocation,
+                backgroundColor: AppTheme.surfaceColor,
+                child: const Icon(Icons.my_location,
+                    color: AppTheme.primaryColor),
+              ),
+            ),
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppNumbers.paddingMedium,
+                  vertical: AppNumbers.paddingSmall,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.shadowColor,
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.map_outlined,
+                          color: AppTheme.primaryColor,
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${filteredUmkm.length} lokasi terdekat',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            Text(
+                              'Tempat UMKM di dalam radius Anda',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Chip(
+                      backgroundColor:
+                          AppTheme.primaryLight.withOpacity(0.16),
+                      label: Text(
+                        '${_selectedRadius.toStringAsFixed(1)} km',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-        Positioned(
-          top: 12,
-          right: 12,
-          child: FloatingActionButton.small(
-            onPressed: _moveCameraToCurrentLocation,
-            backgroundColor: AppTheme.surfaceColor,
-            child: const Icon(Icons.my_location, color: AppTheme.primaryColor),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -282,48 +470,7 @@ class _MarketMapScreenState extends ConsumerState<MarketMapScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(AppNumbers.paddingMedium),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _searchController,
-                  onChanged: (_) => _onSearchChanged(),
-                  decoration: InputDecoration(
-                    hintText: 'Cari UMKM atau produk...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(Icons.my_location, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Slider(
-                        value: _selectedRadius,
-                        min: AppConstants.minSearchRadius,
-                        max: AppConstants.maxSearchRadius,
-                        divisions: 19,
-                        label: '${_selectedRadius.toStringAsFixed(1)} km',
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedRadius = value;
-                          });
-                        },
-                        onChangeEnd: (_) async {
-                          await _fetchNearbyUmkm();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          _buildSearchSection(umkmState),
           Expanded(
             child: _isLoadingLocation
                 ? const Center(child: CircularProgressIndicator())
