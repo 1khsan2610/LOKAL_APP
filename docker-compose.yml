@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: lokal_app_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-lokal_app}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+      MYSQL_USER: ${DB_USERNAME:-appuser}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/database:/docker-entrypoint-initdb.d
+    networks:
+      - lokal_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Laravel Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lokal_app_backend
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_KEY: ${APP_KEY}
+      APP_URL: ${APP_URL:-http://localhost:8000}
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-lokal_app}
+      DB_USERNAME: ${DB_USERNAME:-appuser}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      BROADCAST_DRIVER: ${BROADCAST_DRIVER:-log}
+      CACHE_DRIVER: ${CACHE_DRIVER:-file}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-sync}
+      SESSION_DRIVER: ${SESSION_DRIVER:-file}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "${BACKEND_PORT:-8000}:80"
+    volumes:
+      - ./backend:/app
+      - ./backend/storage:/app/storage
+      - ./backend/bootstrap/cache:/app/bootstrap/cache
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - lokal_network
+    command: |
+      sh -c "php artisan migrate --force &&
+             php artisan config:cache &&
+             php artisan route:cache &&
+             /usr/bin/supervisord -c /etc/supervisord.conf"
+
+  # React Frontend (welcome-to-docker)
+  frontend_web:
+    build:
+      context: ./welcome-to-docker
+      dockerfile: Dockerfile
+    container_name: lokal_app_web
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_WEB_PORT:-3000}:3000"
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000/api}
+    volumes:
+      - ./welcome-to-docker:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - lokal_network
+
+  # Redis Cache (Optional but recommended)
+  redis:
+    image: redis:7-alpine
+    container_name: lokal_app_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - lokal_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 3s
+      retries: 5
+
+networks:
+  lokal_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
