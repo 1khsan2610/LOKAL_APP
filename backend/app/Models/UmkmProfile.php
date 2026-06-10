@@ -32,6 +32,7 @@ class UmkmProfile extends Model
         'total_reviews',
         'total_products',
         'total_orders',
+        'coordinates',
         'verified_at',
     ];
 
@@ -45,6 +46,44 @@ class UmkmProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get latitude from coordinates POINT
+     */
+    public function getLatitudeAttribute(): ?float
+    {
+        if (!$this->coordinates) {
+            return null;
+        }
+
+        // POINT is stored as POINT(lng, lat) in MySQL
+        // ST_Y returns latitude, ST_X returns longitude
+        $coords = $this->coordinates;
+        if (method_exists($coords, 'getLat')) {
+            return $coords->getLat();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get longitude from coordinates POINT
+     */
+    public function getLongitudeAttribute(): ?float
+    {
+        if (!$this->coordinates) {
+            return null;
+        }
+
+        // POINT is stored as POINT(lng, lat) in MySQL
+        // ST_Y returns latitude, ST_X returns longitude
+        $coords = $this->coordinates;
+        if (method_exists($coords, 'getLng')) {
+            return $coords->getLng();
+        }
+
+        return null;
     }
 
     /**
