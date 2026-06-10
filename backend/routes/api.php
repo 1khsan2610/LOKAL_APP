@@ -31,6 +31,7 @@ Route::post('test-post', function () {
 
 // ==================== Public Routes ====================
 Route::prefix('auth')->group(function () {
+    Route::post('login', [AuthController::class, 'login']);
     Route::post('request-otp', [AuthController::class, 'requestOtp']);
     Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('refresh', [AuthController::class, 'refresh']);
@@ -57,7 +58,7 @@ Route::get('products/{productId}/reviews', [ReviewController::class, 'productRev
 Route::get('umkm/{umkmId}/reviews', [ReviewController::class, 'umkmReviews']);
 
 // ==================== Protected Routes ====================
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth.jwt')->group(function () {
     // Auth
     Route::post('auth/logout', [AuthController::class, 'logout']);
 

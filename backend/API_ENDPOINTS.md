@@ -5,7 +5,52 @@
 
 ## Authentication Endpoints
 
-### 1. Request OTP
+### 1. Login (Email & Password with JWT RS256)
+```
+POST /auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+Response: 200 OK
+{
+  "success": true,
+  "message": "Login berhasil",
+  "data": {
+    "user": {
+      "id": 1,
+      "name": "John Doe",
+      "email": "user@example.com",
+      "phone_number": "081234567890",
+      "role": "consumer"
+    },
+    "tokens": {
+      "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "refresh_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "token_type": "Bearer",
+      "expires_in": 3600
+    }
+  }
+}
+
+Response: 401 Unauthorized
+{
+  "success": false,
+  "message": "Email atau password salah."
+}
+
+Response: 429 Too Many Requests (Account Locked)
+{
+  "success": false,
+  "message": "Akun Anda terkunci. Coba lagi dalam beberapa menit.",
+  "blocked_until": "2024-01-15 10:30:00"
+}
+```
+
+### 2. Request OTP
 ```
 POST /auth/request-otp
 Content-Type: application/json
@@ -22,7 +67,7 @@ Response: 200 OK
 }
 ```
 
-### 2. Verify OTP & Get Token
+### 3. Verify OTP & Get Token
 ```
 POST /auth/verify-otp
 Content-Type: application/json
@@ -43,19 +88,32 @@ Response: 200 OK
 }
 ```
 
-### 3. Refresh Token
+### 4. Refresh Token (with JWT RS256)
 ```
 POST /auth/refresh
-Authorization: Bearer <token>
+Authorization: Bearer <refresh_token>
+Content-Type: application/json
 
 Response: 200 OK
 {
   "success": true,
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "message": "Token berhasil di-refresh",
+  "data": {
+    "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token_type": "Bearer",
+    "expires_in": 3600
+  }
+}
+
+Response: 401 Unauthorized
+{
+  "success": false,
+  "message": "Refresh token gagal: Token tidak valid untuk refresh."
 }
 ```
 
-### 4. Logout
+### 5. Logout
 ```
 DELETE /auth/logout
 Authorization: Bearer <token>

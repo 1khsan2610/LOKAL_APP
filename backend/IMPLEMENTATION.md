@@ -32,15 +32,25 @@
 - [x] AuditLog model
 - [x] OtpCode model
 
-### Authentication System (F-01)
+### Authentication System (F-01) - Complete JWT RS256 Implementation
+- [x] Email/Password Login with JWT RS256 encoding
+- [x] JWT Token Pair (access token 1 hour + refresh token 2 weeks)
+- [x] Login attempt tracking with account lockout (5 attempts, 15 min block)
+- [x] Bcrypt password verification
+- [x] Token refresh endpoint with refresh token validation
+- [x] Logout endpoint with audit logging
 - [x] OTP SMS via Twilio (6 digit, 5 minutes expiration)
 - [x] Rate limiting (5 attempts, 15 min block)
-- [x] JWT/Sanctum token generation
+- [x] JWT configuration for RS256 algorithm support
+- [x] JwtService for token generation, verification, and decoding
+- [x] JwtAuthenticate middleware for protected routes
+- [x] LoginAttempt model for tracking failed login attempts
 - [x] Multi-role support (consumer, UMKM, producer)
 - [x] Automatic 50 Lokal Coin on registration
 - [x] AuthService with full OTP flow
-- [x] AuthController with endpoints
+- [x] AuthController with complete auth endpoints
 - [x] OTP validation with security measures
+- [x] Email & password hashing with bcrypt
 
 ### Products & Market (F-02)
 - [x] Product CRUD operations
