@@ -18,11 +18,13 @@ class LokalCoinTransaction extends Model
         'order_id',
         'expires_at',
         'description',
+        'is_expired',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'expires_at' => 'datetime',
+        'is_expired' => 'boolean',
     ];
 
     public const TYPE_EARN = 'earn';

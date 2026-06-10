@@ -275,7 +275,8 @@ Authorization: Bearer <token>
     }
   ],
   "delivery_address": "Jalan Merdeka No. 123, Bandung",
-  "notes": "Tolong dikemas dengan baik"
+  "notes": "Tolong dikemas dengan baik",
+  "lokal_coin_amount": 50000  // Optional: Diskon menggunakan Lokal Coin (max 20% dari total)
 }
 
 Response: 201 Created
@@ -283,12 +284,35 @@ Response: 201 Created
   "success": true,
   "message": "Pesanan berhasil dibuat",
   "data": {
-    "order": { ... },
+    "order": {
+      "id": 1,
+      "order_number": "ORD-...",
+      "subtotal": 250000,
+      "lokal_coin_discount": 50000,
+      "lokal_coin_amount": 50000,
+      "total_amount": 200000,
+      ...
+    },
     "payment": {
       "snap_token": "...",
       "payment_id": 123
     }
   }
+}
+
+Response: 422 Unprocessable Entity (insufficient coins)
+{
+  "success": false,
+  "message": "Saldo Lokal Coin tidak cukup.",
+  "current_balance": 30000,
+  "required_amount": 50000
+}
+
+Response: 422 Unprocessable Entity (exceeds max discount)
+{
+  "success": false,
+  "message": "Diskon maksimal 20% dari total belanja (Rp 50.000)",
+  "max_discount": 50000
 }
 ```
 

@@ -101,31 +101,38 @@ class LokalCoinService
      */
     public function expireCoins(User $user): int
     {
+        // Get all earned coins that have expired (expires_at < now) and not yet processed
         $expiredTransactions = LokalCoinTransaction::where('user_id', $user->id)
             ->where('type', LokalCoinTransaction::TYPE_EARN)
             ->where('expires_at', '<', now())
-            ->where('created_at', '<', now()->subMonths(6))
+            ->where('is_expired', false)
             ->get();
 
         $totalExpired = 0;
+        $balance = LokalCoinBalance::where('user_id', $user->id)->first();
+
+        if (!$balance) {
+            return 0;
+        }
+
         foreach ($expiredTransactions as $transaction) {
-            if ($transaction->isExpired()) {
-                // Deduct from balance
-                $balance = LokalCoinBalance::where('user_id', $user->id)->first();
-                if ($balance && $balance->balance >= $transaction->amount) {
-                    $balance->decrement('balance', $transaction->amount);
+            // Deduct from balance
+            if ($balance->balance >= $transaction->amount) {
+                $balance->decrement('balance', $transaction->amount);
+                
+                // Mark transaction as expired
+                $transaction->update(['is_expired' => true]);
 
-                    // Log expiration
-                    LokalCoinTransaction::create([
-                        'user_id' => $user->id,
-                        'type' => LokalCoinTransaction::TYPE_EXPIRE,
-                        'source' => LokalCoinTransaction::SOURCE_EXPIRED,
-                        'amount' => $transaction->amount,
-                        'description' => "Koin hangus (berlaku sampai {$transaction->expires_at})",
-                    ]);
+                // Log expiration transaction
+                LokalCoinTransaction::create([
+                    'user_id' => $user->id,
+                    'type' => LokalCoinTransaction::TYPE_EXPIRE,
+                    'source' => LokalCoinTransaction::SOURCE_EXPIRED,
+                    'amount' => $transaction->amount,
+                    'description' => "Koin hangus (berlaku sampai {$transaction->expires_at?->format('Y-m-d')}). Referensi: transaksi #{$transaction->id}",
+                ]);
 
-                    $totalExpired += $transaction->amount;
-                }
+                $totalExpired += $transaction->amount;
             }
         }
 
