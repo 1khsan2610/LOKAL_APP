@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Services\PaymentService;
+use App\Services\LokalCoinService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,10 +18,12 @@ use Illuminate\Support\Facades\DB;
 class OrderController extends Controller
 {
     protected PaymentService $paymentService;
+    protected LokalCoinService $lokalCoinService;
 
-    public function __construct(PaymentService $paymentService)
+    public function __construct(PaymentService $paymentService, LokalCoinService $lokalCoinService)
     {
         $this->paymentService = $paymentService;
+        $this->lokalCoinService = $lokalCoinService;
     }
 
     /**
@@ -111,17 +114,60 @@ class OrderController extends Controller
                 ];
             }
 
+            // Handle Lokal Coin discount
+            $lokalCoinDiscount = 0;
+            $lokalCoinAmount = $request->lokal_coin_amount ?? 0;
+
+            if ($lokalCoinAmount > 0) {
+                // Get user wallet balance
+                $balance = $this->lokalCoinService->getBalance($user);
+
+                // Validate balance
+                if ($balance->balance < $lokalCoinAmount) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Saldo Lokal Coin tidak cukup.',
+                        'current_balance' => (float) $balance->balance,
+                        'required_amount' => (float) $lokalCoinAmount,
+                    ], 422);
+                }
+
+                // Check max 20% rule
+                $maxDiscount = $totalAmount * 0.20;
+                if ($lokalCoinAmount > $maxDiscount) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Diskon maksimal 20% dari total belanja (Rp " . number_format($maxDiscount, 0, ',', '.') . ")",
+                        'max_discount' => (float) $maxDiscount,
+                    ], 422);
+                }
+
+                $lokalCoinDiscount = $lokalCoinAmount;
+            }
+
             // Create order
             $order = Order::create([
                 'order_number' => Order::generateOrderNumber(),
                 'consumer_id' => $user->id,
                 'umkm_id' => $umkmId,
                 'subtotal' => $totalAmount,
-                'total_amount' => $totalAmount,
+                'lokal_coin_discount' => $lokalCoinDiscount,
+                'lokal_coin_amount' => $lokalCoinAmount,
+                'total_amount' => $totalAmount - $lokalCoinDiscount,
                 'status' => Order::STATUS_PENDING,
                 'delivery_address' => $request->delivery_address,
                 'notes' => $request->notes,
             ]);
+
+            // Deduct coins from balance if used
+            if ($lokalCoinAmount > 0) {
+                $balance->deductCoins(
+                    $lokalCoinAmount,
+                    \App\Models\LokalCoinTransaction::SOURCE_DISCOUNT,
+                    "Diskon untuk transaksi #{$order->order_number}",
+                    $order->id
+                );
+            }
 
             // Create order items
             foreach ($orderItems as $item) {

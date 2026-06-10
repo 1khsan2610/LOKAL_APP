@@ -27,6 +27,7 @@ class CreateOrderRequest extends FormRequest
             'items.*.quantity' => 'required|integer|min:1',
             'delivery_address' => 'required|string|max:500',
             'notes' => 'nullable|string|max:500',
+            'lokal_coin_amount' => 'nullable|numeric|min:0',
         ];
     }
 

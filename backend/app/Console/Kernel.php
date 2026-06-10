@@ -12,7 +12,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Expire Lokal Coins daily at 1 AM
+        $schedule->command('coins:expire')->dailyAt('01:00');
+
+        // Notify expiring coins daily at 2 AM
+        $schedule->command('coins:notify-expiring')->dailyAt('02:00');
     }
 
     /**
