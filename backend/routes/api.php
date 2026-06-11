@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UmkmController;
 use App\Http\Controllers\Api\WalletController;
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\OpenApiDocumentationController;
 use Illuminate\Support\Facades\Route;
 
@@ -98,4 +99,19 @@ Route::middleware('auth.jwt')->group(function () {
     Route::prefix('payments')->group(function () {
         Route::get('status', [PaymentWebhookController::class, 'getStatus']);
     });
+});
+
+// ==================== Admin Routes ====================
+Route::middleware('auth.jwt')->prefix('admin')->group(function () {
+    // Dashboard
+    Route::get('dashboard', [AdminController::class, 'dashboardStats']);
+
+    // Users management
+    Route::get('users', [AdminController::class, 'users']);
+    Route::delete('users/{userId}', [AdminController::class, 'deactivateUser']);
+
+    // UMKM verification
+    Route::get('umkm/pending', [AdminController::class, 'pendingUmkm']);
+    Route::patch('umkm/{umkmId}/approve', [AdminController::class, 'approveUmkm']);
+    Route::patch('umkm/{umkmId}/reject', [AdminController::class, 'rejectUmkm']);
 });
