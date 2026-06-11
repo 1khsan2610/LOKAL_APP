@@ -243,4 +243,78 @@ class AuthService
             throw $e;
         }
     }
+
+    /**
+     * Send email verification
+     */
+    public function sendVerificationEmail(string $email, string $name, string $verificationToken): void
+    {
+        // Generate verification link
+        // In production, this should be the actual frontend URL
+        $verificationLink = config('app.frontend_url', 'http://localhost:3000') . 
+                           '/verify-email?token=' . $verificationToken;
+
+        // Build HTML email body
+        $emailBody = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #007bff; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+        .content { background-color: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+        .button { display: inline-block; background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { margin-top: 20px; font-size: 12px; color: #666; border-top: 1px solid #ddd; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Selamat Datang di LOKAL</h1>
+        </div>
+        <div class="content">
+            <p>Halo <strong>{$name}</strong>,</p>
+            <p>Terima kasih telah mendaftar di platform LOKAL. Untuk menyelesaikan proses registrasi dan mengaktifkan akun Anda, silakan verifikasi email Anda dengan mengklik tombol di bawah:</p>
+            
+            <center>
+                <a href="{$verificationLink}" class="button">Verifikasi Email</a>
+            </center>
+            
+            <p>Atau salin dan paste link berikut ke browser Anda:</p>
+            <p><small>{$verificationLink}</small></p>
+            
+            <p><strong>Perhatian:</strong> Link verifikasi ini hanya berlaku selama 24 jam. Setelah itu, Anda perlu mendaftar ulang.</p>
+            
+            <hr>
+            <p>Jika Anda tidak melakukan pendaftaran ini, abaikan email ini.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 LOKAL Platform. All rights reserved.</p>
+            <p>Email ini dikirim ke: {$email}</p>
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
+        // Log email sending (for development)
+        \Log::info("Verification email sent to {$email}", [
+            'verification_token' => substr($verificationToken, 0, 10) . '...',
+            'verification_link' => $verificationLink,
+        ]);
+
+        // In production, you would use a mail service like Mailer
+        // Example using Laravel Mail:
+        // Mail::send('emails.verify-email', [
+        //     'name' => $name,
+        //     'verification_link' => $verificationLink,
+        //     'email' => $email,
+        // ], function ($message) use ($email) {
+        //     $message->to($email)->subject('Verifikasi Email - LOKAL Platform');
+        // });
+
+        // For now, just log it. In production, integrate with actual email service
+    }
 }

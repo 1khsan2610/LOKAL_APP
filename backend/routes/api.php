@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UmkmController;
 use App\Http\Controllers\Api\WalletController;
+use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\OpenApiDocumentationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,8 +31,14 @@ Route::post('test-post', function () {
     return response()->json(['message' => 'POST is working!', 'data' => request()->all()]);
 });
 
+// ==================== Documentation Routes ====================
+// OpenAPI 3.0 Specification (SRS Bab 5.4)
+Route::get('docs/openapi.json', [OpenApiDocumentationController::class, 'specification']);
+Route::get('docs', [OpenApiDocumentationController::class, 'documentation'])->name('api.docs');
+
 // ==================== Public Routes ====================
 Route::prefix('auth')->group(function () {
+    Route::post('register-account', [AuthController::class, 'registerAccount']);
     Route::post('login', [AuthController::class, 'login']);
     Route::post('request-otp', [AuthController::class, 'requestOtp']);
     Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
@@ -91,4 +99,19 @@ Route::middleware('auth.jwt')->group(function () {
     Route::prefix('payments')->group(function () {
         Route::get('status', [PaymentWebhookController::class, 'getStatus']);
     });
+});
+
+// ==================== Admin Routes ====================
+Route::middleware('auth.jwt')->prefix('admin')->group(function () {
+    // Dashboard
+    Route::get('dashboard', [AdminController::class, 'dashboardStats']);
+
+    // Users management
+    Route::get('users', [AdminController::class, 'users']);
+    Route::delete('users/{userId}', [AdminController::class, 'deactivateUser']);
+
+    // UMKM verification
+    Route::get('umkm/pending', [AdminController::class, 'pendingUmkm']);
+    Route::patch('umkm/{umkmId}/approve', [AdminController::class, 'approveUmkm']);
+    Route::patch('umkm/{umkmId}/reject', [AdminController::class, 'rejectUmkm']);
 });
