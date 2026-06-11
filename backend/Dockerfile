@@ -51,9 +51,11 @@ RUN apk add --no-cache \
 
 # Install build dependencies for PHP extensions compilation
 RUN apk add --no-cache --virtual .build-deps \
+    $PHPIZE_DEPS \
     libzip-dev \
     zlib-dev \
-    libxml2-dev
+    libxml2-dev \
+    mariadb-connector-c-dev
 
 # Install runtime dependencies
 RUN apk add --no-cache \
