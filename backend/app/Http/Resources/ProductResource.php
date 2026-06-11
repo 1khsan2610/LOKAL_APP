@@ -31,6 +31,7 @@ class ProductResource extends JsonResource
             'total_sold' => $this->total_sold,
             'is_active' => $this->is_active,
             'images' => ProductImageResource::collection($this->whenLoaded('images')),
+            'distance' => $this->when(isset($this->distance), fn () => (float) $this->distance),
             'is_low_stock' => $this->isLowStock(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

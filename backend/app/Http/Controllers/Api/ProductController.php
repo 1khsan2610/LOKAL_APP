@@ -11,6 +11,7 @@ use App\Models\ProductImage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -50,6 +51,20 @@ class ProductController extends Controller
         // Rating filter
         if ($request->min_rating) {
             $query->where('rating', '>=', $request->min_rating);
+        }
+
+        // Distance filter (optional)
+        if ($request->latitude && $request->longitude) {
+            $latitude = (float) $request->latitude;
+            $longitude = (float) $request->longitude;
+            $radius = $request->radius ?? 10;
+
+            $query->selectRaw(
+                'products.*, (6371 * acos(cos(radians(?)) * cos(radians(ST_Y(coordinates))) * cos(radians(ST_X(coordinates)) - radians(?)) + sin(radians(?)) * sin(radians(ST_Y(coordinates))))) AS distance',
+                [$latitude, $longitude, $latitude]
+            )
+            ->having('distance', '<=', $radius)
+            ->orderBy('distance');
         }
 
         // Pagination
@@ -106,12 +121,13 @@ class ProductController extends Controller
         ]);
 
         // Handle product images
+        $disk = config('filesystems.default');
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $image) {
-                $path = $image->store('products', 'public');
+                $path = $image->store('products', $disk);
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image_url' => url('storage/' . $path),
+                    'image_url' => Storage::disk($disk)->url($path),
                     'sort_order' => $index,
                 ]);
             }
