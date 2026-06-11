@@ -1,12 +1,16 @@
-# Stage 1: Build dependencies
 FROM php:8.1-fpm-alpine AS builder
 
-# Install system dependencies
+# Install build dependencies
 RUN apk add --no-cache \
     curl \
     git \
+    build-base \
+    autoconf \
     libzip-dev \
-    zip
+    zlib-dev \
+    libxml2-dev \
+    zip \
+    openssl-dev
 
 # Install PHP extensions
 RUN docker-php-ext-install \
@@ -15,13 +19,14 @@ RUN docker-php-ext-install \
     pdo_mysql \
     bcmath \
     ctype \
+    dom \
     fileinfo \
-    json \
-    tokenizer \
+    session \
     xml
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN curl -fsSL https://getcomposer.org/installer -o composer-setup.php && \
+    php composer-setup.php --install-dir=/usr/local/bin --filename=composer && \
+    rm -f composer-setup.php
 
 WORKDIR /app
 
@@ -29,16 +34,35 @@ WORKDIR /app
 COPY composer.json composer.lock ./
 
 # Install PHP dependencies
-RUN composer install --no-interaction --no-progress --no-dev --prefer-dist
+RUN composer install \
+    --no-interaction \
+    --no-dev \
+    --prefer-dist \
+    --no-scripts \
+    --optimize-autoloader \
+    --ignore-platform-req=ext-tokenizer
 
 # Stage 2: Runtime
 FROM php:8.1-fpm-alpine
 
+# Install runtime tools
+RUN apk add --no-cache \
+    curl
+
+# Install build dependencies for PHP extensions compilation
+RUN apk add --no-cache --virtual .build-deps \
+    libzip-dev \
+    zlib-dev \
+    libxml2-dev
+
 # Install runtime dependencies
 RUN apk add --no-cache \
     libzip \
+    zlib \
+    libxml2 \
     nginx \
-    supervisor
+    supervisor \
+    curl
 
 # Install PHP extensions
 RUN docker-php-ext-install \
@@ -47,10 +71,13 @@ RUN docker-php-ext-install \
     pdo_mysql \
     bcmath \
     ctype \
+    dom \
     fileinfo \
-    json \
-    tokenizer \
+    session \
     xml
+
+# Remove build dependencies
+RUN apk del --no-cache .build-deps
 
 # Configure PHP
 COPY config/php.ini /usr/local/etc/php/php.ini
@@ -62,17 +89,17 @@ RUN addgroup -g 1000 appuser && \
 WORKDIR /app
 
 # Copy application files
-COPY --from=builder /app/vendor ./vendor
-COPY . .
+COPY --chown=appuser:appuser --from=builder /app/vendor ./vendor
+COPY --chown=appuser:appuser . .
 
 # Copy config files
 COPY config/nginx.conf /etc/nginx/nginx.conf
 COPY config/supervisord.conf /etc/supervisord.conf
 
 # Set permissions
-RUN chown -R appuser:appuser /app && \
-    mkdir -p storage bootstrap/cache && \
-    chmod -R 775 storage bootstrap/cache
+RUN mkdir -p storage bootstrap/cache storage/logs && \
+    chown -R appuser:appuser storage bootstrap/cache storage/logs && \
+    chmod -R 775 storage bootstrap/cache storage/logs
 
 # Create log directories
 RUN mkdir -p storage/logs && \

@@ -8,6 +8,8 @@ node_modules/
 storage/logs/*
 storage/app/*
 bootstrap/cache/*
+storage/framework/*
+tests/
 .vscode
 .idea
 *.log
