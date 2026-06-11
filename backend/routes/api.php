@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UmkmController;
 use App\Http\Controllers\Api\WalletController;
+use App\Http\Controllers\Api\OpenApiDocumentationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,6 +29,11 @@ Route::get('test', function () {
 Route::post('test-post', function () {
     return response()->json(['message' => 'POST is working!', 'data' => request()->all()]);
 });
+
+// ==================== Documentation Routes ====================
+// OpenAPI 3.0 Specification (SRS Bab 5.4)
+Route::get('docs/openapi.json', [OpenApiDocumentationController::class, 'specification']);
+Route::get('docs', [OpenApiDocumentationController::class, 'documentation'])->name('api.docs');
 
 // ==================== Public Routes ====================
 Route::prefix('auth')->group(function () {
