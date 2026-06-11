@@ -37,6 +37,7 @@ Route::get('docs', [OpenApiDocumentationController::class, 'documentation'])->na
 
 // ==================== Public Routes ====================
 Route::prefix('auth')->group(function () {
+    Route::post('register-account', [AuthController::class, 'registerAccount']);
     Route::post('login', [AuthController::class, 'login']);
     Route::post('request-otp', [AuthController::class, 'requestOtp']);
     Route::post('verify-otp', [AuthController::class, 'verifyOtp']);

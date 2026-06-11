@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Http\Requests\Auth\RequestOtpRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\OtpCode;
 use App\Models\User;
 use App\Models\LokalCoinBalance;
 use App\Models\LoginAttempt;
+use App\Models\EmailVerification;
+use App\Models\UmkmProfile;
 use App\Services\AuthService;
 use App\Services\JwtService;
 use Illuminate\Http\JsonResponse;
@@ -346,6 +349,139 @@ class AuthController extends Controller
                 'success' => false,
                 'message' => 'Logout gagal: ' . $e->getMessage(),
             ], 401);
+        }
+    }
+
+    /**
+     * Register Account (Email & Password)
+     * Support role: consumer (direct active) & umkm (pending verification)
+     */
+    public function registerAccount(RegisterRequest $request): JsonResponse
+    {
+        try {
+            $validated = $request->validated();
+            $email = $validated['email'];
+            $name = $validated['name'];
+            $password = $validated['password'];
+            $phoneNumber = $validated['phone_number'];
+            $role = $validated['role'];
+            $ipAddress = $request->ip();
+
+            // Rate limiting: 5 requests per minute per IP
+            $rateKey = "register_attempts_{$ipAddress}";
+            $attempts = cache()->get($rateKey, 0);
+            
+            if ($attempts >= 5) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terlalu banyak percobaan registrasi. Silakan coba lagi dalam 1 menit.',
+                ], 429);
+            }
+
+            // Increment attempt counter
+            cache()->put($rateKey, $attempts + 1, now()->addMinute());
+
+            // Check if email already exists
+            if (User::where('email', $email)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email sudah terdaftar.',
+                ], 422);
+            }
+
+            // Hash password with bcrypt cost factor 12
+            $hashedPassword = Hash::make($password, [
+                'rounds' => 12,
+            ]);
+
+            // Create user
+            $user = User::create([
+                'name' => $name,
+                'email' => $email,
+                'password' => $hashedPassword,
+                'phone_number' => $phoneNumber,
+                'role' => $role,
+                'email_verified_at' => null, // Pending email verification
+            ]);
+
+            // Create Lokal Coin balance (50 coins on registration)
+            LokalCoinBalance::create([
+                'user_id' => $user->id,
+                'balance' => 50,
+                'currency' => 'IDR',
+            ]);
+
+            // For UMKM role: create UmkmProfile with pending_verification status
+            if ($role === 'umkm') {
+                UmkmProfile::create([
+                    'user_id' => $user->id,
+                    'business_name' => $name,
+                    'status' => 'pending_verification',
+                    'is_verified' => false,
+                    'location' => null,
+                    'coordinates' => null,
+                ]);
+            }
+
+            // Generate email verification token (24 hours)
+            $verificationToken = Str::random(64);
+            EmailVerification::create([
+                'email' => $email,
+                'token' => $verificationToken,
+                'expires_at' => now()->addHours(EmailVerification::EXPIRATION_HOURS),
+            ]);
+
+            // Send verification email (via AuthService)
+            try {
+                $this->authService->sendVerificationEmail(
+                    $email,
+                    $name,
+                    $verificationToken
+                );
+            } catch (\Exception $e) {
+                \Log::warning('Failed to send verification email: ' . $e->getMessage());
+                // Don't fail the registration if email fails
+            }
+
+            // Log audit trail
+            \Log::info('User registration successful', [
+                'user_id' => $user->id,
+                'email' => $email,
+                'role' => $role,
+                'ip_address' => $ipAddress,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Registrasi berhasil. Silakan verifikasi email Anda.',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'phone_number' => $user->phone_number,
+                        'role' => $user->role,
+                    ],
+                    'verification' => [
+                        'required' => true,
+                        'expires_in_hours' => EmailVerification::EXPIRATION_HOURS,
+                        'message' => 'Token verifikasi telah dikirim ke email Anda. Berlaku 24 jam.',
+                    ],
+                ],
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Exception $e) {
+            \Log::error('Registration error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat registrasi: ' . $e->getMessage(),
+            ], 500);
         }
     }
 }
