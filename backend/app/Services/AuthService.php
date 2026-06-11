@@ -317,4 +317,38 @@ HTML;
 
         // For now, just log it. In production, integrate with actual email service
     }
+
+    /**
+     * Send reset password email with token link
+     */
+    public function sendResetPasswordEmail(string $email, string $name, string $resetToken): void
+    {
+        $resetLink = config('app.frontend_url', 'http://localhost:3000') . '/reset-password?token=' . $resetToken;
+
+        $emailBody = <<<HTML
+<html>
+<body>
+<p>Halo <strong>{$name}</strong>,</p>
+<p>Kami menerima permintaan reset password untuk akun ini. Klik tautan berikut untuk mengatur ulang password Anda (berlaku 1 jam):</p>
+<p><a href="{$resetLink}">Reset Password</a></p>
+<p>Jika Anda tidak meminta reset password, abaikan email ini.</p>
+</body>
+</html>
+HTML;
+
+        \Log::info("Password reset email sent to {$email}", [
+            'reset_link' => $resetLink,
+            'token_preview' => substr($resetToken, 0, 10) . '...',
+        ]);
+    }
+
+    /**
+     * Send notification that password has been changed
+     */
+    public function sendPasswordChangedNotification(string $email, string $name): void
+    {
+        $emailBody = "Halo {$name},\n\nPassword akun Anda telah berhasil diubah. Jika bukan Anda, segera hubungi support.";
+
+        \Log::info("Password changed notification for {$email}");
+    }
 }

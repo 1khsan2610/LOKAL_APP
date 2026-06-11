@@ -40,8 +40,11 @@ Route::get('docs', [OpenApiDocumentationController::class, 'documentation'])->na
 Route::prefix('auth')->group(function () {
     Route::post('register-account', [AuthController::class, 'registerAccount']);
     Route::post('login', [AuthController::class, 'login']);
+    Route::post('verify-email', [AuthController::class, 'verifyEmail']);
     Route::post('request-otp', [AuthController::class, 'requestOtp']);
     Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('reset-password', [AuthController::class, 'resetPassword']);
     Route::post('refresh', [AuthController::class, 'refresh']);
 });
 

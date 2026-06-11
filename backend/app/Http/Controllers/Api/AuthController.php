@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Exception;
+use App\Models\PasswordResetToken;
+use Illuminate\Support\Facades\Hash as HashFacade;
 
 class AuthController extends Controller
 {
@@ -482,6 +484,156 @@ class AuthController extends Controller
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat registrasi: ' . $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Verify email using token (POST /auth/verify-email)
+     */
+    public function verifyEmail(Request $request): JsonResponse
+    {
+        try {
+            $token = $request->input('token');
+
+            if (!$token) {
+                return response()->json(['success' => false, 'message' => 'Token diperlukan.'], 422);
+            }
+
+            $ev = EmailVerification::where('token', $token)->first();
+
+            if (!$ev) {
+                return response()->json(['success' => false, 'message' => 'Token verifikasi tidak ditemukan.'], 404);
+            }
+
+            if ($ev->isExpired()) {
+                return response()->json(['success' => false, 'message' => 'Token verifikasi sudah kadaluarsa.'], 410);
+            }
+
+            if ($ev->isVerified()) {
+                return response()->json(['success' => true, 'message' => 'Email sudah terverifikasi.'], 200);
+            }
+
+            // Mark as verified
+            $ev->verify();
+
+            // Update user's email_verified_at if user exists
+            $user = User::where('email', $ev->email)->first();
+            if ($user && !$user->email_verified_at) {
+                $user->update(['email_verified_at' => now()]);
+
+                // Ensure LokalCoinBalance exists (award 50 if missing)
+                if (!$user->lokalCoinBalance) {
+                    \App\Models\LokalCoinBalance::create([
+                        'user_id' => $user->id,
+                        'balance' => 50,
+                        'currency' => 'IDR',
+                    ]);
+                }
+            }
+
+            return response()->json(['success' => true, 'message' => 'Verifikasi email berhasil.'], 200);
+        } catch (Exception $e) {
+            \Log::error('Verify email error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal memverifikasi email: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Forgot password - create reset token and send email
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        try {
+            $email = $request->input('email');
+
+            if (!$email) {
+                return response()->json(['success' => false, 'message' => 'Email diperlukan.'], 422);
+            }
+
+            $user = User::where('email', $email)->first();
+
+            if (!$user) {
+                // For security, do not reveal whether email exists
+                return response()->json(['success' => true, 'message' => 'Jika email terdaftar, link reset akan dikirimkan.'], 200);
+            }
+
+            // Rate limiting: throttle per email
+            $rateKey = "forgot_password_{$email}";
+            $attempts = cache()->get($rateKey, 0);
+            if ($attempts >= 3) {
+                return response()->json(['success' => false, 'message' => 'Terlalu banyak permintaan. Silakan coba nanti.'], 429);
+            }
+            cache()->put($rateKey, $attempts + 1, now()->addMinutes(10));
+
+            $token = Str::random(64);
+
+            PasswordResetToken::create([
+                'email' => $email,
+                'token' => $token,
+                'expires_at' => now()->addHour(),
+            ]);
+
+            try {
+                $this->authService->sendResetPasswordEmail($email, $user->name ?? 'User', $token);
+            } catch (\Exception $e) {
+                \Log::warning('Failed to send reset password email: ' . $e->getMessage());
+            }
+
+            return response()->json(['success' => true, 'message' => 'Jika email terdaftar, link reset akan dikirimkan.'], 200);
+        } catch (Exception $e) {
+            \Log::error('Forgot password error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal memproses permintaan: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Reset password using token
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        try {
+            $token = $request->input('token');
+            $password = $request->input('password');
+
+            if (!$token || !$password) {
+                return response()->json(['success' => false, 'message' => 'Token dan password diperlukan.'], 422);
+            }
+
+            $prt = PasswordResetToken::where('token', $token)->first();
+
+            if (!$prt) {
+                return response()->json(['success' => false, 'message' => 'Token reset tidak ditemukan.'], 404);
+            }
+
+            if ($prt->isExpired()) {
+                return response()->json(['success' => false, 'message' => 'Token reset sudah kadaluarsa.'], 410);
+            }
+
+            if ($prt->used_at) {
+                return response()->json(['success' => false, 'message' => 'Token sudah digunakan.'], 410);
+            }
+
+            $user = User::where('email', $prt->email)->first();
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'User tidak ditemukan.'], 404);
+            }
+
+            // Update password
+            $user->update(['password' => HashFacade::make($password, ['rounds' => 12])]);
+
+            // Mark token used
+            $prt->markUsed();
+
+            try {
+                $this->authService->sendPasswordChangedNotification($user->email, $user->name ?? 'User');
+            } catch (\Exception $e) {
+                \Log::warning('Failed to send password changed email: ' . $e->getMessage());
+            }
+
+            return response()->json(['success' => true, 'message' => 'Password berhasil diubah.'], 200);
+        } catch (Exception $e) {
+            \Log::error('Reset password error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal mengubah password: ' . $e->getMessage()], 500);
         }
     }
 }
