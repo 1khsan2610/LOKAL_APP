@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../config/theme.dart';
 import 'product_detail_screen.dart';
-import 'product_search_filter_screen.dart';
 
 // Mock data for products
 final mockProducts = [
