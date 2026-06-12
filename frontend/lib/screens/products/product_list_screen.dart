@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../config/theme.dart';
-import '../../config/constants.dart';
-import '../../providers/products_provider.dart';
-import '../../widgets/common/custom_widgets.dart' as custom_widgets;
-import '../../widgets/product/product_widgets.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
   const ProductListScreen({Key? key}) : super(key: key);
@@ -15,10 +12,6 @@ class ProductListScreen extends ConsumerStatefulWidget {
 
 class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   late TextEditingController _searchController;
-  String _selectedCategory = 'Semua';
-  String _selectedRatingLabel = 'Semua';
-  RangeValues _selectedPriceRange = const RangeValues(0, 500000);
-  double _selectedRadius = 5.0;
 
   @override
   void initState() {
@@ -32,72 +25,28 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     super.dispose();
   }
 
-  void _applyFilter({String? searchQuery, String? category, double? minPrice, double? maxPrice, double? minRating, double? radius}) {
-    ref.read(productFilterProvider.notifier).state =
-        ref.read(productFilterProvider.notifier).state.copyWith(
-              searchQuery: searchQuery,
-              category: category,
-              minPrice: minPrice,
-              maxPrice: maxPrice,
-              minRating: minRating,
-              radius: radius,
-            );
-  }
-
-  void _updateSearch(String value) {
-    _applyFilter(searchQuery: value.trim().isEmpty ? null : value.trim());
-  }
-
   @override
   Widget build(BuildContext context) {
-    final productsAsync = ref.watch(filteredProductsProvider);
-    final categoriesAsync = ref.watch(categoriesProvider);
-
     return Scaffold(
-      appBar: custom_widgets.CustomAppBar(title: 'Produk'),
-      body: Column(
-        children: [
-          // Search and Filter
-          Padding(
-            padding: const EdgeInsets.all(AppNumbers.paddingMedium),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Search field
-                custom_widgets.CustomTextField(
-                  controller: _searchController,
-                  label: 'Cari produk',
-                  onChanged: _updateSearch,
-                ),
-                const SizedBox(height: 12),
-                // Categories
-                Text(
-                  'Kategori',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                categoriesAsync.when(
-                  data: (categories) {
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _CategoryChip(
-                            label: 'Semua',
-                            isSelected: _selectedCategory == 'Semua',
-                            onSelected: () {
-                              setState(() => _selectedCategory = 'Semua');
-                              ref
-                                  .read(productFilterProvider.notifier)
-                                  .state = ref
-                                  .read(productFilterProvider.notifier)
-                                  .state
-                                  .copyWith(category: null);
-                            },
-                          ),
-                          const SizedBox(width: 8),
+      appBar: AppBar(
+        title: Text(
+          'Daftar Produk',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: AppTheme.primaryColor,
+      ),
+      body: Center(
+        child: Text(
+          'Product List Screen',
+          style: GoogleFonts.poppins(fontSize: 18),
+        ),
+      ),
+    );
+  }
+}
                           ...categories.map((category) {
                             return Row(
                               children: [
