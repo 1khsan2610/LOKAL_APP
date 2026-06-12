@@ -71,9 +71,9 @@ class RouteGenerator {
         );
 
       case AppRoutes.productDetail:
-        final productId = settings.arguments as String;
+        final product = settings.arguments;
         return CustomPageRoute(
-          page: ProductDetailScreen(productId: productId),
+          page: ProductDetailScreen(product: product),
           name: settings.name,
         );
 

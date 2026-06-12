@@ -67,8 +67,8 @@ class MyApp extends ConsumerWidget {
         '/notifications': (context) => const NotificationsScreen(),
         '/products': (context) => const ProductListScreen(),
         '/product-detail': (context) {
-          final productId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
-          return ProductDetailScreen(productId: productId);
+          final product = ModalRoute.of(context)?.settings.arguments;
+          return ProductDetailScreen(product: product);
         },
         
         // Producer/UMKM routes
