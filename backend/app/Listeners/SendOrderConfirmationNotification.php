@@ -4,9 +4,14 @@ namespace App\Listeners;
 
 use App\Events\OrderConfirmedEvent;
 use App\Models\Notification;
+use App\Services\N8nService;
 
 class SendOrderConfirmationNotification
 {
+    public function __construct(protected N8nService $n8nService)
+    {
+    }
+
     public function handle(OrderConfirmedEvent $event): void
     {
         $order = $event->order;
@@ -29,6 +34,9 @@ class SendOrderConfirmationNotification
             'order_id' => $order->id,
         ]);
 
-        // TODO: Trigger n8n workflow for SMS notification
+        $this->n8nService->triggerWorkflow(
+            'order-confirmed',
+            $this->n8nService->buildOrderPayload($order)
+        );
     }
 }
