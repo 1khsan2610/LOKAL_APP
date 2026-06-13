@@ -8,6 +8,7 @@ use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Events\ProductCreatedEvent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -135,6 +136,9 @@ class ProductController extends Controller
 
         // Update UMKM product count
         $user->umkmProfile->increment('total_products');
+
+        // Trigger ML price recommendation analysis
+        event(new ProductCreatedEvent($product));
 
         return response()->json([
             'success' => true,

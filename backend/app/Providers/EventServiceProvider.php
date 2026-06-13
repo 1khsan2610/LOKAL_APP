@@ -5,8 +5,10 @@ namespace App\Providers;
 use App\Events\OrderCancelledEvent;
 use App\Events\OrderCompletedEvent;
 use App\Events\OrderConfirmedEvent;
+use App\Events\ProductCreatedEvent;
 use App\Listeners\AwardTransactionReward;
 use App\Listeners\SendOrderConfirmationNotification;
+use App\Listeners\TriggerInitialPriceRecommendation;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -28,6 +30,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         OrderCompletedEvent::class => [
             AwardTransactionReward::class,
+        ],
+        ProductCreatedEvent::class => [
+            TriggerInitialPriceRecommendation::class,
         ],
     ];
 

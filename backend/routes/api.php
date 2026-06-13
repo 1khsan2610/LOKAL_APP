@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\UmkmController;
 use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\OpenApiDocumentationController;
+use App\Http\Controllers\Api\PriceRecommendationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -101,6 +102,16 @@ Route::middleware('auth.jwt')->group(function () {
     // Payments
     Route::prefix('payments')->group(function () {
         Route::get('status', [PaymentWebhookController::class, 'getStatus']);
+    });
+
+    // Price Recommendations (ML Service)
+    Route::prefix('recommendations')->group(function () {
+        Route::get('products/{product}', [PriceRecommendationController::class, 'getRecommendation']);
+        Route::get('products/{product}/latest', [PriceRecommendationController::class, 'getLatestRecommendation']);
+        Route::get('products/{product}/history', [PriceRecommendationController::class, 'getRecommendationHistory']);
+        Route::get('status/{requestId}', [PriceRecommendationController::class, 'getRecommendationStatus']);
+        Route::post('apply/{recommendation}', [PriceRecommendationController::class, 'applyRecommendation']);
+        Route::get('umkm', [PriceRecommendationController::class, 'getUmkmRecommendations']);
     });
 });
 

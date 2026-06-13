@@ -549,6 +549,216 @@ Response: 200 OK
 
 ---
 
+## ML Price Recommendation Endpoints (F-05)
+
+### 1. Get Price Recommendation (Sync)
+```
+GET /recommendations/products/{id}?latitude=-6.9174&longitude=107.6191&async=false
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "success": true,
+  "message": "Rekomendasi harga berhasil diambil",
+  "data": {
+    "recommendation": {
+      "product_id": 1,
+      "current_price": 15000,
+      "recommended_price": 16500,
+      "confidence": 0.87,
+      "reason": "Berdasarkan analisis pasar lokal dengan produk sejenis dalam radius 5 km",
+      "market_analysis": {
+        "avg_market_price": 16200,
+        "min_price": 14000,
+        "max_price": 18500,
+        "demand_level": "high",
+        "competitor_count": 5
+      },
+      "competitive_products": [
+        {
+          "name": "Mie Ayam B",
+          "price": 16000,
+          "rating": 4.7,
+          "distance": 1.2
+        },
+        ...
+      ]
+    },
+    "source": "ml_service"
+  }
+}
+
+Response: 500 Server Error (ML Service unavailable)
+{
+  "success": false,
+  "message": "Layanan rekomendasi harga sedang tidak tersedia"
+}
+```
+
+### 2. Get Price Recommendation (Async)
+```
+POST /recommendations/products/{id}?latitude=-6.9174&longitude=107.6191&async=true
+Authorization: Bearer <token>
+
+Response: 202 Accepted
+{
+  "success": true,
+  "message": "Analisis harga dimulai",
+  "data": {
+    "request_id": 42,
+    "status": "pending"
+  }
+}
+```
+
+### 3. Get Async Recommendation Status
+```
+GET /recommendations/status/{requestId}
+Authorization: Bearer <token>
+
+Response: 200 OK (still processing)
+{
+  "success": true,
+  "status": "pending",
+  "message": "Analisis masih dalam proses"
+}
+
+Response: 200 OK (completed)
+{
+  "success": true,
+  "status": "completed",
+  "data": {
+    "product_id": 1,
+    "current_price": 15000,
+    "recommended_price": 16500,
+    "confidence": 0.87,
+    "reason": "Berdasarkan analisis pasar lokal",
+    "market_analysis": { ... },
+    "competitive_products": [ ... ]
+  }
+}
+```
+
+### 4. Get Latest Recommendation for Product
+```
+GET /recommendations/products/{id}/latest
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "success": true,
+  "data": {
+    "id": 42,
+    "product_id": 1,
+    "current_price": 15000,
+    "recommended_price": 16500,
+    "confidence": 0.87,
+    "reason": "Berdasarkan analisis pasar lokal dengan produk sejenis dalam radius 5 km",
+    "price_change_percent": 10,
+    "suggests_increase": true,
+    "high_confidence": true,
+    "market_analysis": { ... },
+    "competitive_products": [ ... ],
+    "created_at": "2025-06-13T10:30:00Z"
+  }
+}
+
+Response: 404 Not Found
+{
+  "success": false,
+  "message": "Belum ada rekomendasi untuk produk ini"
+}
+```
+
+### 5. Get Recommendation History
+```
+GET /recommendations/products/{id}/history?limit=20&status=completed
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "success": true,
+  "data": [
+    {
+      "id": 42,
+      "product_id": 1,
+      "current_price": 15000,
+      "recommended_price": 16500,
+      "confidence": 0.87,
+      "reason": "Rekomendasi harga berbasis analisis pasar",
+      "status": "completed",
+      "created_at": "2025-06-13T10:30:00Z"
+    },
+    ...
+  ],
+  "total": 5
+}
+```
+
+### 6. Get UMKM Product Recommendations (UMKM only)
+```
+GET /recommendations/umkm?latitude=-6.9174&longitude=107.6191
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "success": true,
+  "message": "Rekomendasi produk berhasil diambil",
+  "data": {
+    "recommendations": [
+      {
+        "product_id": 1,
+        "current_price": 15000,
+        "recommended_price": 16500,
+        "confidence": 0.87,
+        "reason": "Berdasarkan analisis pasar lokal",
+        ...
+      },
+      ...
+    ],
+    "total": 5
+  }
+}
+```
+
+### 7. Apply Price Recommendation (UMKM only)
+```
+POST /recommendations/apply/{recommendationId}
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "apply_recommendation": true,
+  "notes": "Harga disesuaikan berdasarkan rekomendasi AI"
+}
+
+Response: 200 OK
+{
+  "success": true,
+  "message": "Harga produk berhasil diperbarui",
+  "data": {
+    "product_id": 1,
+    "old_price": 15000,
+    "new_price": 16500,
+    "change_percent": 10
+  }
+}
+
+Response: 403 Forbidden
+{
+  "success": false,
+  "message": "Anda tidak memiliki akses untuk mengubah produk ini"
+}
+
+Response: 422 Unprocessable Entity
+{
+  "success": false,
+  "message": "Rekomendasi belum selesai diproses"
+}
+```
+
+---
+
 ## Error Responses
 
 ### 401 Unauthorized

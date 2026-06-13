@@ -61,4 +61,10 @@ return [
         'api_key' => env('N8N_API_KEY'),
     ],
 
+    'ml' => [
+        'url' => env('ML_SERVICE_URL', 'http://ml-service:8000'),
+        'timeout' => env('ML_SERVICE_TIMEOUT', 30),
+        'api_key' => env('ML_SERVICE_API_KEY', ''),
+    ],
+
 ];
