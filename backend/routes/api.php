@@ -32,6 +32,11 @@ Route::post('test-post', function () {
     return response()->json(['message' => 'POST is working!', 'data' => request()->all()]);
 });
 
+// Simple health check used by Docker and monitoring
+Route::get('health', function () {
+    return response()->json(['status' => 'OK', 'message' => 'Backend is running']);
+});
+
 // ==================== Documentation Routes ====================
 // OpenAPI 3.0 Specification (SRS Bab 5.4)
 Route::get('docs/openapi.json', [OpenApiDocumentationController::class, 'specification']);
