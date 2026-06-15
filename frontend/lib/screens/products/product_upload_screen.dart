@@ -1,7 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../../config/theme.dart';
 
 class UmkmProductUploadScreen extends ConsumerStatefulWidget {
@@ -16,10 +17,16 @@ class _UmkmProductUploadScreenState extends ConsumerState<UmkmProductUploadScree
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _stockController = TextEditingController();
-  
+
   List<File> _selectedImages = [];
   String _selectedCategory = 'Makanan';
   bool _isLoading = false;
+  bool _isRecommendationLoading = false;
+  bool _recommendationAvailable = true;
+  double? _recommendedPrice;
+  double? _marketPriceLow;
+  double? _marketPriceHigh;
+  String? _recommendationMessage;
 
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -58,6 +65,52 @@ class _UmkmProductUploadScreenState extends ConsumerState<UmkmProductUploadScree
     setState(() => _selectedImages.removeAt(index));
   }
 
+  Future<void> _requestPriceRecommendation() async {
+    if (!_recommendationAvailable) {
+      return;
+    }
+    final input = double.tryParse(_priceController.text.replaceAll(RegExp(r'[^0-9]'), ''));
+    if (input == null || input <= 0) {
+      _showError('Masukkan harga dasar yang valid untuk rekomendasi.');
+      return;
+    }
+    setState(() {
+      _isRecommendationLoading = true;
+      _recommendationMessage = null;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    if (!mounted) return;
+
+    final modifier = _getCategoryPriceModifier(_selectedCategory);
+    final price = input * modifier;
+    setState(() {
+      _recommendedPrice = price;
+      _marketPriceLow = price * 0.9;
+      _marketPriceHigh = price * 1.1;
+      _isRecommendationLoading = false;
+      _recommendationMessage = 'Perkiraan harga berdasarkan kategori dan kondisi pasar.';
+    });
+  }
+
+  double _getCategoryPriceModifier(String category) {
+    switch (category) {
+      case 'Makanan':
+        return 1.15;
+      case 'Minuman':
+        return 1.12;
+      case 'Kerajinan':
+        return 1.25;
+      case 'Fashion':
+        return 1.18;
+      case 'Elektronik':
+        return 1.22;
+      default:
+        return 1.10;
+    }
+  }
+
   void _submitProduct() {
     if (_productNameController.text.isEmpty) {
       _showError('Nama produk tidak boleh kosong');
@@ -82,19 +135,23 @@ class _UmkmProductUploadScreenState extends ConsumerState<UmkmProductUploadScree
 
     setState(() => _isLoading = true);
 
-    // Simulate upload
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Produk berhasil ditambahkan')),
         );
-        // Clear form
         _productNameController.clear();
         _descriptionController.clear();
         _priceController.clear();
         _stockController.clear();
-        setState(() => _selectedImages.clear());
+        setState(() {
+          _selectedImages.clear();
+          _recommendedPrice = null;
+          _marketPriceLow = null;
+          _marketPriceHigh = null;
+          _recommendationMessage = null;
+        });
       }
     });
   }
@@ -118,7 +175,6 @@ class _UmkmProductUploadScreenState extends ConsumerState<UmkmProductUploadScree
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Upload Section
             Text('Foto Produk', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             if (_selectedImages.isEmpty)
@@ -199,8 +255,6 @@ class _UmkmProductUploadScreenState extends ConsumerState<UmkmProductUploadScree
                 ],
               ),
             const SizedBox(height: 24),
-
-            // Product Name
             Text('Nama Produk', style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             TextField(
@@ -212,8 +266,6 @@ class _UmkmProductUploadScreenState extends ConsumerState<UmkmProductUploadScree
               ),
             ),
             const SizedBox(height: 16),
-
-            // Category
             Text('Kategori', style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
@@ -228,8 +280,60 @@ class _UmkmProductUploadScreenState extends ConsumerState<UmkmProductUploadScree
               ),
             ),
             const SizedBox(height: 16),
-
-            // Description
+            if (_recommendationAvailable)
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                color: AppTheme.primaryLight.withOpacity(0.12),
+                elevation: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Rekomendasi Harga', style: Theme.of(context).textTheme.titleMedium),
+                              const SizedBox(height: 6),
+                              Text(
+                                _recommendedPrice != null ? 'Nilai pasar saat ini diperbarui otomatis.' : 'Gunakan rekomendasi harga setelah mengisi harga dasar.',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                          ElevatedButton(
+                            onPressed: _isRecommendationLoading ? null : _requestPriceRecommendation,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: _isRecommendationLoading
+                                ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(Colors.white)))
+                                : const Text('Cek Harga'),
+                          ),
+                        ],
+                      ),
+                      if (_recommendedPrice != null) ...[
+                        const SizedBox(height: 16),
+                        Text('Harga yang direkomendasikan', style: Theme.of(context).textTheme.bodySmall),
+                        const SizedBox(height: 8),
+                        Text('Rp ${_recommendedPrice!.toStringAsFixed(0)}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: AppTheme.primaryColor)),
+                        const SizedBox(height: 10),
+                        Text('Rentang pasar: Rp ${_marketPriceLow!.toStringAsFixed(0)} - Rp ${_marketPriceHigh!.toStringAsFixed(0)}', style: Theme.of(context).textTheme.bodyMedium),
+                        if (_recommendationMessage != null) ...[
+                          const SizedBox(height: 8),
+                          Text(_recommendationMessage!, style: Theme.of(context).textTheme.bodySmall),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 16),
             Text('Deskripsi', style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             TextField(
@@ -242,8 +346,6 @@ class _UmkmProductUploadScreenState extends ConsumerState<UmkmProductUploadScree
               ),
             ),
             const SizedBox(height: 16),
-
-            // Price and Stock Row
             Row(
               children: [
                 Expanded(
@@ -286,8 +388,6 @@ class _UmkmProductUploadScreenState extends ConsumerState<UmkmProductUploadScree
               ],
             ),
             const SizedBox(height: 32),
-
-            // Submit Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
