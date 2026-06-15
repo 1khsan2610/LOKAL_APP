@@ -1,18 +1,23 @@
 FROM php:8.1-fpm-alpine AS builder
 
-# Install build dependencies
+# Install runtime helpers and git (needed by composer), then build deps
 RUN apk add --no-cache \
     curl \
     git \
+    zip
+
+RUN apk add --no-cache --virtual .build-deps \
+    $PHPIZE_DEPS \
     build-base \
     autoconf \
+    libtool \
+    pkgconf \
     libzip-dev \
     zlib-dev \
     libxml2-dev \
-    zip \
-    openssl-dev
+    openssl-dev \
+    mariadb-dev
 
-# Install PHP extensions
 RUN docker-php-ext-install \
     zip \
     pdo \
@@ -22,7 +27,8 @@ RUN docker-php-ext-install \
     dom \
     fileinfo \
     session \
-    xml
+    xml && \
+    apk del .build-deps
 
 RUN curl -fsSL https://getcomposer.org/installer -o composer-setup.php && \
     php composer-setup.php --install-dir=/usr/local/bin --filename=composer && \
@@ -52,10 +58,12 @@ RUN apk add --no-cache \
 # Install build dependencies for PHP extensions compilation
 RUN apk add --no-cache --virtual .build-deps \
     $PHPIZE_DEPS \
+    libtool \
+    pkgconf \
     libzip-dev \
     zlib-dev \
     libxml2-dev \
-    mariadb-connector-c-dev
+    mariadb-dev
 
 # Install runtime dependencies
 RUN apk add --no-cache \
