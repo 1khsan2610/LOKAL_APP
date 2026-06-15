@@ -15,6 +15,8 @@ import 'screens/products/product_list_screen.dart';
 import 'screens/products/product_detail_screen.dart';
 import 'screens/products/product_upload_screen.dart';
 import 'screens/cart/cart_screen.dart';
+import 'screens/cart/checkout_screen.dart';
+import 'screens/cart/order_confirmation_screen.dart';
 import 'screens/orders/orders_screen.dart';
 import 'screens/wallet/wallet_screen.dart';
 import 'screens/notifications/notifications_screen.dart';
@@ -70,7 +72,8 @@ class MyApp extends ConsumerWidget {
           final productId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
           return ProductDetailScreen(productId: productId);
         },
-        
+        '/checkout': (context) => const CheckoutScreen(),
+        '/order-confirmation': (context) => const OrderConfirmationScreen(),
         // Producer/UMKM routes
         '/producer-home': (context) => const ProducerHomeScreen(),
         '/product-upload': (context) => const UmkmProductUploadScreen(),
