@@ -50,10 +50,9 @@ class ApiService {
       options.headers['Authorization'] = 'Bearer $_accessToken';
     }
     if (kDebugMode) {
-      print('🚀 API Request: ${options.method} ${options.path}');
-      print('Headers: ${options.headers}');
+      // Debug logging disabled in production
       if (options.data != null) {
-        print('Body: ${options.data}');
+        // Debug logging disabled in production
       }
     }
     handler.next(options);
@@ -64,8 +63,7 @@ class ApiService {
     ResponseInterceptorHandler handler,
   ) async {
     if (kDebugMode) {
-      print('✅ API Response: ${response.statusCode} ${response.requestOptions.path}');
-      print('Response: ${response.data}');
+      // Debug logging disabled in production
     }
     handler.next(response);
   }
@@ -75,8 +73,7 @@ class ApiService {
     ErrorInterceptorHandler handler,
   ) async {
     if (kDebugMode) {
-      print('❌ API Error: ${error.message}');
-      print('Error Response: ${error.response?.data}');
+      // Debug logging disabled in production
     }
 
     // Handle specific error codes

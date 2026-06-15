@@ -62,7 +62,7 @@ class _AnalyticsDashboardScreenState extends ConsumerState<AnalyticsDashboardScr
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryLight.withOpacity(0.18),
+                          color: AppTheme.primaryLight.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -185,7 +185,7 @@ class _AnalyticsDashboardScreenState extends ConsumerState<AnalyticsDashboardScr
                                 width: 60,
                                 height: 60,
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withOpacity(0.1),
+                                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(Icons.shopping_bag, color: AppTheme.primaryColor),
@@ -300,7 +300,7 @@ class _AnalyticsDashboardScreenState extends ConsumerState<AnalyticsDashboardScr
           belowBarData: BarAreaData(
             show: true,
             gradient: LinearGradient(
-              colors: [AppTheme.primaryColor.withOpacity(0.2), AppTheme.primaryColor.withOpacity(0.02)],
+              colors: [AppTheme.primaryColor.withValues(alpha: 0.2), AppTheme.primaryColor.withValues(alpha: 0.02)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),

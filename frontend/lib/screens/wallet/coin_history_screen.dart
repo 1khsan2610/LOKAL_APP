@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
-import '../../config/constants.dart';
 import '../../models/wallet.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/common/custom_widgets.dart' as custom_widgets;
@@ -182,7 +181,7 @@ class _TransactionCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -249,7 +248,7 @@ class _TransactionCard extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
+                        color: Colors.red.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -269,7 +268,7 @@ class _TransactionCard extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
+                        color: Colors.orange.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -335,15 +334,15 @@ class _TransactionCard extends StatelessWidget {
   Color _getIconBackgroundColor(CoinTransactionType type, bool isIncome) {
     switch (type) {
       case CoinTransactionType.reward:
-        return Colors.blue.withOpacity(0.15);
+        return Colors.blue.withValues(alpha: 0.15);
       case CoinTransactionType.usage:
-        return Colors.red.withOpacity(0.15);
+        return Colors.red.withValues(alpha: 0.15);
       case CoinTransactionType.review:
-        return Colors.amber.withOpacity(0.15);
+        return Colors.amber.withValues(alpha: 0.15);
       case CoinTransactionType.bonus:
-        return Colors.purple.withOpacity(0.15);
+        return Colors.purple.withValues(alpha: 0.15);
       case CoinTransactionType.expiry:
-        return Colors.red.withOpacity(0.15);
+        return Colors.red.withValues(alpha: 0.15);
     }
   }
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../config/constants.dart';
-import '../../config/theme.dart';
 
 class RegisterChoiceScreen extends StatelessWidget {
   const RegisterChoiceScreen({Key? key}) : super(key: key);

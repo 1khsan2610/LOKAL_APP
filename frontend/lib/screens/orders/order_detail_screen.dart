@@ -35,7 +35,7 @@ class OrderDetailScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(
                     AppNumbers.paddingMedium,
                   ),
-                  color: AppTheme.primaryColor.withOpacity(0.05),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -476,7 +476,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color:
-            _getStatusColor().withOpacity(0.1),
+            _getStatusColor().withValues(alpha: 0.1),
         borderRadius:
             BorderRadius.circular(4),
       ),

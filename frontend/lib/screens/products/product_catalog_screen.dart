@@ -163,7 +163,7 @@ class _ProductCatalogScreenState extends ConsumerState<ProductCatalogScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
+                          color: Colors.black.withValues(alpha: 0.08),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         )
@@ -291,7 +291,7 @@ class _ProductCatalogScreenState extends ConsumerState<ProductCatalogScreen> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, 2),
             )
@@ -326,7 +326,7 @@ class _ProductCatalogScreenState extends ConsumerState<ProductCatalogScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
+                          color: Colors.black.withValues(alpha: 0.15),
                           blurRadius: 4,
                         )
                       ],
@@ -354,7 +354,7 @@ class _ProductCatalogScreenState extends ConsumerState<ProductCatalogScreen> {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black87.withOpacity(0.7),
+                      color: Colors.black87.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(

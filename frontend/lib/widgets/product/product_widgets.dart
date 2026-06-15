@@ -15,7 +15,7 @@ class ProductCard extends StatelessWidget {
   final VoidCallback? onAddToCart;
 
   const ProductCard({
-    Key? key,
+    super.key,
     required this.productId,
     required this.name,
     required this.imageUrl,
@@ -25,7 +25,7 @@ class ProductCard extends StatelessWidget {
     required this.stock,
     required this.onTap,
     this.onAddToCart,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -162,9 +162,9 @@ class ProductImageCarousel extends StatefulWidget {
   final List<String> images;
 
   const ProductImageCarousel({
-    Key? key,
+    super.key,
     required this.images,
-  }) : super(key: key);
+  });
 
   @override
   State<ProductImageCarousel> createState() => _ProductImageCarouselState();
@@ -280,12 +280,12 @@ class ProductGridView extends StatelessWidget {
   final bool isLoading;
 
   const ProductGridView({
-    Key? key,
+    super.key,
     required this.products,
     required this.onProductTap,
     this.onAddToCart,
     this.isLoading = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

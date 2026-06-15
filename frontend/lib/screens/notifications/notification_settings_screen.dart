@@ -28,7 +28,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   gradient: LinearGradient(
                     colors: [
                       AppTheme.primaryColor,
-                      AppTheme.primaryColor.withOpacity(0.8),
+                      AppTheme.primaryColor.withValues(alpha: 0.8),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -40,7 +40,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       padding: const EdgeInsets.all(12),
@@ -96,7 +96,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.1),
+                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           padding: const EdgeInsets.all(10),
@@ -240,10 +240,10 @@ class NotificationSettingsScreen extends ConsumerWidget {
               // Info Section
               Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.infoColor.withOpacity(0.08),
+                  color: AppTheme.infoColor.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppTheme.infoColor.withOpacity(0.2),
+                    color: AppTheme.infoColor.withValues(alpha: 0.2),
                   ),
                 ),
                 padding: const EdgeInsets.all(16),
@@ -296,7 +296,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               padding: const EdgeInsets.all(10),

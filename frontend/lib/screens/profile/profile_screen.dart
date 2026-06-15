@@ -6,7 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/common/custom_widgets.dart' as custom_widgets;
 
 class ProfileScreen extends ConsumerWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -106,7 +106,7 @@ class ProfileScreen extends ConsumerWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -355,8 +355,8 @@ class _VerificationBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: isVerified
-            ? AppTheme.successColor.withOpacity(0.1)
-            : AppTheme.warningColor.withOpacity(0.1),
+            ? AppTheme.successColor.withValues(alpha: 0.1)
+            : AppTheme.warningColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(

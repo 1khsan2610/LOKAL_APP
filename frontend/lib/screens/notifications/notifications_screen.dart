@@ -7,7 +7,7 @@ import '../../widgets/common/custom_widgets.dart';
 import 'notification_settings_screen.dart';
 
 class NotificationsScreen extends ConsumerWidget {
-  const NotificationsScreen({Key? key}) : super(key: key);
+  const NotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,7 +74,7 @@ class NotificationsScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  ref.refresh(notificationsProvider);
+                  ref.invalidate(notificationsProvider);
                 },
                 child: const Text('Coba Lagi'),
               ),
@@ -92,14 +92,14 @@ class NotificationsScreen extends ConsumerWidget {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             padding: const EdgeInsets.all(24),
             child: Icon(
               Icons.notifications_off,
               size: 64,
-              color: AppTheme.primaryColor.withOpacity(0.5),
+              color: AppTheme.primaryColor.withValues(alpha: 0.5),
             ),
           ),
           const SizedBox(height: 24),
@@ -134,7 +134,7 @@ class NotificationsScreen extends ConsumerWidget {
         gradient: LinearGradient(
           colors: [
             AppTheme.primaryColor,
-            AppTheme.primaryColor.withOpacity(0.8),
+            AppTheme.primaryColor.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -178,7 +178,7 @@ class NotificationsScreen extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.white.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(
@@ -235,17 +235,17 @@ class NotificationsScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: notification.isRead ? Colors.white : Colors.blue.withOpacity(0.04),
+        color: notification.isRead ? Colors.white : Colors.blue.withValues(alpha: 0.04),
         border: Border.all(
           color: notification.isRead
               ? Colors.grey.shade200
-              : AppTheme.primaryColor.withOpacity(0.3),
+              : AppTheme.primaryColor.withValues(alpha: 0.3),
           width: notification.isRead ? 1 : 1.5,
         ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -258,7 +258,7 @@ class NotificationsScreen extends ConsumerWidget {
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20),
           decoration: BoxDecoration(
-            color: Colors.red.withOpacity(0.1),
+            color: Colors.red.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(
@@ -278,7 +278,7 @@ class NotificationsScreen extends ConsumerWidget {
               // Icon
               Container(
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
+                  color: iconColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding: const EdgeInsets.all(12),
@@ -357,7 +357,7 @@ class NotificationsScreen extends ConsumerWidget {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.1),
+                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         padding: const EdgeInsets.all(6),

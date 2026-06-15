@@ -29,11 +29,7 @@ class AppConstants {
   static const int reviewCoinReward = 5;
   static const int newUserCoinBonus = 50;
   
-  // OTP
-  static const int otpDurationSeconds = 300; // 5 minutes
-  static const int otpResendDelay = 60; // 1 minute
-  static const int maxOtpAttempts = 5;
-  static const int otpBlockDuration = 900; // 15 minutes
+
   
   // Product
   static const int maxProductImages = 5;
@@ -64,17 +60,11 @@ class AppStrings {
   static const String loginTitle = 'Masuk ke LOKAL';
   static const String loginSubtitle = 'Masukkan nomor telepon Anda';
   static const String phoneHint = '08xxxxxxxxxx';
-  static const String otpTitle = 'Verifikasi OTP';
-  static const String otpSubtitle = 'Kami telah mengirim kode 6 digit ke nomor Anda';
-  static const String otpHint = '000000';
-  static const String verifyOtp = 'Verifikasi';
-  static const String resendOtp = 'Kirim Ulang';
-  static const String otpExpiredIn = 'Kode berlaku dalam';
+
   
   // Roles
   static const String roleConsumer = 'Konsumen';
   static const String roleUmkm = 'UMKM';
-  static const String roleProducer = 'Produsen';
   
   // Buttons
   static const String btnLogin = 'Masuk';

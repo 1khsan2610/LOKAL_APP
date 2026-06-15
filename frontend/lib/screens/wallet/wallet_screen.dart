@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
-import '../../config/constants.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/common/custom_widgets.dart' as custom_widgets;
 import 'coin_history_screen.dart';
@@ -19,7 +18,7 @@ class WalletScreen extends ConsumerWidget {
         data: (wallet) {
           return RefreshIndicator(
             onRefresh: () async {
-              ref.refresh(walletProvider);
+              ref.invalidate(walletProvider);
             },
             child: CustomScrollView(
               slivers: [
@@ -97,9 +96,9 @@ class WalletScreen extends ConsumerWidget {
                                         height: 80,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.white.withOpacity(0.15),
+                                          color: Colors.white.withValues(alpha: 0.15),
                                           border: Border.all(
-                                            color: Colors.white.withOpacity(0.3),
+                                            color: Colors.white.withValues(alpha: 0.3),
                                             width: 2,
                                           ),
                                         ),
@@ -261,12 +260,12 @@ class _ExpiringCoinCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.orange.withOpacity(0.1),
-            Colors.red.withOpacity(0.05),
+            Colors.orange.withValues(alpha: 0.1),
+            Colors.red.withValues(alpha: 0.05),
           ],
         ),
         border: Border.all(
-          color: Colors.orange.withOpacity(0.3),
+          color: Colors.orange.withValues(alpha: 0.3),
           width: 1.5,
         ),
         borderRadius: BorderRadius.circular(12),
@@ -276,7 +275,7 @@ class _ExpiringCoinCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.2),
+              color: Colors.orange.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
@@ -336,10 +335,10 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: color.withOpacity(0.2),
+          color: color.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -401,8 +400,8 @@ class _TransactionItem extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               color: isIncome
-                  ? Colors.green.withOpacity(0.15)
-                  : Colors.red.withOpacity(0.15),
+                  ? Colors.green.withValues(alpha: 0.15)
+                  : Colors.red.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -456,7 +455,7 @@ class _TransactionItem extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.15),
+                          color: Colors.orange.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(

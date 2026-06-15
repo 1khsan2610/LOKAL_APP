@@ -240,7 +240,7 @@ class HomeTab extends StatelessWidget {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.category, color: AppTheme.primaryColor),
@@ -350,7 +350,7 @@ class ProfileTab extends ConsumerWidget {
             ElevatedButton(
               onPressed: () {
                 ref.read(authProvider.notifier).logout();
-                Navigator.pushNamedAndRemoveUntil(context, '/phone-entry', (route) => false);
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
               },
               child: const Text('Logout'),
             ),

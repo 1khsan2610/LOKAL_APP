@@ -110,7 +110,7 @@ class AppNotification {
       type: _parseType(json['type']),
       title: (json['title'] ?? '').toString(),
       message: (json['message'] ?? '').toString(),
-      imageUrl: json['image_url'] != null ? json['image_url'].toString() : null,
+      imageUrl: json['image_url']?.toString(),
       data: json['data'],
       isRead: json['is_read'] ?? false,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),

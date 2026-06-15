@@ -5,7 +5,7 @@ import '../../models/order.dart';
 import '../../widgets/common/custom_widgets.dart';
 
 class OrderConfirmationScreen extends StatelessWidget {
-  const OrderConfirmationScreen({Key? key}) : super(key: key);
+  const OrderConfirmationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

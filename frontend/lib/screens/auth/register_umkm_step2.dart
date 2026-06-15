@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../config/constants.dart';
 
 class RegisterUmkmStep2 extends StatefulWidget {
-  const RegisterUmkmStep2({Key? key}) : super(key: key);
+  const RegisterUmkmStep2({super.key});
 
   @override
   State<RegisterUmkmStep2> createState() => _RegisterUmkmStep2State();
@@ -30,8 +30,6 @@ class _RegisterUmkmStep2State extends State<RegisterUmkmStep2> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Register UMKM - Langkah 2')),
       body: Padding(

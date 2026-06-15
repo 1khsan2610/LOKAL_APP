@@ -6,7 +6,7 @@ import '../../providers/orders_provider.dart';
 import '../../widgets/common/custom_widgets.dart';
 
 class CartScreen extends ConsumerWidget {
-  const CartScreen({Key? key}) : super(key: key);
+  const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

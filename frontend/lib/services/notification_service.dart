@@ -73,14 +73,14 @@ class NotificationService {
     try {
       return await _firebaseMessaging.getToken();
     } catch (e) {
-      print('Error getting FCM token: $e');
+      // Debug logging disabled in production
       return null;
     }
   }
 
   /// Handle foreground messages
   void _handleForegroundMessage(RemoteMessage message) {
-    print('Handling foreground message: ${message.messageId}');
+    // Debug logging disabled in production
 
     // Show local notification
     _showLocalNotification(
@@ -92,20 +92,20 @@ class NotificationService {
 
   /// Handle background messages
   static Future<void> _handleBackgroundMessage(RemoteMessage message) async {
-    print('Handling background message: ${message.messageId}');
+    // Debug logging disabled in production
     // Background message handling
   }
 
   /// Handle notification tap
   void _handleNotificationTap(RemoteMessage message) {
-    print('Notification tapped: ${message.messageId}');
+    // Debug logging disabled in production
     // Navigate based on message data
     // Example: if (message.data['type'] == 'order') navigateToOrderDetails();
   }
 
   /// Handle local notification response
   void _handleNotificationResponse(NotificationResponse response) {
-    print('Notification response: ${response.payload}');
+    // Debug logging disabled in production
     // Handle notification tap from local notifications
   }
 
@@ -150,9 +150,9 @@ class NotificationService {
   Future<void> subscribeToTopic(String topic) async {
     try {
       await _firebaseMessaging.subscribeToTopic(topic);
-      print('Subscribed to topic: $topic');
+      // Debug logging disabled in production
     } catch (e) {
-      print('Error subscribing to topic: $e');
+      // Debug logging disabled in production
     }
   }
 
@@ -160,9 +160,9 @@ class NotificationService {
   Future<void> unsubscribeFromTopic(String topic) async {
     try {
       await _firebaseMessaging.unsubscribeFromTopic(topic);
-      print('Unsubscribed from topic: $topic');
+      // Debug logging disabled in production
     } catch (e) {
-      print('Error unsubscribing from topic: $e');
+      // Debug logging disabled in production
     }
   }
 
@@ -178,9 +178,6 @@ class NotificationService {
     } else if (role == 'consumer') {
       await subscribeToTopic('consumer_notifications');
       await subscribeToTopic('consumer_$userId');
-    } else if (role == 'producer') {
-      await subscribeToTopic('producer_notifications');
-      await subscribeToTopic('producer_$userId');
     }
   }
 
@@ -194,9 +191,6 @@ class NotificationService {
     } else if (role == 'consumer') {
       await unsubscribeFromTopic('consumer_notifications');
       await unsubscribeFromTopic('consumer_$userId');
-    } else if (role == 'producer') {
-      await unsubscribeFromTopic('producer_notifications');
-      await unsubscribeFromTopic('producer_$userId');
     }
   }
 }
