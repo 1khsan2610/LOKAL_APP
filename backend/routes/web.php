@@ -16,3 +16,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Backwards-compatible health endpoint used by Docker healthcheck
+Route::get('/api/health', function () {
+    return response()->json(['status' => 'OK', 'message' => 'Backend is running']);
+});
