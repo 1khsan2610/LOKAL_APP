@@ -62,7 +62,9 @@ class AppStrings {
   
   // Authentication
   static const String loginTitle = 'Masuk ke LOKAL';
-  static const String loginSubtitle = 'Masukkan nomor telepon Anda';
+  static const String loginSubtitle = 'Masukkan email dan password Anda';
+  static const String emailHint = 'name@example.com';
+  static const String passwordHint = 'Masukkan password Anda';
   static const String phoneHint = '08xxxxxxxxxx';
   static const String otpTitle = 'Verifikasi OTP';
   static const String otpSubtitle = 'Kami telah mengirim kode 6 digit ke nomor Anda';
@@ -93,6 +95,7 @@ class AppStrings {
   
   // Validation
   static const String errorInvalidPhone = 'Nomor telepon tidak valid';
+  static const String errorInvalidEmail = 'Email tidak valid';
   static const String errorInvalidOtp = 'Kode OTP tidak valid';
   static const String errorOtpExpired = 'Kode OTP sudah kadaluwarsa';
   static const String errorMaxOtpAttempts = 'Terlalu banyak percobaan. Coba lagi nanti';

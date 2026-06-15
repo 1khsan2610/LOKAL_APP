@@ -64,29 +64,43 @@ class AuthNotifier extends StateNotifier<AsyncValue<auth_service.AuthResponse?>>
     }
   }
 
-  Future<void> requestOtp(String phoneNumber) async {
+  Future<auth_service.AuthResponse> login({
+    required String email,
+    required String password,
+  }) async {
     state = const AsyncValue.loading();
     try {
-      await authService.requestOtp(phoneNumber);
-      state = const AsyncValue.data(null);
+      final response = await authService.login(
+        email: email,
+        password: password,
+      );
+      state = AsyncValue.data(response);
+      return response;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+      rethrow;
     }
   }
 
-  Future<auth_service.AuthResponse> verifyOtp({
+  Future<Map<String, dynamic>> register({
+    required String name,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
     required String phoneNumber,
-    required String otp,
     required String role,
   }) async {
     state = const AsyncValue.loading();
     try {
-      final response = await authService.verifyOtp(
+      final response = await authService.register(
+        name: name,
+        email: email,
+        password: password,
+        passwordConfirmation: passwordConfirmation,
         phoneNumber: phoneNumber,
-        otp: otp,
         role: role,
       );
-      state = AsyncValue.data(response);
+      state = const AsyncValue.data(null);
       return response;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -179,14 +193,4 @@ final currentUserProvider = FutureProvider<User?>((ref) async {
 final isLoggedInProvider = FutureProvider<bool>((ref) async {
   final authService = ref.watch(authServiceProvider);
   return await authService.isLoggedIn();
-});
-
-// OTP state provider
-final otpStateProvider = StateProvider<Map<String, dynamic>>((ref) {
-  return {
-    'phone': '',
-    'otpSent': false,
-    'timeRemaining': 0,
-    'attempts': 0,
-  };
 });

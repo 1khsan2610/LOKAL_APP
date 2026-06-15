@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
+import '../../config/constants.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 
@@ -13,6 +14,9 @@ class SignupScreen extends ConsumerStatefulWidget {
 
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
   UserRole _selectedRole = UserRole.consumer;
   bool _isLoading = false;
@@ -21,6 +25,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
@@ -33,11 +40,54 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
     try {
       final name = _nameController.text.trim();
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+      final confirmPassword = _confirmPasswordController.text;
       final phone = _phoneController.text.trim();
 
       if (name.isEmpty) {
         setState(() {
           _errorMessage = 'Nama lengkap tidak boleh kosong';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      if (email.isEmpty) {
+        setState(() {
+          _errorMessage = 'Email tidak boleh kosong';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      if (!RegExp(AppRegex.emailRegex).hasMatch(email)) {
+        setState(() {
+          _errorMessage = 'Email tidak valid';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      if (password.isEmpty) {
+        setState(() {
+          _errorMessage = 'Password tidak boleh kosong';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      if (password.length < 8) {
+        setState(() {
+          _errorMessage = 'Password minimal 8 karakter';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      if (password != confirmPassword) {
+        setState(() {
+          _errorMessage = 'Konfirmasi password tidak cocok';
           _isLoading = false;
         });
         return;
@@ -51,22 +101,30 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         return;
       }
 
-      // Send OTP request for registration
-      await ref.read(authProvider.notifier).requestOtp(phone);
+      final roleString = _selectedRole.toString().split('.').last;
+      if (roleString == 'producer') {
+        setState(() {
+          _errorMessage = 'Role producer tidak tersedia saat ini';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final response = await ref.read(authProvider.notifier).register(
+            name: name,
+            email: email,
+            password: password,
+            passwordConfirmation: confirmPassword,
+            phoneNumber: phone,
+            role: roleString,
+          );
 
       if (mounted) {
-        // Convert enum to string
-        final roleString = _selectedRole.toString().split('.').last;
-        
-        // Navigate to OTP screen with signup data
-        Navigator.of(context).pushNamed(
-          '/otp-signup',
-          arguments: {
-            'phone': phone,
-            'name': name,
-            'role': roleString,
-          },
+        final message = response['message']?.toString() ?? 'Registrasi berhasil';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
         );
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
       }
     } catch (e) {
       setState(() {
@@ -139,6 +197,99 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   enabled: !_isLoading,
                   decoration: InputDecoration(
                     hintText: 'Masukkan nama lengkap',
+                    hintStyle: TextStyle(
+                      color: AppTheme.textHint,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF5F5F5),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Email Input
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Email',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _emailController,
+                  enabled: !_isLoading,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    hintText: AppStrings.emailHint,
+                    hintStyle: TextStyle(
+                      color: AppTheme.textHint,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF5F5F5),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Password Input
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Password',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _passwordController,
+                  enabled: !_isLoading,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: AppStrings.passwordHint,
+                    hintStyle: TextStyle(
+                      color: AppTheme.textHint,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF5F5F5),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Confirm Password Input
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Konfirmasi Password',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _confirmPasswordController,
+                  enabled: !_isLoading,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: 'Ulangi password Anda',
                     hintStyle: TextStyle(
                       color: AppTheme.textHint,
                     ),

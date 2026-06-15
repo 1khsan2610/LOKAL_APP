@@ -350,7 +350,7 @@ class ProfileTab extends ConsumerWidget {
             ElevatedButton(
               onPressed: () {
                 ref.read(authProvider.notifier).logout();
-                Navigator.pushNamedAndRemoveUntil(context, '/phone-entry', (route) => false);
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
               },
               child: const Text('Logout'),
             ),

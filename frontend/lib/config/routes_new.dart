@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../screens/auth/login_screen.dart';
-import '../screens/auth/otp_verification_screen.dart';
 import '../screens/main_navigation_screen.dart';
 import '../screens/cart/checkout_screen.dart';
 import '../screens/products/product_detail_screen.dart';
@@ -10,7 +9,6 @@ import '../screens/orders/order_detail_screen.dart';
 class AppRoutes {
   // Auth routes
   static const String login = '/login';
-  static const String otpVerification = '/otp-verification';
 
   // Main navigation
   static const String main = '/main';
@@ -49,12 +47,6 @@ class RouteGenerator {
       case AppRoutes.login:
         return CustomPageRoute(
           page: const LoginScreen(),
-          name: settings.name,
-        );
-
-      case AppRoutes.otpVerification:
-        return CustomPageRoute(
-          page: const OtpVerificationScreen(),
           name: settings.name,
         );
 

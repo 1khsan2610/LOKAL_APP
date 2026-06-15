@@ -428,7 +428,7 @@ class _ProducerHomeScreenState extends ConsumerState<ProducerHomeScreen> {
             onPressed: () {
               ref.read(authProvider.notifier).logout();
               Navigator.pop(context);
-              Navigator.pushNamedAndRemoveUntil(context, '/phone-entry', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
             },
             child: const Text('Keluar', style: TextStyle(color: Colors.red)),
           ),

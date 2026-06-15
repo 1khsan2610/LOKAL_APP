@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'config/theme.dart';
 import 'config/constants.dart';
-import 'screens/auth/phone_entry_screen.dart';
-import 'screens/auth/otp_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/auth/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
@@ -44,21 +42,8 @@ class MyApp extends ConsumerWidget {
       home: const SplashScreen(),
       routes: {
         '/splash': (context) => const SplashScreen(),
-        '/phone-entry': (context) => const PhoneEntryScreen(),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
-        '/otp-verification': (context) {
-          final phone = ModalRoute.of(context)?.settings.arguments as String? ?? '';
-          return OtpScreen(phone: phone, role: 'consumer');
-        },
-        '/otp-signup': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
-          return OtpScreen(
-            phone: args['phone'] ?? '',
-            name: args['name'],
-            role: args['role'] ?? 'consumer',
-          );
-        },
         // Consumer routes
         '/consumer-home': (context) => const ConsumerHomeScreen(),
         '/cart': (context) => const CartScreen(),

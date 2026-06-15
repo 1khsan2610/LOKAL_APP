@@ -1,4 +1,4 @@
-name: CI / CD
+name: CI/CD
 
 on:
   push:
@@ -14,25 +14,22 @@ jobs:
     name: Backend PHP Lint
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v4
         with:
           php-version: '8.1'
-          extensions: mbstring, bcmath, ctype, dom, fileinfo, pdo, pdo_mysql, xml, zip
+          extensions: mbstring, bcmath, ctype, curl, dom, fileinfo, openssl, pdo, pdo_mysql, pdo_sqlite, xml, zip
           coverage: none
 
       - name: Install Composer dependencies
         working-directory: backend
-        run: |
-          composer install --no-interaction --no-progress --no-suggest --prefer-dist
+        run: composer install --no-interaction --no-progress --no-suggest --prefer-dist --ignore-platform-req=ext-tokenizer
 
       - name: Run Laravel Pint lint
         working-directory: backend
-        run: |
-          ./vendor/bin/pint --test
+        run: ./vendor/bin/pint --test
 
   backend-test:
     name: Backend PHP Unit Tests
@@ -46,38 +43,34 @@ jobs:
       QUEUE_CONNECTION: sync
       SESSION_DRIVER: array
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v4
         with:
           php-version: '8.1'
-          extensions: mbstring, bcmath, ctype, dom, fileinfo, pdo, pdo_mysql, pdo_sqlite, xml, zip
+          extensions: mbstring, bcmath, ctype, curl, dom, fileinfo, openssl, pdo, pdo_mysql, pdo_sqlite, xml, zip
           coverage: none
 
       - name: Install Composer dependencies
         working-directory: backend
-        run: |
-          composer install --no-interaction --no-progress --no-suggest --prefer-dist
+        run: composer install --no-interaction --no-progress --no-suggest --prefer-dist --ignore-platform-req=ext-tokenizer
 
-      - name: Create test environment file
+      - name: Prepare test environment
         working-directory: backend
         run: |
-          if [ -f .env.example ]; then cp .env.example .env; fi
+          cp .env.example .env
           php artisan key:generate --force
 
       - name: Run PHPUnit tests
         working-directory: backend
-        run: |
-          php artisan test --no-tty
+        run: php artisan test --env=testing --no-tty
 
   flutter-analyze:
     name: Flutter Analyze and Test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Flutter
         uses: subosaka/setup-flutter@v2
@@ -86,18 +79,15 @@ jobs:
 
       - name: Install Flutter dependencies
         working-directory: frontend
-        run: |
-          flutter pub get
+        run: flutter pub get
 
       - name: Run Flutter Analyze
         working-directory: frontend
-        run: |
-          flutter analyze
+        run: flutter analyze
 
       - name: Run Flutter Tests
         working-directory: frontend
-        run: |
-          flutter test --no-pub
+        run: flutter test --no-pub
 
   build-docker-image:
     name: Build Docker Image
@@ -107,8 +97,7 @@ jobs:
       - flutter-analyze
     if: github.ref == 'refs/heads/main'
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -147,7 +136,7 @@ jobs:
           file: ./backend/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ format('{0}/{1}:main', secrets.DOCKER_REGISTRY, secrets.BACKEND_IMAGE_NAME) }}
+          tags: ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.BACKEND_IMAGE_NAME }}:main
 
       - name: Push frontend image to registry
         if: ${{ secrets.DOCKER_USERNAME && secrets.DOCKER_PASSWORD && secrets.DOCKER_REGISTRY && secrets.FRONTEND_IMAGE_NAME }}
@@ -157,7 +146,7 @@ jobs:
           file: ./frontend/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ format('{0}/{1}:main', secrets.DOCKER_REGISTRY, secrets.FRONTEND_IMAGE_NAME) }}
+          tags: ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.FRONTEND_IMAGE_NAME }}:main
 
   deploy-production:
     name: Deploy to Production via SSH
@@ -165,8 +154,7 @@ jobs:
     needs: build-docker-image
     if: github.ref == 'refs/heads/main' && secrets.SSH_PRIVATE_KEY
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Start SSH agent
         uses: webfactory/ssh-agent@v0.9.5

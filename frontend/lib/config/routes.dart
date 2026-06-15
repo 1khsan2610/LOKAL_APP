@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
-import '../screens/auth/phone_entry_screen.dart';
-import '../screens/auth/otp_screen.dart';
 import '../screens/auth/signup_screen.dart';
 
 class AppRoutes {
   // Auth Routes
-  static const String phoneEntry = '/phone-entry';
-  static const String otpVerification = '/otp-verification';
   static const String signup = '/signup';
-  static const String otpSignup = '/otp-signup';
   static const String roleSelection = '/role-selection';
   
   // Main Routes
@@ -45,29 +40,8 @@ class RouteGenerator {
     switch (settings.name) {
       case AppRoutes.splash:
         return _buildRoute(settings, const SizedBox());
-      case AppRoutes.phoneEntry:
-        return _buildRoute(settings, const PhoneEntryScreen());
-      case AppRoutes.otpVerification:
-        final phone = settings.arguments as String?;
-        return _buildRoute(
-          settings,
-          OtpScreen(
-            phone: phone ?? '',
-            role: 'consumer',
-          ),
-        );
       case AppRoutes.signup:
         return _buildRoute(settings, const SignupScreen());
-      case AppRoutes.otpSignup:
-        final args = settings.arguments as Map<String, dynamic>?;
-        return _buildRoute(
-          settings,
-          OtpScreen(
-            phone: args?['phone'] ?? '',
-            name: args?['name'],
-            role: (args?['role']?.toString() ?? 'consumer'),
-          ),
-        );
       case AppRoutes.mainNavigation:
         return _buildRoute(settings, const SizedBox());
       default:

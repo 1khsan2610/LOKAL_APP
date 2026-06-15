@@ -4,6 +4,7 @@ import '../../config/theme.dart';
 import '../../config/constants.dart';
 import '../../widgets/common/custom_widgets.dart';
 import '../../providers/auth_provider.dart';
+import '../../models/user.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -13,57 +14,73 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
   String? _errorMessage;
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  void _handleRequestOtp() async {
+  void _handleLogin() async {
     setState(() {
       _errorMessage = null;
       _isLoading = true;
     });
 
     try {
-      final phone = _phoneController.text.trim();
-      if (phone.isEmpty) {
-        setState(() => _errorMessage = 'Nomor telepon tidak boleh kosong');
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+
+      if (email.isEmpty) {
+        setState(() => _errorMessage = 'Email tidak boleh kosong');
         return;
       }
 
-      if (!RegExp(AppRegex.phoneRegex).hasMatch(phone)) {
-        setState(() => _errorMessage = AppStrings.errorInvalidPhone);
+      if (!RegExp(AppRegex.emailRegex).hasMatch(email)) {
+        setState(() => _errorMessage = AppStrings.errorInvalidEmail);
         return;
       }
 
-      await ref.read(authProvider.notifier).requestOtp(phone);
+      if (password.isEmpty) {
+        setState(() => _errorMessage = 'Password tidak boleh kosong');
+        return;
+      }
 
-      // Update OTP state
-      ref.read(otpStateProvider.notifier).state = {
-        'phone': phone.toString(),
-        'otpSent': true,
-        'timeRemaining': 300,
-      };
+      final authResponse = await ref.read(authProvider.notifier).login(
+            email: email,
+            password: password,
+          );
 
       if (mounted) {
-        Navigator.pushNamed(
-          context,
-          '/otp-verification',
-          arguments: {'phone': phone},
-        );
+        _navigateToHome(authResponse.user?.role);
       }
     } catch (e) {
-      setState(() => _errorMessage = 'Gagal mengirim OTP: $e');
+      setState(() => _errorMessage = 'Gagal masuk: ${e.toString()}');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _navigateToHome(UserRole? role) {
+    if (!mounted) return;
+
+    final routeName = role == UserRole.umkm || role == UserRole.producer
+        ? '/producer-home'
+        : '/consumer-home';
+
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      routeName,
+      (route) => false,
+    );
   }
 
   @override
@@ -77,7 +94,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: AppNumbers.paddingXLarge),
-                // Header
                 Text(
                   AppStrings.loginTitle,
                   style: Theme.of(context).textTheme.displaySmall,
@@ -86,22 +102,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Text(
                   AppStrings.loginSubtitle,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
+                        color: AppTheme.textSecondary,
+                      ),
                 ),
                 const SizedBox(height: AppNumbers.paddingXLarge),
-
-                // Phone Input
                 CustomTextField(
-                  controller: _phoneController,
-                  label: AppStrings.loginSubtitle,
-                  hint: AppStrings.phoneHint,
-                  keyboardType: TextInputType.phone,
-                  prefixIcon: const Icon(Icons.phone),
+                  controller: _emailController,
+                  label: 'Email',
+                  hint: AppStrings.emailHint,
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: const Icon(Icons.email),
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: AppNumbers.paddingLarge),
+                CustomTextField(
+                  controller: _passwordController,
+                  label: 'Password',
+                  hint: AppStrings.passwordHint,
+                  obscureText: _obscurePassword,
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onSuffixTap: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
                   textInputAction: TextInputAction.done,
                 ),
-
-                // Error Message
                 if (_errorMessage != null) ...[
                   const SizedBox(height: 12),
                   Container(
@@ -121,58 +150,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                 ],
-
                 const SizedBox(height: AppNumbers.paddingXLarge),
-
-                // Request OTP Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleRequestOtp,
+                    onPressed: _isLoading ? null : _handleLogin,
                     child: _isLoading
                         ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation(Colors.white),
-                      ),
-                    )
-                        : Text(AppStrings.btnContinue),
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        : Text(AppStrings.btnLogin),
                   ),
                 ),
-
                 const SizedBox(height: AppNumbers.paddingLarge),
-
-                // Info Box
-                Container(
-                  padding: const EdgeInsets.all(AppNumbers.paddingMedium),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryLight.withOpacity(0.1),
-                    border: Border.all(color: AppTheme.primaryLight),
-                    borderRadius:
-                        BorderRadius.circular(AppNumbers.smallBorderRadius),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tips Keamanan',
-                        style: Theme.of(context).textTheme.titleSmall,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Belum punya akun? ',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 14,
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        '• Gunakan nomor HP yang aktif\n'
-                        '• Jangan bagikan kode OTP ke siapapun\n'
-                        '• LOKAL tidak akan pernah meminta password',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('/signup');
+                      },
+                      child: const Text('Daftar'),
+                    ),
+                  ],
                 ),
               ],
             ),

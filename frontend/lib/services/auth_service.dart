@@ -15,12 +15,25 @@ class AuthResponse {
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
-    // Handle both 'token' and 'access_token' fields from backend
-    final token = json['token'] ?? json['access_token'] ?? '';
+    final data = json['data'] is Map<String, dynamic>
+        ? Map<String, dynamic>.from(json['data'] as Map)
+        : Map<String, dynamic>.from(json);
+
+    final tokens = data['tokens'] is Map<String, dynamic>
+        ? Map<String, dynamic>.from(data['tokens'] as Map)
+        : <String, dynamic>{};
+
+    final accessToken = (data['access_token'] ?? data['token'] ?? tokens['access_token'] ?? '')
+        .toString();
+    final refreshToken = (data['refresh_token'] ?? tokens['refresh_token'])?.toString();
+    final userData = data['user'] is Map<String, dynamic>
+        ? Map<String, dynamic>.from(data['user'] as Map)
+        : <String, dynamic>{};
+
     return AuthResponse(
-      accessToken: token.toString(),
-      refreshToken: json['refresh_token'] != null ? json['refresh_token'].toString() : null,
-      user: json['user'] != null ? User.fromJson(json['user']) : null,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      user: userData.isNotEmpty ? User.fromJson(userData) : null,
     );
   }
 }
@@ -34,69 +47,62 @@ class AuthService {
     required this.secureStorage,
   });
 
-  // Request OTP
-  Future<void> requestOtp(String phoneNumber) async {
-    try {
-      // Validate phone format
-      if (phoneNumber.isEmpty) {
-        throw Exception('Nomor telepon tidak boleh kosong');
-      }
-      
-      // Format phone: remove spaces and validate
-      final cleanPhone = phoneNumber.replaceAll(RegExp(r'\s+'), '');
-      if (cleanPhone.length < 10) {
-        throw Exception('Nomor telepon minimal 10 digit');
-      }
-      
-      // Add debug log
-      if (kDebugMode) {
-        print('📱 Requesting OTP for phone: $cleanPhone');
-      }
-      
-      await apiService.requestOtp(cleanPhone);
-      
-      if (kDebugMode) {
-        print('✅ OTP Request Success');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ OTP Request Failed: $e');
-      }
-      rethrow;
-    }
-  }
 
-  // Verify OTP dan login
-  Future<AuthResponse> verifyOtp({
-    required String phoneNumber,
-    required String otp,
-    required String role,
+  Future<AuthResponse> login({
+    required String email,
+    required String password,
   }) async {
     try {
       final response = await apiService.post(
-        '/auth/verify-otp',
+        '/auth/login',
         data: {
-          'phone_number': phoneNumber,  // FIXED: Laravel expects phone_number
-          'code': otp,                   // FIXED: Laravel expects code (not otp)
-          'role': role,
-          'name': 'User',                // Default name
+          'email': email,
+          'password': password,
         },
         responseDecoder: (data) => data is Map ? Map<String, dynamic>.from(data) : {},
       );
 
       final authResponse = AuthResponse.fromJson(response as Map<String, dynamic>);
+      if (authResponse.accessToken.isEmpty) {
+        throw Exception('Token tidak ditemukan dari respons login');
+      }
 
-      // Simpan tokens
       if (authResponse.refreshToken != null) {
         await _saveTokens(authResponse.accessToken, authResponse.refreshToken!);
       } else {
         await _saveTokens(authResponse.accessToken, authResponse.accessToken);
       }
-
-      // Set tokens ke API service
       apiService.setTokens(authResponse.accessToken, refreshToken: authResponse.refreshToken);
 
       return authResponse;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> register({
+    required String name,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+    required String phoneNumber,
+    required String role,
+  }) async {
+    try {
+      final response = await apiService.post(
+        '/auth/register-account',
+        data: {
+          'name': name,
+          'email': email,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+          'phone_number': phoneNumber,
+          'role': role,
+        },
+        responseDecoder: (data) => data is Map ? Map<String, dynamic>.from(data) : {},
+      );
+
+      return response as Map<String, dynamic>;
     } catch (e) {
       rethrow;
     }

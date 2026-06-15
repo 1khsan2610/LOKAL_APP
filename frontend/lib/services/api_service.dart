@@ -265,51 +265,6 @@ class ApiService {
 
   // ======================== AUTH ENDPOINTS ========================
   
-  /// Request OTP untuk login
-  Future<Map<String, dynamic>> requestOtp(String phone) async {
-    try {
-      return await post(
-        '/auth/request-otp',
-        data: {'phone_number': phone},
-        responseDecoder: (data) {
-          if (data is Map) {
-            return Map<String, dynamic>.from(data);
-          } else if (data is String) {
-            return {'message': data};
-          }
-          return {};
-        },
-      );
-    } on ApiException catch (e) {
-      if (kDebugMode) {
-        print('🔴 OTP Request Error: ${e.message}');
-        print('Status Code: ${e.statusCode}');
-      }
-      rethrow;
-    }
-  }
-
-  /// Verify OTP dan dapatkan token
-  Future<Map<String, dynamic>> verifyOtp(String phone, String otp) async {
-    final response = await post(
-      '/auth/verify-otp',
-      data: {
-        'phone_number': phone,  // FIXED: Laravel expects phone_number
-        'code': otp,             // FIXED: Laravel expects code (not otp)
-        'name': 'User',          // Add name for new users
-        'role': 'consumer',      // Default role
-      },
-      responseDecoder: (data) => data is Map ? Map<String, dynamic>.from(data) : {},
-    );
-    
-    // Save token jika ada
-    if (response['token'] != null) {
-      setTokens(response['token']);
-    }
-    
-    return Map<String, dynamic>.from(response);
-  }
-
   /// Refresh token
   Future<Map<String, dynamic>> refreshToken() async {
     return post(
