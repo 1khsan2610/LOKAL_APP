@@ -283,7 +283,7 @@ class _UmkmProductUploadScreenState extends ConsumerState<UmkmProductUploadScree
             if (_recommendationAvailable)
               Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                color: AppTheme.primaryLight.withOpacity(0.12),
+                color: AppTheme.primaryLight.withValues(alpha: 0.12),
                 elevation: 0,
                 child: Padding(
                   padding: const EdgeInsets.all(16),

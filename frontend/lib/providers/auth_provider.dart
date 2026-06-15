@@ -64,35 +64,6 @@ class AuthNotifier extends StateNotifier<AsyncValue<auth_service.AuthResponse?>>
     }
   }
 
-  Future<void> requestOtp(String phoneNumber) async {
-    state = const AsyncValue.loading();
-    try {
-      await authService.requestOtp(phoneNumber);
-      state = const AsyncValue.data(null);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
-  }
-
-  Future<auth_service.AuthResponse> verifyOtp({
-    required String phoneNumber,
-    required String otp,
-    required String role,
-  }) async {
-    state = const AsyncValue.loading();
-    try {
-      final response = await authService.verifyOtp(
-        phoneNumber: phoneNumber,
-        otp: otp,
-        role: role,
-      );
-      state = AsyncValue.data(response);
-      return response;
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-      rethrow;
-    }
-  }
 
   Future<void> logout() async {
     state = const AsyncValue.loading();

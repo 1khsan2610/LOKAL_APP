@@ -43,7 +43,7 @@ class OrderItem {
       productName: (json['product_name'] ?? '').toString(),
       price: (json['price'] as num?)?.toDouble() ?? 0,
       quantity: json['quantity'] ?? 1,
-      productImage: json['product_image'] != null ? json['product_image'].toString() : null,
+      productImage: json['product_image']?.toString(),
     );
   }
 
@@ -155,9 +155,9 @@ class Order {
       totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0,
       status: _parseStatus(json['status']),
       paymentMethod: _parsePaymentMethod(json['payment_method']),
-      paymentId: json['payment_id'] != null ? json['payment_id'].toString() : null,
-      shippingAddress: json['shipping_address'] != null ? json['shipping_address'].toString() : null,
-      notes: json['notes'] != null ? json['notes'].toString() : null,
+      paymentId: json['payment_id']?.toString(),
+      shippingAddress: json['shipping_address']?.toString(),
+      notes: json['notes']?.toString(),
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       updatedAt: json['updated_at'] != null
           ? DateTime.tryParse(json['updated_at'])

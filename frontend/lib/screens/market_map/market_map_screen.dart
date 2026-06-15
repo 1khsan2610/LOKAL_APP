@@ -13,7 +13,7 @@ import '../../services/location_service.dart';
 import '../../widgets/common/custom_widgets.dart';
 
 class MarketMapScreen extends ConsumerStatefulWidget {
-  const MarketMapScreen({Key? key}) : super(key: key);
+  const MarketMapScreen({super.key});
 
   @override
   ConsumerState<MarketMapScreen> createState() => _MarketMapScreenState();
@@ -301,15 +301,15 @@ class _MarketMapScreenState extends ConsumerState<MarketMapScreen> {
                 children: [
                   Chip(
                     backgroundColor:
-                        AppTheme.primaryLight.withOpacity(0.16),
+                        AppTheme.primaryLight.withValues(alpha: 0.16),
                     label: Text(
-                      '${foundCount} UMKM ditemukan',
+                      '$foundCount UMKM ditemukan',
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                   ),
                   Chip(
                     backgroundColor:
-                        AppTheme.accentColor.withOpacity(0.16),
+                        AppTheme.accentColor.withValues(alpha: 0.16),
                     label: Text(
                       'Radius ${_selectedRadius.toStringAsFixed(1)} km',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -374,8 +374,8 @@ class _MarketMapScreenState extends ConsumerState<MarketMapScreen> {
                     _currentPosition!.longitude,
                   ),
                   radius: _selectedRadius * 1000,
-                  fillColor: AppTheme.primaryColor.withOpacity(0.08),
-                  strokeColor: AppTheme.primaryColor.withOpacity(0.35),
+                  fillColor: AppTheme.primaryColor.withValues(alpha: 0.08),
+                  strokeColor: AppTheme.primaryColor.withValues(alpha: 0.35),
                   strokeWidth: 2,
                 ),
               },
@@ -402,7 +402,7 @@ class _MarketMapScreenState extends ConsumerState<MarketMapScreen> {
                   vertical: AppNumbers.paddingSmall,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.95),
+                  color: Colors.white.withValues(alpha: 0.95),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
@@ -444,7 +444,7 @@ class _MarketMapScreenState extends ConsumerState<MarketMapScreen> {
                     ),
                     Chip(
                       backgroundColor:
-                          AppTheme.primaryLight.withOpacity(0.16),
+                          AppTheme.primaryLight.withValues(alpha: 0.16),
                       label: Text(
                         '${_selectedRadius.toStringAsFixed(1)} km',
                         style: Theme.of(context).textTheme.bodySmall,

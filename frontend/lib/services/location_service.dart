@@ -46,7 +46,7 @@ class LocationService {
         return '${place.street}, ${place.postalCode} ${place.locality}, ${place.administrativeArea}';
       }
     } catch (e) {
-      print('Error getting address: $e');
+      // Debug logging disabled in production
     }
     return null;
   }
@@ -56,7 +56,7 @@ class LocationService {
     try {
       return await locationFromAddress(address);
     } catch (e) {
-      print('Error getting coordinates: $e');
+      // Debug logging disabled in production
       return [];
     }
   }

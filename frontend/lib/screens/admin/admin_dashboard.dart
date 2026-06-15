@@ -4,7 +4,7 @@ import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 
 class AdminDashboard extends ConsumerStatefulWidget {
-  const AdminDashboard({Key? key}) : super(key: key);
+  const AdminDashboard({super.key});
 
   @override
   ConsumerState<AdminDashboard> createState() => _AdminDashboardState();
@@ -98,7 +98,7 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppTheme.dividerColor),
-          boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 8)],
+          boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 8)],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,7 +134,7 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.info, color: AppTheme.primaryColor, size: 20),
@@ -290,7 +290,7 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
             onPressed: () {
               ref.read(authProvider.notifier).logout();
               Navigator.pop(context);
-              Navigator.pushNamedAndRemoveUntil(context, '/phone-entry', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
             },
             child: const Text('Keluar', style: TextStyle(color: Colors.red)),
           ),

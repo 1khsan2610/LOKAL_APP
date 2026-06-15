@@ -163,8 +163,8 @@ class CoinTransaction {
       userId: (json['user_id'] ?? '').toString(),
       type: _parseType(json['type']),
       amount: (json['amount'] as num?)?.toDouble() ?? 0,
-      description: json['description'] != null ? json['description'].toString() : null,
-      referenceId: json['reference_id'] != null ? json['reference_id'].toString() : null,
+      description: json['description']?.toString(),
+      referenceId: json['reference_id']?.toString(),
       expiresAt: DateTime.tryParse(json['expires_at'] ?? '') ??
           DateTime.now().add(const Duration(days: 180)),
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../config/constants.dart';
 
 class RegisterConsumerScreen extends StatefulWidget {
-  const RegisterConsumerScreen({Key? key}) : super(key: key);
+  const RegisterConsumerScreen({super.key});
 
   @override
   State<RegisterConsumerScreen> createState() => _RegisterConsumerScreenState();

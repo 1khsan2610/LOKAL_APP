@@ -4,14 +4,14 @@ import 'package:google_fonts/google_fonts.dart';
 /// Application Theme Configuration
 class AppTheme {
   // Primary Colors
-  static const Color primaryColor = Color(0xFF2E7D32); // Green
-  static const Color primaryDark = Color(0xFF1B5E20);
-  static const Color primaryLight = Color(0xFF81C784);
+  static const Color primaryColor = Color(0xFF6B4EFF); // Modern Purple
+  static const Color primaryDark = Color(0xFF4620A4); // Dark Purple
+  static const Color primaryLight = Color(0xFFA78BFF); // Light Purple
   
   // Secondary Colors
-  static const Color secondaryColor = Color(0xFFFFA500); // Orange
-  static const Color secondaryDark = Color(0xFFFFA500);
-  static const Color secondaryLight = Color(0xFFFFD54F);
+  static const Color secondaryColor = Color(0xFFFF6F7F); // Modern Coral Pink
+  static const Color secondaryDark = Color(0xFFE74C63); // Dark Coral
+  static const Color secondaryLight = Color(0xFFFF9CB1); // Light Coral
   
   // Accent Colors
   static const Color accentColor = Color(0xFF00BCD4); // Cyan
@@ -47,7 +47,6 @@ class AppTheme {
         onSecondary: Colors.white,
         error: errorColor,
         onError: Colors.white,
-        background: backgroundColor,
         surface: surfaceColor,
       ),
       scaffoldBackgroundColor: backgroundColor,
@@ -231,7 +230,7 @@ class AppTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: primaryLight.withOpacity(0.1),
+        backgroundColor: primaryLight.withValues(alpha: 0.1),
         labelStyle: GoogleFonts.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w500,

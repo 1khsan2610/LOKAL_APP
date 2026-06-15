@@ -5,7 +5,7 @@ import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
@@ -36,11 +36,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         _navigateWithAuth();
       } else {
         // No token found, go to login
-        Navigator.pushReplacementNamed(context, '/phone-entry');
+        Navigator.pushReplacementNamed(context, '/login');
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/phone-entry');
+        Navigator.pushReplacementNamed(context, '/login');
       }
     }
   }
@@ -64,7 +64,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           // Still loading, wait a bit more
           Future.delayed(const Duration(seconds: 3), () {
             if (mounted && !Navigator.canPop(context)) {
-              Navigator.pushReplacementNamed(context, '/phone-entry');
+              Navigator.pushReplacementNamed(context, '/login');
             }
           });
         },
@@ -74,24 +74,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             final role = auth.user?.role.toString() ?? '';
             if (role.contains('admin')) {
               Navigator.pushReplacementNamed(context, '/admin-dashboard');
-            } else if (role.contains('umkm') || role.contains('producer')) {
-              Navigator.pushReplacementNamed(context, '/producer-home');
             } else {
               Navigator.pushReplacementNamed(context, '/consumer-home');
             }
           } else if (mounted) {
-            Navigator.pushReplacementNamed(context, '/phone-entry');
+            Navigator.pushReplacementNamed(context, '/login');
           }
         },
         error: (error, stack) {
           if (mounted) {
-            Navigator.pushReplacementNamed(context, '/phone-entry');
+            Navigator.pushReplacementNamed(context, '/login');
           }
         },
       );
     } catch (e) {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/phone-entry');
+        Navigator.pushReplacementNamed(context, '/login');
       }
     }
   }

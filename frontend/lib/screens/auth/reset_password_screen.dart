@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
-import '../../config/constants.dart';
 import '../../providers/auth_provider.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
@@ -21,7 +20,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   bool _isPasswordVisible = false;
   bool _isPasswordConfirmVisible = false;
   bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   void initState() {
@@ -72,7 +70,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
     });
 
     try {
@@ -112,7 +109,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   }
 
   void _showError(String message) {
-    setState(() => _errorMessage = message);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -160,7 +156,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.1),
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -467,9 +463,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: strengthColor.withOpacity(0.1),
+        color: strengthColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: strengthColor.withOpacity(0.3)),
+        border: Border.all(color: strengthColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

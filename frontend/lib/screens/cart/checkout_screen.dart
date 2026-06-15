@@ -7,7 +7,7 @@ import '../../providers/orders_provider.dart';
 import '../../widgets/common/custom_widgets.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
-  const CheckoutScreen({Key? key}) : super(key: key);
+  const CheckoutScreen({super.key});
 
   @override
   ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();

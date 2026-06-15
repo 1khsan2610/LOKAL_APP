@@ -2,24 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'config/theme.dart';
 import 'config/constants.dart';
-import 'screens/auth/phone_entry_screen.dart';
-import 'screens/auth/otp_screen.dart';
+import 'screens/auth/login_email_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/auth/splash_screen.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/auth/onboarding_screen.dart';
-import 'screens/auth/register_choice_screen.dart';
-import 'screens/auth/register_consumer_screen.dart';
-import 'screens/auth/register_umkm_step1.dart';
-import 'screens/auth/register_umkm_step2.dart';
-import 'screens/auth/register_success_screen.dart';
+
 import 'screens/home/home_screen.dart';
+import 'screens/main_navigation_screen.dart';
 import 'screens/consumer/consumer_home_screen.dart';
-import 'screens/profile/producer_home_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'screens/products/product_list_screen.dart';
 import 'screens/products/product_detail_screen.dart';
-import 'screens/products/product_upload_screen.dart';
 import 'screens/cart/cart_screen.dart';
 import 'screens/cart/checkout_screen.dart';
 import 'screens/cart/order_confirmation_screen.dart';
@@ -52,30 +44,10 @@ class MyApp extends ConsumerWidget {
       home: const SplashScreen(),
       routes: {
         '/splash': (context) => const SplashScreen(),
-        '/phone-entry': (context) => const PhoneEntryScreen(),
-        '/login': (context) => const LoginScreen(),
+        '/login': (context) => const LoginEmailScreen(),
         '/signup': (context) => const SignupScreen(),
-        '/otp-verification': (context) {
-          final phone = ModalRoute.of(context)?.settings.arguments as String? ?? '';
-          return OtpScreen(phone: phone, role: 'consumer');
-        },
-        '/otp-signup': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
-          return OtpScreen(
-            phone: args['phone'] ?? '',
-            name: args['name'],
-            role: args['role'] ?? 'consumer',
-          );
-        },
 
         // Onboarding & Register routes
-        '/onboarding': (context) => const OnboardingScreen(),
-        '/register-choice': (context) => const RegisterChoiceScreen(),
-        '/register-consumer': (context) => const RegisterConsumerScreen(),
-        '/register-umkm-step1': (context) => const RegisterUmkmStep1(),
-        '/register-umkm-step2': (context) => const RegisterUmkmStep2(),
-        '/register-success': (context) => const RegisterSuccessScreen(),
-
         // Consumer routes
         '/consumer-home': (context) => const ConsumerHomeScreen(),
         '/cart': (context) => const CartScreen(),
@@ -89,11 +61,7 @@ class MyApp extends ConsumerWidget {
         },
         '/checkout': (context) => const CheckoutScreen(),
         '/order-confirmation': (context) => const OrderConfirmationScreen(),
-        // Producer/UMKM routes
-        '/producer-home': (context) => const ProducerHomeScreen(),
-        '/product-upload': (context) => const UmkmProductUploadScreen(),
-        '/umkm-profile-edit': (context) => const ProducerHomeScreen(),
-        
+        '/main': (context) => const MainNavigationScreen(),
         // Admin routes
         '/admin-dashboard': (context) => const AdminDashboard(),
         

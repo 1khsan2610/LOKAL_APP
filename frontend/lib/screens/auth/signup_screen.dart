@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
 import '../../models/user.dart';
-import '../../providers/auth_provider.dart';
 
-class SignupScreen extends ConsumerStatefulWidget {
-  const SignupScreen({Key? key}) : super(key: key);
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  ConsumerState<SignupScreen> createState() => _SignupScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends ConsumerState<SignupScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   UserRole _selectedRole = UserRole.consumer;
@@ -51,21 +49,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         return;
       }
 
-      // Send OTP request for registration
-      await ref.read(authProvider.notifier).requestOtp(phone);
-
+      // Registration successful - navigate to main screen
       if (mounted) {
-        // Convert enum to string
-        final roleString = _selectedRole.toString().split('.').last;
-        
-        // Navigate to OTP screen with signup data
-        Navigator.of(context).pushNamed(
-          '/otp-signup',
-          arguments: {
-            'phone': phone,
-            'name': name,
-            'role': roleString,
-          },
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/main',
+          (route) => false,
         );
       }
     } catch (e) {
@@ -81,235 +69,180 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: AppTheme.backgroundColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
+        iconTheme: const IconThemeData(color: AppTheme.textPrimary),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Logo
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppTheme.primaryColor,
-                  ),
-                  child: const Icon(
-                    Icons.shopping_basket,
-                    color: Colors.white,
-                    size: 50,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Title
+                const SizedBox(height: 16),
                 Text(
                   'Daftar Akun Baru',
-                  style: Theme.of(context).textTheme.displaySmall,
-                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
-                const SizedBox(height: 8),
-                // Subtitle
+                const SizedBox(height: 12),
                 Text(
-                  'Bergabung dengan Platform LOKAL',
+                  'Isi data dasar Anda untuk memulai pengalaman lokal.',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
-                  textAlign: TextAlign.center,
+                        color: AppTheme.textSecondary,
+                      ),
                 ),
-                const SizedBox(height: 32),
-                // Full Name Input
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Nama Lengkap',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                const SizedBox(height: 28),
+                Text(
+                  'Nama Lengkap',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 TextField(
                   controller: _nameController,
                   enabled: !_isLoading,
                   decoration: InputDecoration(
                     hintText: 'Masukkan nama lengkap',
-                    hintStyle: TextStyle(
-                      color: AppTheme.textHint,
-                    ),
                     filled: true,
-                    fillColor: const Color(0xFFF5F5F5),
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Phone Number Input
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Nomor Telepon',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                Text(
+                  'Nomor Telepon',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   enabled: !_isLoading,
                   decoration: InputDecoration(
-                    prefixIcon: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                right: BorderSide(
-                                  color: AppTheme.dividerColor,
-                                ),
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.content_copy,
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '+62',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.only(left: 14, right: 10),
+                      child: Text(
+                        '+62',
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ),
+                    prefixIconConstraints: const BoxConstraints(minWidth: 72),
                     hintText: '812-3456-7890',
-                    hintStyle: TextStyle(
-                      color: AppTheme.textHint,
-                    ),
                     filled: true,
-                    fillColor: const Color(0xFFF5F5F5),
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
                   ),
                 ),
-                const SizedBox(height: 20),
-                // Account Type Selection
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Daftar Sebagai',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                const SizedBox(height: 26),
+                Text(
+                  'Daftar Sebagai',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 _buildRoleOption(
                   role: UserRole.consumer,
                   icon: Icons.shopping_cart,
                   title: 'Konsumen',
-                  description: 'Belanja produk lokal di sekitar Anda',
+                  description: 'Belanja produk lokal dalam satu aplikasi',
                 ),
                 const SizedBox(height: 12),
                 _buildRoleOption(
                   role: UserRole.umkm,
                   icon: Icons.storefront,
                   title: 'UMKM',
-                  description:
-                      'Jual produk Anda kepada konsumen lokal (perlu verifikasi NIB/SIUP)',
+                  description: 'Kelola toko dan produk lokal Anda',
                 ),
                 const SizedBox(height: 12),
                 _buildRoleOption(
                   role: UserRole.producer,
                   icon: Icons.local_shipping,
                   title: 'Produsen',
-                  description: 'Supplai produk ke UMKM dalam jumlah besar',
+                  description: 'Pasok produk ke UMKM dan mitra Anda',
                 ),
                 if (_errorMessage != null) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 18),
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppTheme.errorColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppTheme.errorColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: AppTheme.errorColor,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _errorMessage!,
-                            style: TextStyle(
-                              color: AppTheme.errorColor,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      _errorMessage!,
+                      style: TextStyle(
+                        color: AppTheme.errorColor,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
-                const SizedBox(height: 32),
-                // Sign Up Button
+                const SizedBox(height: 22),
                 SizedBox(
                   width: double.infinity,
+                  height: 54,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleSignup,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      disabledBackgroundColor:
-                          AppTheme.primaryColor.withOpacity(0.5),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     child: _isLoading
                         ? const SizedBox(
-                            height: 20,
-                            width: 20,
+                            height: 24,
+                            width: 24,
                             child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : Text(
-                            'Daftar Sekarang',
-                            style:
-                                Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                        : const Text('Daftar Sekarang'),
                   ),
+                ),
+                const SizedBox(height: 18),
+                Center(
+                  child: Text(
+                    'Setelah mendaftar, kami akan mengirimkan kode verifikasi ke nomor Anda.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 26),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Sudah punya akun? ',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppTheme.textSecondary,
+                          ),
+                    ),
+                    TextButton(
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              Navigator.pushNamed(context, '/login');
+                            },
+                      child: const Text('Masuk'),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -331,7 +264,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryColor.withOpacity(0.05) : Colors.white,
+          color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : Colors.white,
           border: Border.all(
             color: isSelected ? AppTheme.primaryColor : AppTheme.dividerColor,
             width: isSelected ? 2 : 1,

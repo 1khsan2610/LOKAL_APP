@@ -46,7 +46,6 @@ class AppTheme {
         onSecondary: Colors.white,
         error: errorColor,
         onError: Colors.white,
-        background: backgroundColor,
         surface: surfaceColor,
       ),
       scaffoldBackgroundColor: backgroundColor,
@@ -229,7 +228,7 @@ class AppTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: primaryLight.withOpacity(0.1),
+        backgroundColor: primaryLight.withValues(alpha: 0.1),
         labelStyle: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,

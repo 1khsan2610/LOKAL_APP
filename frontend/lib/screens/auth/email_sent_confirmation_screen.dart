@@ -6,9 +6,9 @@ class EmailSentConfirmationScreen extends StatefulWidget {
   final String email;
 
   const EmailSentConfirmationScreen({
-    Key? key,
+    super.key,
     required this.email,
-  }) : super(key: key);
+  });
 
   @override
   State<EmailSentConfirmationScreen> createState() =>
@@ -49,18 +49,15 @@ class _EmailSentConfirmationScreenState extends State<EmailSentConfirmationScree
     final domain = parts[1];
 
     final visibleChars = (name.length / 2).ceil();
-    final masked = name.substring(0, visibleChars) +
-        '*' * (name.length - visibleChars) +
-        '@' +
-        domain;
+    final masked = '${name.substring(0, visibleChars)}${'*' * (name.length - visibleChars)}@$domain';
 
     return masked;
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false, // Disable back button
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(

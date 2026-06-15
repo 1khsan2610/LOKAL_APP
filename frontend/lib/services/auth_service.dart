@@ -34,73 +34,7 @@ class AuthService {
     required this.secureStorage,
   });
 
-  // Request OTP
-  Future<void> requestOtp(String phoneNumber) async {
-    try {
-      // Validate phone format
-      if (phoneNumber.isEmpty) {
-        throw Exception('Nomor telepon tidak boleh kosong');
-      }
-      
-      // Format phone: remove spaces and validate
-      final cleanPhone = phoneNumber.replaceAll(RegExp(r'\s+'), '');
-      if (cleanPhone.length < 10) {
-        throw Exception('Nomor telepon minimal 10 digit');
-      }
-      
-      // Add debug log
-      if (kDebugMode) {
-        print('📱 Requesting OTP for phone: $cleanPhone');
-      }
-      
-      await apiService.requestOtp(cleanPhone);
-      
-      if (kDebugMode) {
-        print('✅ OTP Request Success');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ OTP Request Failed: $e');
-      }
-      rethrow;
-    }
-  }
 
-  // Verify OTP dan login
-  Future<AuthResponse> verifyOtp({
-    required String phoneNumber,
-    required String otp,
-    required String role,
-  }) async {
-    try {
-      final response = await apiService.post(
-        '/auth/verify-otp',
-        data: {
-          'phone_number': phoneNumber,  // FIXED: Laravel expects phone_number
-          'code': otp,                   // FIXED: Laravel expects code (not otp)
-          'role': role,
-          'name': 'User',                // Default name
-        },
-        responseDecoder: (data) => data is Map ? Map<String, dynamic>.from(data) : {},
-      );
-
-      final authResponse = AuthResponse.fromJson(response as Map<String, dynamic>);
-
-      // Simpan tokens
-      if (authResponse.refreshToken != null) {
-        await _saveTokens(authResponse.accessToken, authResponse.refreshToken!);
-      } else {
-        await _saveTokens(authResponse.accessToken, authResponse.accessToken);
-      }
-
-      // Set tokens ke API service
-      apiService.setTokens(authResponse.accessToken, refreshToken: authResponse.refreshToken);
-
-      return authResponse;
-    } catch (e) {
-      rethrow;
-    }
-  }
 
   // Save tokens
   Future<void> _saveTokens(String accessToken, String refreshToken) async {

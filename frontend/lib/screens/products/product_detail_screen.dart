@@ -7,9 +7,9 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
   final dynamic product;
 
   const ProductDetailScreen({
-    Key? key,
+    super.key,
     required this.product,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<ProductDetailScreen> createState() =>
@@ -61,7 +61,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 4,
                     )
                   ],
@@ -78,7 +78,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 4,
                       )
                     ],
@@ -94,7 +94,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 4,
                       )
                     ],
@@ -152,7 +152,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             decoration: BoxDecoration(
                               color: _currentPage == index
                                   ? Colors.white
-                                  : Colors.white.withOpacity(0.5),
+                                  : Colors.white.withValues(alpha: 0.5),
                               borderRadius: BorderRadius.circular(3),
                             ),
                           ),
@@ -346,7 +346,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, -2),
             )
