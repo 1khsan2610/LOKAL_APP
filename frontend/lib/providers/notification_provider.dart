@@ -9,13 +9,68 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
   final ApiService apiService;
 
   NotificationsNotifier({required this.apiService})
-      : super(const AsyncValue.loading());
+      : super(const AsyncValue.loading()) {
+    // Fetch notifications on initialization
+    _init();
+  }
+
+  Future<void> _init() async {
+    await fetchNotifications();
+  }
 
   Future<void> fetchNotifications({int page = 1}) async {
     state = const AsyncValue.loading();
     try {
-      // This would need to be implemented in ApiService
-      state = AsyncValue.data(<AppNotification>[]);
+      // Mock data for now - replace with actual API call
+      // final notifications = await apiService.fetchNotifications(page: page);
+      final mockNotifications = <AppNotification>[
+        AppNotification(
+          id: '1',
+          userId: 'user123',
+          type: NotificationType.orderConfirmed,
+          title: 'Pesanan Dikonfirmasi',
+          message: 'Pesanan #ORD-001 telah dikonfirmasi oleh penjual',
+          isRead: false,
+          createdAt: DateTime.now().subtract(const Duration(minutes: 15)),
+        ),
+        AppNotification(
+          id: '2',
+          userId: 'user123',
+          type: NotificationType.paymentSuccessful,
+          title: 'Pembayaran Berhasil',
+          message: 'Pembayaran sebesar Rp 150.000 berhasil diproses',
+          isRead: false,
+          createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+        ),
+        AppNotification(
+          id: '3',
+          userId: 'user123',
+          type: NotificationType.orderShipped,
+          title: 'Pesanan Dalam Perjalanan',
+          message: 'Pesanan #ORD-001 sedang dalam perjalanan ke alamat Anda',
+          isRead: true,
+          createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+        ),
+        AppNotification(
+          id: '4',
+          userId: 'user123',
+          type: NotificationType.coinRewarded,
+          title: 'Reward Lokal Coin Diterima',
+          message: 'Anda mendapatkan 50 Lokal Coin dari pembelian terakhir',
+          isRead: true,
+          createdAt: DateTime.now().subtract(const Duration(hours: 24)),
+        ),
+        AppNotification(
+          id: '5',
+          userId: 'user123',
+          type: NotificationType.promotion,
+          title: 'Promo Spesial Hari Ini',
+          message: 'Diskon hingga 50% untuk produk pilihan. Jangan lewatkan!',
+          isRead: true,
+          createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        ),
+      ];
+      state = AsyncValue.data(mockNotifications);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -23,7 +78,9 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
 
   Future<void> markAsRead(String notificationId) async {
     try {
-      // This would need to be implemented in ApiService
+      // API call would go here
+      // await apiService.markNotificationAsRead(notificationId);
+      
       // Update local state
       if (state case AsyncValue(value: List<AppNotification> notifications)) {
         final updatedNotifications = notifications.map((notif) {
@@ -40,7 +97,9 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
 
   Future<void> markAllAsRead() async {
     try {
-      // This would need to be implemented in ApiService
+      // API call would go here
+      // await apiService.markAllNotificationsAsRead();
+      
       // Update local state
       if (state case AsyncValue(value: List<AppNotification> notifications)) {
         final updatedNotifications = notifications
@@ -55,7 +114,9 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
 
   Future<void> deleteNotification(String notificationId) async {
     try {
-      // This would need to be implemented in ApiService
+      // API call would go here
+      // await apiService.deleteNotification(notificationId);
+      
       // Update local state
       if (state case AsyncValue(value: List<AppNotification> notifications)) {
         final updatedNotifications = notifications
