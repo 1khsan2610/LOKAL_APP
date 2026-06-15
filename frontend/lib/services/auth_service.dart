@@ -251,6 +251,97 @@ class AuthService {
     return token != null;
   }
 
+  // Login dengan email dan password
+  Future<AuthResponse> loginWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      if (email.isEmpty || password.isEmpty) {
+        throw Exception('Email dan password tidak boleh kosong');
+      }
+
+      final response = await apiService.post(
+        '/auth/login',
+        data: {
+          'email': email,
+          'password': password,
+        },
+        responseDecoder: (data) =>
+            data is Map ? Map<String, dynamic>.from(data) : {},
+      );
+
+      final authResponse = AuthResponse.fromJson(response as Map<String, dynamic>);
+
+      // Simpan tokens
+      if (authResponse.refreshToken != null) {
+        await _saveTokens(authResponse.accessToken, authResponse.refreshToken!);
+      } else {
+        await _saveTokens(authResponse.accessToken, authResponse.accessToken);
+      }
+
+      // Set tokens ke API service
+      apiService.setTokens(authResponse.accessToken,
+          refreshToken: authResponse.refreshToken);
+
+      return authResponse;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Request forgot password - kirim email reset link
+  Future<void> requestForgotPassword(String email) async {
+    try {
+      if (email.isEmpty) {
+        throw Exception('Email tidak boleh kosong');
+      }
+
+      await apiService.post(
+        '/auth/forgot-password',
+        data: {'email': email},
+        responseDecoder: (data) =>
+            data is Map ? Map<String, dynamic>.from(data) : {},
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Verify forgot password token dan reset password
+  Future<void> resetPassword({
+    required String token,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    try {
+      if (password.isEmpty || passwordConfirmation.isEmpty) {
+        throw Exception('Password tidak boleh kosong');
+      }
+
+      if (password != passwordConfirmation) {
+        throw Exception('Password tidak cocok');
+      }
+
+      if (password.length < 6) {
+        throw Exception('Password minimal 6 karakter');
+      }
+
+      await apiService.post(
+        '/auth/reset-password',
+        data: {
+          'token': token,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+        },
+        responseDecoder: (data) =>
+            data is Map ? Map<String, dynamic>.from(data) : {},
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // Load token at app startup
   Future<String?> loadStoredToken() async {
     try {

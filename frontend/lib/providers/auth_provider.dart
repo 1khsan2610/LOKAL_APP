@@ -156,6 +156,57 @@ class AuthNotifier extends StateNotifier<AsyncValue<auth_service.AuthResponse?>>
       return false;
     }
   }
+
+  // Login dengan email dan password
+  Future<auth_service.AuthResponse> loginWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final response = await authService.loginWithEmail(
+        email: email,
+        password: password,
+      );
+      state = AsyncValue.data(response);
+      return response;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  // Request forgot password
+  Future<void> requestForgotPassword(String email) async {
+    state = const AsyncValue.loading();
+    try {
+      await authService.requestForgotPassword(email);
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  // Reset password
+  Future<void> resetPassword({
+    required String token,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      await authService.resetPassword(
+        token: token,
+        password: password,
+        passwordConfirmation: passwordConfirmation,
+      );
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
 }
 
 // Auth provider
