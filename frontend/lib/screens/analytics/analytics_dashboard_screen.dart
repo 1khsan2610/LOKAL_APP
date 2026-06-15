@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
 import '../../config/constants.dart';
 import '../../providers/umkm_provider.dart';
+import '../../models/umkm.dart';
 import '../../widgets/common/custom_widgets.dart' as custom_widgets;
 
 enum AnalyticsPeriod { daily, weekly, monthly }
@@ -250,7 +251,7 @@ class _AnalyticsDashboardScreenState extends ConsumerState<AnalyticsDashboardScr
       return FlSpot(entry.key.toDouble(), entry.value.revenue);
     }).toList();
     final maxRevenue = chartData.map((item) => item.revenue).fold<double>(0, (prev, value) => value > prev ? value : prev);
-    final interval = maxRevenue > 0 ? maxRevenue / 4 : 1;
+    final interval = maxRevenue > 0 ? maxRevenue / 4 : 1.0;
 
     return LineChartData(
       minX: 0,
