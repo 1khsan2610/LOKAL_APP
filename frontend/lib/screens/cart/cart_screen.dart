@@ -29,33 +29,38 @@ class CartScreen extends ConsumerWidget {
       appBar: CustomAppBar(title: AppStrings.navCart),
       body: Column(
         children: [
-          // Cart Items
           Expanded(
-            child: ListView.builder(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: AppNumbers.paddingMedium),
               itemCount: cartState.items.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final item = cartState.items[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: AppNumbers.paddingMedium,
-                    vertical: 8,
+                  margin: const EdgeInsets.symmetric(horizontal: AppNumbers.paddingMedium),
+                  elevation: AppNumbers.elevationMedium,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppNumbers.borderRadius),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(AppNumbers.paddingSmall),
+                    padding: const EdgeInsets.all(AppNumbers.paddingMedium),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Product Image
                         Container(
-                          width: 80,
-                          height: 80,
+                          width: 84,
+                          height: 84,
                           decoration: BoxDecoration(
                             color: AppTheme.dividerColor,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(AppNumbers.smallBorderRadius),
                           ),
-                          child: const Icon(Icons.image),
+                          child: const Icon(
+                            Icons.image,
+                            size: 32,
+                            color: AppTheme.textHint,
+                          ),
                         ),
-                        const SizedBox(width: 12),
-                        // Product Details
+                        const SizedBox(width: AppNumbers.paddingMedium),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,45 +69,42 @@ class CartScreen extends ConsumerWidget {
                                 item.product.name,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.titleSmall,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 6),
                               Text(
                                 'Rp ${item.product.price.toStringAsFixed(0)}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: AppTheme.primaryColor,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                     ),
                               ),
-                              const SizedBox(height: 8),
-                              // Quantity Controls
+                              const SizedBox(height: AppNumbers.paddingSmall),
                               Row(
                                 children: [
-                                  IconButton(
-                                    onPressed: () => ref
+                                  _QuantityButton(
+                                    icon: Icons.remove_circle_outline,
+                                    onTap: () => ref
                                         .read(cartProvider.notifier)
                                         .updateQuantity(
                                           item.product.id,
                                           item.quantity - 1,
                                         ),
-                                    icon: const Icon(Icons.remove_circle),
-                                    iconSize: 20,
-                                    padding: EdgeInsets.zero,
                                   ),
-                                  Text('${item.quantity}'),
-                                  IconButton(
-                                    onPressed: () => ref
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '${item.quantity}',
+                                    style: Theme.of(context).textTheme.titleSmall,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _QuantityButton(
+                                    icon: Icons.add_circle_outline,
+                                    onTap: () => ref
                                         .read(cartProvider.notifier)
                                         .updateQuantity(
                                           item.product.id,
                                           item.quantity + 1,
                                         ),
-                                    icon: const Icon(Icons.add_circle),
-                                    iconSize: 20,
-                                    padding: EdgeInsets.zero,
                                   ),
                                   const Spacer(),
                                   IconButton(
@@ -110,16 +112,32 @@ class CartScreen extends ConsumerWidget {
                                         .read(cartProvider.notifier)
                                         .removeItem(item.product.id),
                                     icon: const Icon(
-                                      Icons.delete,
+                                      Icons.delete_outline,
                                       color: AppTheme.errorColor,
                                     ),
-                                    iconSize: 20,
-                                    padding: EdgeInsets.zero,
                                   ),
                                 ],
                               ),
                             ],
                           ),
+                        ),
+                        const SizedBox(width: AppNumbers.paddingMedium),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Rp ${item.subtotal.toStringAsFixed(0)}',
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: AppTheme.primaryColor,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Total',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -128,66 +146,85 @@ class CartScreen extends ConsumerWidget {
               },
             ),
           ),
-          // Summary & Checkout
           Container(
             padding: const EdgeInsets.all(AppNumbers.paddingMedium),
             decoration: BoxDecoration(
               color: AppTheme.surfaceColor,
-              border: Border(
-                top: BorderSide(color: AppTheme.dividerColor),
-              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.shadowColor,
+                  blurRadius: AppNumbers.elevationSmall,
+                ),
+              ],
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Price breakdown
-                _PriceRow(
-                  label: 'Subtotal',
-                  amount: cartState.subtotal,
+                Text(
+                  'Ringkasan Belanja',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
-                _PriceRow(
-                  label: 'Pajak (10%)',
-                  amount: cartState.tax,
-                ),
-                _PriceRow(
-                  label: 'Ongkir',
-                  amount: cartState.shippingCost,
-                ),
-                if (cartState.coinDiscount > 0) ...[
-                  const SizedBox(height: 8),
-                  _PriceRow(
-                    label: 'Diskon Lokal Coin',
-                    amount: -cartState.discountAmount,
-                    color: AppTheme.successColor,
+                const SizedBox(height: AppNumbers.paddingMedium),
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppNumbers.borderRadius),
                   ),
-                ],
-                const Divider(height: 24),
-                // Total
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  elevation: 0,
+                  color: AppTheme.dividerColor.withAlpha((255 * 0.2).round()),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppNumbers.paddingMedium),
+                    child: Column(
+                      children: [
+                        _PriceRow(
+                          label: 'Subtotal',
+                          amount: cartState.subtotal,
+                        ),
+                        _PriceRow(
+                          label: 'Pajak 10%',
+                          amount: cartState.tax,
+                        ),
+                        _PriceRow(
+                          label: 'Ongkir',
+                          amount: cartState.shippingCost,
+                        ),
+                        if (cartState.coinDiscount > 0) ...[
+                          const SizedBox(height: AppNumbers.paddingSmall),
+                          _PriceRow(
+                            label: 'Diskon Lokal Coin',
+                            amount: -cartState.discountAmount,
+                            color: AppTheme.successColor,
+                          ),
+                        ],
+                        const Divider(height: AppNumbers.paddingLarge),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            Text(
+                              'Rp ${cartState.total.toStringAsFixed(0)}',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: AppTheme.primaryColor,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Rp ${cartState.total.toStringAsFixed(0)}',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                // Checkout button
+                const SizedBox(height: AppNumbers.paddingMedium),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () =>
-                        Navigator.pushNamed(context, '/checkout'),
+                    onPressed: () => Navigator.pushNamed(context, '/checkout'),
                     child: Text(AppStrings.btnCheckout),
                   ),
                 ),
@@ -230,6 +267,36 @@ class _PriceRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _QuantityButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _QuantityButton({
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppNumbers.smallBorderRadius),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppTheme.dividerColor.withAlpha((255 * 0.2).round()),
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: AppTheme.primaryColor,
+        ),
       ),
     );
   }
