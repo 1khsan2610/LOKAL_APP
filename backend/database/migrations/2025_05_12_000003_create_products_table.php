@@ -22,6 +22,8 @@ return new class extends Migration
             $table->integer('stock')->default(0);
             $table->integer('weight')->nullable(); // Dalam gram
             $table->json('attributes')->nullable(); // Atribut variabel produk
+            // Foto produk sebagai JSON array (url/path)
+            $table->json('photos')->nullable();
             $table->decimal('rating', 3, 2)->default(5.00);
             $table->integer('total_reviews')->default(0);
             $table->integer('total_sold')->default(0);

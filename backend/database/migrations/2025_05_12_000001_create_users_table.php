@@ -24,6 +24,12 @@ return new class extends Migration
             $table->string('profile_image_url')->nullable();
             $table->boolean('is_verified')->default(false); // For UMKM/Producer verification
             $table->timestamp('verified_at')->nullable();
+            // Per desain: simpan timestamp verifikasi email juga dengan nama `email_verified_at`
+            $table->timestamp('email_verified_at')->nullable();
+            // Saldo Lokal Coin untuk user
+            $table->decimal('lokal_coin_balance', 16, 2)->default(0);
+            // Status akun sesuai kebutuhan (active/inactive/suspended)
+            $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->timestamps();
             $table->softDeletes();
             

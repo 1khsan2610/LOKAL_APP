@@ -16,10 +16,16 @@ return new class extends Migration
             $table->foreignId('user_id')->unique()->constrained('users')->onDelete('cascade');
             $table->string('business_name');
             $table->text('business_description')->nullable();
+            // Kategori usaha sesuai desain
+            $table->string('business_category')->nullable();
+            // Alamat UMKM (disarankan dienkripsi di level aplikasi)
+            $table->text('address')->nullable();
             $table->string('nib')->unique(); // Nomor Induk Berusaha
             $table->string('siup')->nullable(); // Surat Izin Usaha Perdagangan
             $table->string('nib_document_url');
             $table->string('siup_document_url')->nullable();
+            // Path gabungan untuk nib/siup bila diperlukan
+            $table->string('nib_siup_path')->nullable();
             $table->string('owner_name');
             $table->string('owner_phone_number');
             $table->string('bank_name')->nullable();
@@ -30,6 +36,8 @@ return new class extends Migration
             $table->integer('total_products')->default(0);
             $table->integer('total_orders')->default(0);
             $table->point('coordinates')->nullable(); // POINT type for geospatial queries (latitude, longitude)
+            // Status verifikasi UMKM sesuai desain: pending/verified/rejected
+            $table->enum('verification_status', ['pending', 'verified', 'rejected'])->default('pending');
             $table->timestamp('verified_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
