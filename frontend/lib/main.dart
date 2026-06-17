@@ -5,6 +5,12 @@ import 'config/constants.dart';
 import 'screens/auth/login_email_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/auth/splash_screen.dart';
+import 'screens/auth/onboarding_screen.dart';
+import 'screens/auth/register_choice_screen.dart';
+import 'screens/auth/register_consumer_screen.dart';
+import 'screens/auth/register_umkm_step1.dart';
+import 'screens/auth/register_umkm_step2.dart';
+import 'screens/auth/register_success_screen.dart';
 
 import 'screens/home/home_screen.dart';
 import 'screens/main_navigation_screen.dart';
@@ -48,6 +54,12 @@ class MyApp extends ConsumerWidget {
         '/signup': (context) => const SignupScreen(),
 
         // Onboarding & Register routes
+        '/onboarding': (context) => const OnboardingScreen(),
+        '/register-choice': (context) => const RegisterChoiceScreen(),
+        '/register-consumer': (context) => const RegisterConsumerScreen(),
+        '/register-umkm-step1': (context) => const RegisterUmkmStep1(),
+        '/register-umkm-step2': (context) => const RegisterUmkmStep2(),
+        '/register-success': (context) => const RegisterSuccessScreen(),
         // Consumer routes
         '/consumer-home': (context) => const ConsumerHomeScreen(),
         '/cart': (context) => const CartScreen(),
