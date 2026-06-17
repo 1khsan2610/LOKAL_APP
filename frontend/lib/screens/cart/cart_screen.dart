@@ -5,8 +5,15 @@ import '../../config/constants.dart';
 import '../../providers/orders_provider.dart';
 import '../../widgets/common/custom_widgets.dart';
 
-class CartScreen extends ConsumerWidget {
+class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  ConsumerState<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends ConsumerState<CartScreen> {
+  double _coinDiscount = 0.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,207 +32,181 @@ class CartScreen extends ConsumerWidget {
       );
     }
 
+    // Group items by UMKM (shop)
+    final groupedByShop = <String, List<CartItemData>>{};
+    for (final item in cartState.items) {
+      final shopId = item.product.shopId ?? 'default';
+      if (!groupedByShop.containsKey(shopId)) {
+        groupedByShop[shopId] = [];
+      }
+      groupedByShop[shopId]!.add(CartItemData(
+        item: item,
+        shopName: item.product.shopName ?? 'Toko',
+      ));
+    }
+
     return Scaffold(
-      appBar: CustomAppBar(title: AppStrings.navCart),
+      appBar: CustomAppBar(
+        title: AppStrings.navCart,
+        showBackButton: false,
+      ),
       body: Column(
         children: [
+          // Progress indicator
+          Padding(
+            padding: const EdgeInsets.all(AppNumbers.paddingMedium),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _StepIndicator(number: 1, label: 'Keranjang', isActive: true),
+                Container(
+                  height: 2,
+                  width: 40,
+                  color: AppTheme.dividerColor,
+                ),
+                _StepIndicator(number: 2, label: 'Pembayaran', isActive: false),
+                Container(
+                  height: 2,
+                  width: 40,
+                  color: AppTheme.dividerColor,
+                ),
+                _StepIndicator(number: 3, label: 'Konfirmasi', isActive: false),
+              ],
+            ),
+          ),
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: AppNumbers.paddingMedium),
-              itemCount: cartState.items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final item = cartState.items[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: AppNumbers.paddingMedium),
-                  elevation: AppNumbers.elevationMedium,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppNumbers.borderRadius),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppNumbers.paddingMedium),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 84,
-                          height: 84,
-                          decoration: BoxDecoration(
-                            color: AppTheme.dividerColor,
-                            borderRadius: BorderRadius.circular(AppNumbers.smallBorderRadius),
-                          ),
-                          child: const Icon(
-                            Icons.image,
-                            size: 32,
-                            color: AppTheme.textHint,
-                          ),
-                        ),
-                        const SizedBox(width: AppNumbers.paddingMedium),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.product.name,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Rp ${item.product.price.toStringAsFixed(0)}',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: AppTheme.primaryColor,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                              ),
-                              const SizedBox(height: AppNumbers.paddingSmall),
-                              Row(
-                                children: [
-                                  _QuantityButton(
-                                    icon: Icons.remove_circle_outline,
-                                    onTap: () => ref
-                                        .read(cartProvider.notifier)
-                                        .updateQuantity(
-                                          item.product.id,
-                                          item.quantity - 1,
-                                        ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '${item.quantity}',
-                                    style: Theme.of(context).textTheme.titleSmall,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  _QuantityButton(
-                                    icon: Icons.add_circle_outline,
-                                    onTap: () => ref
-                                        .read(cartProvider.notifier)
-                                        .updateQuantity(
-                                          item.product.id,
-                                          item.quantity + 1,
-                                        ),
-                                  ),
-                                  const Spacer(),
-                                  IconButton(
-                                    onPressed: () => ref
-                                        .read(cartProvider.notifier)
-                                        .removeItem(item.product.id),
-                                    icon: const Icon(
-                                      Icons.delete_outline,
-                                      color: AppTheme.errorColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: AppNumbers.paddingMedium),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Rp ${item.subtotal.toStringAsFixed(0)}',
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: AppNumbers.paddingMedium),
+              itemCount: groupedByShop.length,
+              itemBuilder: (context, shopIndex) {
+                final shopId = groupedByShop.keys.elementAt(shopIndex);
+                final items = groupedByShop[shopId]!;
+                final shopName = items.first.shopName;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Shop header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppTheme.primaryColor,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Total',
-                              style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            shopName,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    // Items in this shop
+                    ...items.map((itemData) => _CartItemCard(
+                      item: itemData.item,
+                      onQuantityChanged: (qty) {
+                        ref.read(cartProvider.notifier).updateQuantity(
+                          itemData.item.product.id,
+                          qty,
+                        );
+                      },
+                      onRemove: () {
+                        ref.read(cartProvider.notifier).removeItem(
+                          itemData.item.product.id,
+                        );
+                      },
+                    )),
+                    const SizedBox(height: 16),
+                  ],
                 );
               },
             ),
           ),
+          // Summary and checkout
           Container(
-            padding: const EdgeInsets.all(AppNumbers.paddingMedium),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceColor,
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.shadowColor,
-                  blurRadius: AppNumbers.elevationSmall,
-                ),
-              ],
+              color: Colors.white,
+              border: Border(
+                top: BorderSide(color: AppTheme.dividerColor, width: 1),
+              ),
             ),
+            padding: const EdgeInsets.all(AppNumbers.paddingMedium),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Ringkasan Belanja',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: AppNumbers.paddingMedium),
+                // Coin discount toggle
                 Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppNumbers.borderRadius),
-                  ),
-                  elevation: 0,
-                  color: AppTheme.dividerColor.withAlpha((255 * 0.2).round()),
+                  color: AppTheme.primaryColor.withAlpha((255 * 0.05).round()),
                   child: Padding(
-                    padding: const EdgeInsets.all(AppNumbers.paddingMedium),
-                    child: Column(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppNumbers.paddingMedium,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _PriceRow(
-                          label: 'Subtotal',
-                          amount: cartState.subtotal,
-                        ),
-                        _PriceRow(
-                          label: 'Pajak 10%',
-                          amount: cartState.tax,
-                        ),
-                        _PriceRow(
-                          label: 'Ongkir',
-                          amount: cartState.shippingCost,
-                        ),
-                        if (cartState.coinDiscount > 0) ...[
-                          const SizedBox(height: AppNumbers.paddingSmall),
-                          _PriceRow(
-                            label: 'Diskon Lokal Coin',
-                            amount: -cartState.discountAmount,
-                            color: AppTheme.successColor,
-                          ),
-                        ],
-                        const Divider(height: AppNumbers.paddingLarge),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            const Icon(Icons.local_offer_outlined,
+                                size: 20, color: AppTheme.primaryColor),
+                            const SizedBox(width: 8),
                             Text(
-                              'Total',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                            ),
-                            Text(
-                              'Rp ${cartState.total.toStringAsFixed(0)}',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                              'Gunakan Lokal Coin',
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
+                        ),
+                        Switch(
+                          value: _coinDiscount > 0,
+                          onChanged: (value) {
+                            setState(() {
+                              _coinDiscount = value ? 0.1 : 0;
+                              ref.read(cartProvider.notifier)
+                                  .setCoinDiscount(_coinDiscount);
+                            });
+                          },
+                          activeColor: AppTheme.primaryColor,
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: AppNumbers.paddingMedium),
+                const SizedBox(height: 12),
+                // Price summary
+                _PriceSummary(
+                  cartState: cartState,
+                  coinDiscount: _coinDiscount,
+                ),
+                const SizedBox(height: 16),
+                // Checkout button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.pushNamed(context, '/checkout'),
-                    child: Text(AppStrings.btnCheckout),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/checkout');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: AppTheme.primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppNumbers.borderRadius),
+                      ),
+                    ),
+                    child: Text(
+                      'Lanjut ke Pembayaran',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -237,36 +218,138 @@ class CartScreen extends ConsumerWidget {
   }
 }
 
-class _PriceRow extends StatelessWidget {
-  final String label;
-  final double amount;
-  final Color? color;
+class CartItemData {
+  final CartItem item;
+  final String shopName;
 
-  const _PriceRow({
-    required this.label,
-    required this.amount,
-    this.color,
+  CartItemData({required this.item, required this.shopName});
+}
+
+class _CartItemCard extends StatelessWidget {
+  final CartItem item;
+  final Function(int) onQuantityChanged;
+  final VoidCallback onRemove;
+
+  const _CartItemCard({
+    required this.item,
+    required this.onQuantityChanged,
+    required this.onRemove,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          Text(
-            'Rp ${amount.toStringAsFixed(0)}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppNumbers.paddingMedium),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product image
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppTheme.dividerColor,
+                borderRadius: BorderRadius.circular(8),
+                image: item.product.image != null
+                    ? DecorationImage(
+                        image: NetworkImage(item.product.image!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: item.product.image == null
+                  ? const Icon(
+                      Icons.image_not_supported_outlined,
+                      size: 32,
+                      color: AppTheme.textHint,
+                    )
+                  : null,
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            // Product details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.product.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Rp ${(item.product.price / 1000).toStringAsFixed(1)}k',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Quantity controls and total
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppTheme.dividerColor),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          children: [
+                            _QuantityButton(
+                              icon: Icons.remove,
+                              onTap: () =>
+                                  onQuantityChanged(item.quantity - 1),
+                              size: 28,
+                            ),
+                            SizedBox(
+                              width: 30,
+                              child: Center(
+                                child: Text(
+                                  '${item.quantity}',
+                                  style: Theme.of(context)
+                                      .textTheme.bodyMedium,
+                                ),
+                              ),
+                            ),
+                            _QuantityButton(
+                              icon: Icons.add,
+                              onTap: () =>
+                                  onQuantityChanged(item.quantity + 1),
+                              size: 28,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        'Rp ${(item.subtotal / 1000).toStringAsFixed(1)}k',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Remove button
+            IconButton(
+              icon: const Icon(Icons.close, size: 20),
+              onPressed: onRemove,
+              color: Colors.red,
+              padding: EdgeInsets.zero,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -275,28 +358,150 @@ class _PriceRow extends StatelessWidget {
 class _QuantityButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
+  final double size;
 
   const _QuantityButton({
     required this.icon,
     required this.onTap,
+    this.size = 32,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppNumbers.smallBorderRadius),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppTheme.dividerColor.withAlpha((255 * 0.2).round()),
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Icon(icon, size: 18),
+      ),
+    );
+  }
+}
+
+class _StepIndicator extends StatelessWidget {
+  final int number;
+  final String label;
+  final bool isActive;
+
+  const _StepIndicator({
+    required this.number,
+    required this.label,
+    required this.isActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isActive ? AppTheme.primaryColor : AppTheme.dividerColor,
+          ),
+          child: Center(
+            child: Text(
+              '$number',
+              style: TextStyle(
+                color: isActive ? Colors.white : AppTheme.textHint,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
         ),
-        child: Icon(
-          icon,
-          size: 20,
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontSize: 10,
+            color: isActive ? AppTheme.primaryColor : AppTheme.textHint,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PriceSummary extends StatelessWidget {
+  final CartState cartState;
+  final double coinDiscount;
+
+  const _PriceSummary({
+    required this.cartState,
+    required this.coinDiscount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final subtotal = cartState.subtotal;
+    final tax = cartState.tax;
+    final shipping = cartState.shippingCost;
+    final discount = subtotal * coinDiscount;
+    final total = subtotal + tax + shipping - discount;
+
+    return Column(
+      children: [
+        _SummaryRow('Subtotal', subtotal),
+        _SummaryRow('Pajak (10%)', tax),
+        _SummaryRow('Ongkir', shipping),
+        if (coinDiscount > 0) ...[
+          const Divider(height: 12),
+          _SummaryRow(
+            'Diskon Lokal Coin',
+            -discount,
+            color: Colors.green,
+          ),
+        ],
+        const Divider(height: 12),
+        _SummaryRow(
+          'Total',
+          total,
+          isBold: true,
           color: AppTheme.primaryColor,
         ),
+      ],
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  final String label;
+  final double amount;
+  final bool isBold;
+  final Color? color;
+
+  const _SummaryRow(
+    this.label,
+    this.amount, {
+    this.isBold = false,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
+              color: color,
+            ),
+          ),
+          Text(
+            'Rp ${(amount / 1000).toStringAsFixed(1)}k',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
