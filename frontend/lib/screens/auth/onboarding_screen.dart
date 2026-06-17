@@ -16,7 +16,7 @@ class OnboardingScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 8),
-            Icon(Icons.local_grocery_store, size: 96, color: AppTheme.primaryColor),
+            Center(child: Icon(Icons.local_grocery_store, size: 96, color: AppTheme.primaryColor)),
             const SizedBox(height: AppNumbers.paddingLarge),
             Text(
               'LOKAL — Ekonomi Lokal Dimulai di Sini',
@@ -30,14 +30,16 @@ class OnboardingScreen extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: AppNumbers.paddingLarge),
-            ElevatedButton(
+            ElevatedButton.icon(
+              icon: const Icon(Icons.person_add),
               onPressed: () => Navigator.pushNamed(context, '/register-choice'),
-              child: const Text('Register Account'),
+              label: const Text('Register Account'),
             ),
             const SizedBox(height: AppNumbers.paddingSmall),
-            OutlinedButton(
+            OutlinedButton.icon(
+              icon: const Icon(Icons.login),
               onPressed: () => Navigator.pushNamed(context, '/login'),
-              child: const Text('Login'),
+              label: const Text('Login'),
             ),
           ],
         ),

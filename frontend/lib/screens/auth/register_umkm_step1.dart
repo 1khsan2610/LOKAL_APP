@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/constants.dart';
+import '../../config/theme.dart';
 
 class RegisterUmkmStep1 extends StatefulWidget {
   const RegisterUmkmStep1({Key? key}) : super(key: key);
@@ -53,21 +54,25 @@ class _RegisterUmkmStep1State extends State<RegisterUmkmStep1> {
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(controller: _ownerCtrl, decoration: const InputDecoration(labelText: 'Nama Pemilik'), validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+              Text('Informasi Pemilik & Usaha', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: AppNumbers.paddingSmall),
-              TextFormField(controller: _businessNameCtrl, decoration: const InputDecoration(labelText: 'Nama Usaha'), validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+              const Text('Isi data pemilik dan informasi usaha Anda', style: TextStyle(color: AppTheme.textHint)),
+              const SizedBox(height: AppNumbers.paddingMedium),
+              TextFormField(controller: _ownerCtrl, decoration: const InputDecoration(prefixIcon: Icon(Icons.person), labelText: 'Nama Pemilik'), validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
               const SizedBox(height: AppNumbers.paddingSmall),
-              TextFormField(controller: _emailCtrl, decoration: const InputDecoration(labelText: 'Email Usaha'), validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+              TextFormField(controller: _businessNameCtrl, decoration: const InputDecoration(prefixIcon: Icon(Icons.store), labelText: 'Nama Usaha'), validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
               const SizedBox(height: AppNumbers.paddingSmall),
-              TextFormField(controller: _phoneCtrl, decoration: const InputDecoration(labelText: 'No. HP'), validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+              TextFormField(controller: _emailCtrl, decoration: const InputDecoration(prefixIcon: Icon(Icons.email), labelText: 'Email Usaha'), validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null, keyboardType: TextInputType.emailAddress),
               const SizedBox(height: AppNumbers.paddingSmall),
-              TextFormField(controller: _passCtrl, decoration: const InputDecoration(labelText: 'Password'), obscureText: true, validator: (v) => (v == null || v.length < 6) ? 'Password minimal 6 karakter' : null),
+              TextFormField(controller: _phoneCtrl, decoration: const InputDecoration(prefixIcon: Icon(Icons.phone), labelText: 'No. HP'), validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null, keyboardType: TextInputType.phone),
               const SizedBox(height: AppNumbers.paddingSmall),
-              TextFormField(controller: _confirmCtrl, decoration: const InputDecoration(labelText: 'Konfirmasi Password'), obscureText: true, validator: (v) => v != _passCtrl.text ? 'Password tidak cocok' : null),
+              TextFormField(controller: _passCtrl, decoration: const InputDecoration(prefixIcon: Icon(Icons.lock), labelText: 'Password'), obscureText: true, validator: (v) => (v == null || v.length < 6) ? 'Password minimal 6 karakter' : null),
+              const SizedBox(height: AppNumbers.paddingSmall),
+              TextFormField(controller: _confirmCtrl, decoration: const InputDecoration(prefixIcon: Icon(Icons.lock_outline), labelText: 'Konfirmasi Password'), obscureText: true, validator: (v) => v != _passCtrl.text ? 'Password tidak cocok' : null),
               const SizedBox(height: AppNumbers.paddingSmall),
               Row(children: [Checkbox(value: _accepted, onChanged: (v) => setState(() => _accepted = v ?? false)), const Expanded(child: Text('Saya setuju dengan Syarat & Ketentuan'))]),
               const SizedBox(height: AppNumbers.paddingMedium),
-              ElevatedButton(onPressed: _next, child: const Text('Lanjutkan ke Langkah 2')),
+              SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _next, child: const Text('Lanjutkan ke Langkah 2'))),
             ],
           ),
         ),
