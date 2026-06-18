@@ -12,6 +12,9 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
   UserRole _selectedRole = UserRole.consumer;
   bool _isLoading = false;
   String? _errorMessage;
@@ -20,6 +23,9 @@ class _SignupScreenState extends State<SignupScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
     super.dispose();
   }
 
@@ -31,7 +37,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
     try {
       final name = _nameController.text.trim();
-      final phone = _phoneController.text.trim();
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+      final confirm = _confirmController.text;
 
       if (name.isEmpty) {
         setState(() {
@@ -41,9 +49,33 @@ class _SignupScreenState extends State<SignupScreen> {
         return;
       }
 
-      if (phone.isEmpty) {
+      if (email.isEmpty) {
         setState(() {
-          _errorMessage = 'Nomor telepon tidak boleh kosong';
+          _errorMessage = 'Email tidak boleh kosong';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      if (password.isEmpty) {
+        setState(() {
+          _errorMessage = 'Password tidak boleh kosong';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      if (password.length < 8) {
+        setState(() {
+          _errorMessage = 'Password minimal 8 karakter';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      if (confirm != password) {
+        setState(() {
+          _errorMessage = 'Konfirmasi password tidak cocok';
           _isLoading = false;
         });
         return;
@@ -117,26 +149,18 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Nomor Telepon',
+                  'Email',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   enabled: !_isLoading,
                   decoration: InputDecoration(
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.only(left: 14, right: 10),
-                      child: Text(
-                        '+62',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ),
-                    prefixIconConstraints: const BoxConstraints(minWidth: 72),
-                    hintText: '812-3456-7890',
+                    hintText: 'nama@email.com',
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -145,7 +169,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 26),
+                const SizedBox(height: 20),
                 Text(
                   'Daftar Sebagai',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -166,13 +190,51 @@ class _SignupScreenState extends State<SignupScreen> {
                   title: 'UMKM',
                   description: 'Kelola toko dan produk lokal Anda',
                 ),
-                const SizedBox(height: 12),
-                _buildRoleOption(
-                  role: UserRole.producer,
-                  icon: Icons.local_shipping,
-                  title: 'Produsen',
-                  description: 'Pasok produk ke UMKM dan mitra Anda',
+                const SizedBox(height: 18),
+                Text(
+                  'Password',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  enabled: !_isLoading,
+                  decoration: InputDecoration(
+                    hintText: 'Masukkan password',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Konfirmasi Password',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _confirmController,
+                  obscureText: true,
+                  enabled: !_isLoading,
+                  decoration: InputDecoration(
+                    hintText: 'Ulangi password',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 if (_errorMessage != null) ...[
                   const SizedBox(height: 18),
                   Container(

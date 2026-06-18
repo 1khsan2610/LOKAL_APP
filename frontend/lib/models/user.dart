@@ -1,4 +1,4 @@
-enum UserRole { consumer, umkm, producer }
+enum UserRole { consumer, umkm }
 
 class User {
   final String id;
@@ -106,8 +106,6 @@ class User {
       switch (roleValue.toLowerCase()) {
         case 'umkm':
           return UserRole.umkm;
-        case 'producer':
-          return UserRole.producer;
         default:
           return UserRole.consumer;
       }

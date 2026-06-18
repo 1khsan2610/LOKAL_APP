@@ -36,7 +36,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         _navigateWithAuth();
       } else {
         // No token found, go to login
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pushReplacementNamed(context, '/dashboard');
       }
     } catch (e) {
       if (mounted) {
@@ -68,7 +68,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             }
           });
         },
-        data: (auth) {
+            data: (auth) {
           if (auth != null && mounted) {
             // User is logged in, navigate based on role
             final role = auth.user?.role.toString() ?? '';
@@ -78,12 +78,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               Navigator.pushReplacementNamed(context, '/consumer-home');
             }
           } else if (mounted) {
-            Navigator.pushReplacementNamed(context, '/login');
+            Navigator.pushReplacementNamed(context, '/dashboard');
           }
         },
         error: (error, stack) {
           if (mounted) {
-            Navigator.pushReplacementNamed(context, '/login');
+            Navigator.pushReplacementNamed(context, '/dashboard');
           }
         },
       );

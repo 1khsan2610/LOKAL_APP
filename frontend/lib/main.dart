@@ -11,6 +11,7 @@ import 'screens/auth/register_consumer_screen.dart';
 import 'screens/auth/register_umkm_step1.dart';
 import 'screens/auth/register_umkm_step2.dart';
 import 'screens/auth/register_success_screen.dart';
+import 'screens/dashboard/dashboard_screen.dart';
 
 import 'screens/home/home_screen.dart';
 import 'screens/main_navigation_screen.dart';
@@ -50,6 +51,7 @@ class MyApp extends ConsumerWidget {
       home: const SplashScreen(),
       routes: {
         '/splash': (context) => const SplashScreen(),
+        '/dashboard': (context) => const DashboardScreen(),
         '/login': (context) => const LoginEmailScreen(),
         '/signup': (context) => const SignupScreen(),
 
