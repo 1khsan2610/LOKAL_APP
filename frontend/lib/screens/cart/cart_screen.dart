@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
 import '../../config/constants.dart';
 import '../../providers/orders_provider.dart';
+import '../../models/order.dart';
 import '../../widgets/common/custom_widgets.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
@@ -16,7 +17,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   double _coinDiscount = 0.0;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final cartState = ref.watch(cartProvider);
 
     if (cartState.items.isEmpty) {
@@ -35,13 +36,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     // Group items by UMKM (shop)
     final groupedByShop = <String, List<CartItemData>>{};
     for (final item in cartState.items) {
-      final shopId = item.product.shopId ?? 'default';
+      final shopId = item.product.umkmId;
       if (!groupedByShop.containsKey(shopId)) {
         groupedByShop[shopId] = [];
       }
       groupedByShop[shopId]!.add(CartItemData(
         item: item,
-        shopName: item.product.shopName ?? 'Toko',
+        shopName: item.product.umkmId,
       ));
     }
 
@@ -250,26 +251,31 @@ class _CartItemCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product image
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppTheme.dividerColor,
-                borderRadius: BorderRadius.circular(8),
-                image: item.product.image != null
-                    ? DecorationImage(
-                        image: NetworkImage(item.product.image!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: item.product.image == null
-                  ? const Icon(
-                      Icons.image_not_supported_outlined,
-                      size: 32,
-                      color: AppTheme.textHint,
-                    )
-                  : null,
+            Builder(
+              builder: (context) {
+                final imageUrl = item.product.images.isNotEmpty ? item.product.images.first : null;
+                return Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppTheme.dividerColor,
+                    borderRadius: BorderRadius.circular(8),
+                    image: imageUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(imageUrl),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: imageUrl == null
+                      ? const Icon(
+                          Icons.image_not_supported_outlined,
+                          size: 32,
+                          color: AppTheme.textHint,
+                        )
+                      : null,
+                );
+              },
             ),
             const SizedBox(width: 12),
             // Product details

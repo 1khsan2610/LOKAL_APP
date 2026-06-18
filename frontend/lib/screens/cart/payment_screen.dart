@@ -339,7 +339,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 class QRPaymentSheet extends StatelessWidget {
   final Order? order;
 
-  const QRPaymentSheet({required this.order});
+  const QRPaymentSheet({super.key, required this.order});
 
   @override
   Widget build(BuildContext context) {

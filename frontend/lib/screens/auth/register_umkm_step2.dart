@@ -30,9 +30,11 @@ class _RegisterUmkmStep2State extends State<RegisterUmkmStep2> {
     try {
       final picked = await _picker.pickImage(source: source, maxWidth: 1200, maxHeight: 1600);
       if (picked != null) {
+        if (!mounted) return;
         setState(() => _nibFile = File(picked.path));
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal memilih file')));
     }
   }
@@ -47,8 +49,6 @@ class _RegisterUmkmStep2State extends State<RegisterUmkmStep2> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Register UMKM - Langkah 2')),
       body: Padding(
