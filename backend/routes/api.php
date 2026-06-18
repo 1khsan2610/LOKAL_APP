@@ -54,6 +54,12 @@ Route::prefix('auth')->group(function () {
     Route::post('refresh', [AuthController::class, 'refresh']);
 });
 
+Route::middleware('auth.jwt')->group(function () {
+    Route::get('users/me', [AuthController::class, 'me']);
+    Route::patch('users/me', [AuthController::class, 'updateProfile']);
+    Route::patch('users/me/password', [AuthController::class, 'updatePassword']);
+});
+
 // Payment webhooks (public, but signature verified)
 Route::prefix('payments')->group(function () {
     Route::post('midtrans-webhook', [PaymentWebhookController::class, 'midtransWebhook']);
