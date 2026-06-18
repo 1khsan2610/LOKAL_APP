@@ -7,6 +7,9 @@ use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Http\Requests\Auth\RequestOtpRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
+use App\Http\Requests\Auth\UpdatePasswordRequest;
+use App\Http\Resources\UserResource;
 use App\Models\OtpCode;
 use App\Models\User;
 use App\Models\LokalCoinBalance;
@@ -352,6 +355,66 @@ class AuthController extends Controller
                 'message' => 'Logout gagal: ' . $e->getMessage(),
             ], 401);
         }
+    }
+
+    /**
+     * Get authenticated user profile
+     */
+    public function me(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'success' => true,
+            'data' => new UserResource($user),
+        ], 200);
+    }
+
+    /**
+     * Update authenticated user profile
+     */
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $user->update($request->validated());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil berhasil diperbarui.',
+                'data' => new UserResource($user->refresh()),
+            ], 200);
+        } catch (Exception $e) {
+            \Log::error('Update profile error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui profil: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Update authenticated user password
+     */
+    public function updatePassword(UpdatePasswordRequest $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!Hash::check($request->input('current_password'), $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Password lama tidak cocok.',
+            ], 422);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->input('new_password'), ['rounds' => 12]),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password berhasil diubah.',
+        ], 200);
     }
 
     /**
