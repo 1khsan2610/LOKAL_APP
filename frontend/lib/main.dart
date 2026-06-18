@@ -5,6 +5,7 @@ import 'config/constants.dart';
 import 'screens/auth/login_email_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/auth/splash_screen.dart';
+import 'screens/dashboard/dashboard_screen.dart';
 
 import 'screens/home/home_screen.dart';
 import 'screens/main_navigation_screen.dart';
@@ -44,6 +45,7 @@ class MyApp extends ConsumerWidget {
       home: const SplashScreen(),
       routes: {
         '/splash': (context) => const SplashScreen(),
+        '/dashboard': (context) => const DashboardScreen(),
         '/login': (context) => const LoginEmailScreen(),
         '/signup': (context) => const SignupScreen(),
 

@@ -22,24 +22,55 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
+    return PreferredSize(
+      preferredSize: preferredSize,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppTheme.gradientStart, AppTheme.gradientEnd],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.shadowColor,
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: SizedBox(
+            height: preferredSize.height,
+            child: Row(
+              children: [
+                if (showBackButton)
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: onBackPressed ?? () => Navigator.pop(context),
+                  )
+                else
+                  const SizedBox(width: 12),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                if (actions != null) ...actions!,
+                const SizedBox(width: 8),
+              ],
+            ),
+          ),
         ),
       ),
-      backgroundColor: backgroundColor ?? AppTheme.primaryColor,
-      leading: showBackButton
-          ? IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: onBackPressed ?? () => Navigator.pop(context),
-      )
-          : null,
-      actions: actions,
-      bottom: bottom,
-      elevation: 0,
     );
   }
 
@@ -275,26 +306,39 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: widget.controller,
-      keyboardType: widget.keyboardType,
-      maxLines: _obscureText ? 1 : widget.maxLines,
-      minLines: widget.minLines,
-      obscureText: _obscureText,
-      decoration: InputDecoration(
-        labelText: widget.label,
-        hintText: widget.hint,
-        prefixIcon: widget.prefixIcon,
-        suffixIcon: widget.suffixIcon != null
-            ? GestureDetector(
-          onTap: widget.onSuffixTap,
-          child: widget.suffixIcon,
-        )
-            : null,
+    return Material(
+      elevation: 2,
+      borderRadius: BorderRadius.circular(14),
+      color: Colors.white,
+      child: TextFormField(
+        controller: widget.controller,
+        keyboardType: widget.keyboardType,
+        maxLines: _obscureText ? 1 : widget.maxLines,
+        minLines: widget.minLines,
+        obscureText: _obscureText,
+        decoration: InputDecoration(
+          labelText: widget.label,
+          hintText: widget.hint,
+          prefixIcon: widget.prefixIcon,
+          suffixIcon: widget.suffixIcon != null
+              ? GestureDetector(
+                  onTap: widget.onSuffixTap,
+                  child: widget.suffixIcon,
+                )
+              : null,
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        validator: widget.validator,
+        onChanged: widget.onChanged,
+        textInputAction: widget.textInputAction,
       ),
-      validator: widget.validator,
-      onChanged: widget.onChanged,
-      textInputAction: widget.textInputAction,
     );
   }
 }

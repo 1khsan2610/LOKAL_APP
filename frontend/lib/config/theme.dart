@@ -15,6 +15,9 @@ class AppTheme {
   
   // Accent Colors
   static const Color accentColor = Color(0xFF00BCD4); // Cyan
+  // Gradient
+  static const Color gradientStart = Color(0xFF6B4EFF);
+  static const Color gradientEnd = Color(0xFF8A63FF);
   
   // Status Colors
   static const Color successColor = Color(0xFF4CAF50);
@@ -60,6 +63,14 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: surfaceColor,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+        ),
+        modalBackgroundColor: Colors.black54,
+        elevation: 10,
       ),
       textTheme: GoogleFonts.poppinsTextTheme(
         ThemeData.light().textTheme.copyWith(
@@ -132,21 +143,6 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-          elevation: 2,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          textStyle: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: primaryColor,
@@ -161,16 +157,7 @@ class AppTheme {
           ),
         ),
       ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: primaryColor,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          textStyle: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+      
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.grey[100],
@@ -230,15 +217,15 @@ class AppTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: primaryLight.withValues(alpha: 0.1),
+        backgroundColor: primaryLight.withValues(alpha: 0.08),
         labelStyle: GoogleFonts.poppins(
           fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: primaryColor,
+          fontWeight: FontWeight.w600,
+          color: primaryDark,
         ),
-        side: const BorderSide(color: primaryLight),
+        side: BorderSide(color: primaryLight.withOpacity(0.6)),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -255,6 +242,30 @@ class AppTheme {
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          elevation: 6,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: primaryColor,
+          textStyle: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

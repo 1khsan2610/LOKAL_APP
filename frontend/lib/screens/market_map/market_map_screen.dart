@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -141,8 +142,10 @@ class _MarketMapScreenState extends ConsumerState<MarketMapScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppTheme.dividerColor,
                     borderRadius: BorderRadius.circular(8),
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.gradientStart, AppTheme.gradientEnd],
+                    ),
                   ),
                 ),
               ),
@@ -277,22 +280,31 @@ class _MarketMapScreenState extends ConsumerState<MarketMapScreen> {
                   ),
                 ],
               ),
-              Slider(
-                value: _selectedRadius,
-                min: AppConstants.minSearchRadius,
-                max: AppConstants.maxSearchRadius,
-                divisions: 19,
-                activeColor: AppTheme.primaryColor,
-                inactiveColor: AppTheme.primaryLight,
-                label: '${_selectedRadius.toStringAsFixed(1)} km',
-                onChanged: (value) {
-                  setState(() {
-                    _selectedRadius = value;
-                  });
-                },
-                onChangeEnd: (_) async {
-                  await _fetchNearbyUmkm();
-                },
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  trackHeight: 6,
+                  activeTrackColor: AppTheme.primaryColor,
+                  inactiveTrackColor: AppTheme.primaryLight.withOpacity(0.4),
+                  thumbShape:
+                      const RoundSliderThumbShape(enabledThumbRadius: 12),
+                  overlayColor: AppTheme.primaryColor.withOpacity(0.12),
+                  thumbColor: AppTheme.primaryColor,
+                ),
+                child: Slider(
+                  value: _selectedRadius,
+                  min: AppConstants.minSearchRadius,
+                  max: AppConstants.maxSearchRadius,
+                  divisions: 19,
+                  label: '${_selectedRadius.toStringAsFixed(1)} km',
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedRadius = value;
+                    });
+                  },
+                  onChangeEnd: (_) async {
+                    await _fetchNearbyUmkm();
+                  },
+                ),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -489,11 +501,19 @@ class _MarketMapScreenState extends ConsumerState<MarketMapScreen> {
                     : umkmState.when(
                         data: (umkmList) {
                           if (umkmList.isEmpty) {
-                            return Center(
-                              child: Text(
-                                'Tidak ditemukan UMKM di radius ini.',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
+                            return EmptyStateWidget(
+                              icon: '🧭',
+                              title: 'Tidak ditemukan UMKM',
+                              message: 'Tidak ditemukan UMKM di radius ini.',
+                              actionLabel: 'Perluas Radius',
+                              onAction: () async {
+                                setState(() {
+                                  _selectedRadius = math.min(
+                                      AppConstants.maxSearchRadius,
+                                      _selectedRadius + 2.0);
+                                });
+                                await _fetchNearbyUmkm();
+                              },
                             );
                           }
                           return _buildMap(umkmList);

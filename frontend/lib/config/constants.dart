@@ -1,11 +1,11 @@
 /// Configuration constants for Platform LOKAL
 class AppConstants {
   // API Configuration
-  // Laravel local: http://127.0.0.1:8000/api/v1
+  // Local development: http://localhost:8000/api/v1
   // Android emulator: http://10.0.2.2:8000/api/v1
   // iOS simulator: http://localhost:8000/api/v1
-  // Physical device: http://192.168.x.x:8000/api/v1 (gunakan IP lokal machine)
-  static const String apiBaseUrl = 'http://127.0.0.1:8000/api/v1';
+  // Physical device: http://192.168.0.109:8000/api/v1 (gunakan IP lokal machine)
+  static const String apiBaseUrl = 'http://localhost:8000/api/v1';
   static const String apiBaseUrlProduction = 'https://api.lokal.id/api/v1';
   static const String apiTimeout = '30000'; // milliseconds
   
@@ -58,8 +58,8 @@ class AppStrings {
   
   // Authentication
   static const String loginTitle = 'Masuk ke LOKAL';
-  static const String loginSubtitle = 'Masukkan nomor telepon Anda';
-  static const String phoneHint = '08xxxxxxxxxx';
+  static const String loginSubtitle = 'Masuk dengan email dan password';
+  static const String phoneHint = 'nama@email.com';
 
   
   // Roles
