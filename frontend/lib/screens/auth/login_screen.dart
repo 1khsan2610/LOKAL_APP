@@ -164,11 +164,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Text('🧪 Demo Akun (password: password123)',
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 6),
-                      _demoChip('👤 Konsumen', 'budi@test.com'),
+                      // Konsumen
+                      _demoChip('👤 Konsumen', 'budi@test.com', 'Budi Santoso'),
                       const SizedBox(height: 4),
-                      _demoChip('🏪 UMKM', 'busari@test.com'),
+                      // UMKM accounts
+                      _demoChip('🏪 UMKM - Makanan', 'busari@test.com', 'Warung Bu Sari'),
                       const SizedBox(height: 4),
-                      _demoChip('⚙️ Admin', 'admin@ekonomilokal.id'),
+                      _demoChip('☕ UMKM - Minuman', 'kopi@test.com', 'Kopi Nusantara'),
+                      const SizedBox(height: 4),
+                      _demoChip('👗 UMKM - Fashion', 'batik@test.com', 'Batik Garuda'),
+                      const SizedBox(height: 4),
+                      _demoChip('🌾 UMKM - Bahan Pokok', 'tani@test.com', 'Tani Makmur'),
+                      const SizedBox(height: 4),
+                      // Admin
+                      _demoChip('⚙️ Admin', 'admin@ekonomilokal.id', 'Administrator'),
                     ]),
                   ),
                   const SizedBox(height: 16),
@@ -181,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _demoChip(String label, String email) => InkWell(
+  Widget _demoChip(String label, String email, String description) => InkWell(
     onTap: () {
       _emailCtrl.text = email;
       _passCtrl.text  = 'password123';
@@ -195,7 +204,13 @@ class _LoginScreenState extends State<LoginScreen> {
         border: Border.all(color: AppTheme.border),
       ),
       child: Row(children: [
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+            Text(description, style: const TextStyle(fontSize: 10, color: AppTheme.textHint)),
+          ],
+        ),
         const Spacer(),
         Text(email, style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w500)),
         const SizedBox(width: 4),

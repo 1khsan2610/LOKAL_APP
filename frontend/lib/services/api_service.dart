@@ -107,11 +107,12 @@ class ApiService {
     'per_page': perPage,
   });
 
-  Future<Response> searchProducts(String q, {int page = 1, int? umkmId}) =>
+  Future<Response> searchProducts(String q, {int page = 1, int? umkmId, String? category}) =>
       _dio.get('/products/search', queryParameters: {
         'q': q,
         'page': page,
         if (umkmId != null) 'umkm_id': umkmId,
+        if (category != null && category.isNotEmpty) 'category': category,
       });
 
   Future<Response> getFlashSale() => _dio.get('/products/flash-sale');

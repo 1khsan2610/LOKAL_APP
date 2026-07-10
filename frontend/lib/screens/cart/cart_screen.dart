@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/responsive_helper.dart';
 import '../../utils/image_helper.dart';
 import '../../widgets/product_card.dart';
 
@@ -45,13 +46,14 @@ class CartScreen extends StatelessWidget {
           : Column(children: [
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(14),
+                  padding: ResponsiveHelper.getResponsivePadding(context),
                   itemCount: cart.items.length,
                   itemBuilder: (_, i) {
                     final item = cart.items[i];
+                    final spacing = ResponsiveHelper.getResponsiveSpacing(context, 12);
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
+                      margin: EdgeInsets.only(bottom: spacing),
+                      padding: EdgeInsets.all(spacing),
                       decoration: BoxDecoration(
                         color: AppTheme.surface, borderRadius: BorderRadius.circular(14),
                         border: Border.all(color: AppTheme.border),
@@ -109,7 +111,12 @@ class CartScreen extends StatelessWidget {
               ),
               // Bottom summary
               Container(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                padding: EdgeInsets.fromLTRB(
+                  ResponsiveHelper.getResponsivePadding(context).left,
+                  12,
+                  ResponsiveHelper.getResponsivePadding(context).right,
+                  ResponsiveHelper.getResponsivePadding(context).bottom,
+                ),
                 decoration: const BoxDecoration(
                   color: AppTheme.surface,
                   boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, -2))],

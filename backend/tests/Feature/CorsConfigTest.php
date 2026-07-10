@@ -10,7 +10,7 @@ class CorsConfigTest extends TestCase
     {
         $patterns = config('cors.allowed_origins_patterns');
 
-        $this->assertContains('^http://localhost(:\\d+)?$', $patterns);
-        $this->assertContains('^http://127\\.0\\.0\\.1(:\\d+)?$', $patterns);
+        $this->assertContains('#^http://localhost(:\\d+)?$#', $patterns);
+        $this->assertContains('#^http://127\\.0\\.0\\.1(:\\d+)?$#', $patterns);
     }
 }

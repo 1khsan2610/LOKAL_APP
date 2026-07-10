@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/product_provider.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/responsive_helper.dart';
 import '../../widgets/product_card.dart';
 import '../../models/product_model.dart';
 
@@ -17,9 +18,18 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   late TextEditingController _ctrl;
   final List<String> _recent = ['Bakso Aci', 'Kopi Lokal', 'Beras Organik', 'Batik Modern'];
+  final List<Map<String, String>> _categories = [
+    {'id': '', 'icon': '🏪', 'label': 'Semua'},
+    {'id': 'makanan', 'icon': '🍜', 'label': 'Makanan'},
+    {'id': 'minuman', 'icon': '☕', 'label': 'Minuman'},
+    {'id': 'fashion', 'icon': '👗', 'label': 'Fashion'},
+    {'id': 'kerajinan', 'icon': '🧺', 'label': 'Kerajinan'},
+    {'id': 'bahan_pokok', 'icon': '🌾', 'label': 'Bahan Pokok'},
+  ];
   final _api = ApiService();
   List<UmkmModel> _nearbyStores = [];
   UmkmModel? _selectedStore;
+  String? _selectedCategory;
   bool _loadingStores = false;
 
   @override
@@ -48,8 +58,15 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _search(String q) {
-    if (q.trim().isEmpty) return;
-    context.read<ProductProvider>().search(q.trim(), umkmId: _selectedStore?.id);
+    // Allow search if: query not empty OR has active filters
+    final hasFilters = _selectedStore != null || _selectedCategory != null;
+    if (q.trim().isEmpty && !hasFilters) return;
+    
+    context.read<ProductProvider>().searchWithFilters(
+      q.trim(),
+      umkmId: _selectedStore?.id,
+      category: _selectedCategory?.isNotEmpty == true ? _selectedCategory : null,
+    );
   }
 
   @override
@@ -100,12 +117,46 @@ class _SearchScreenState extends State<SearchScreen> {
                 const SizedBox(height: 20),
                 const Text('🔥 Kategori Populer', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 10),
-                Wrap(spacing: 8, runSpacing: 8,
-                  children: ['🍜 Makanan', '☕ Minuman', '👗 Fashion', '🧺 Kerajinan', '🌾 Bahan Pokok']
-                    .map((c) => ActionChip(
-                      label: Text(c, style: const TextStyle(fontSize: 12)),
-                      onPressed: () { _ctrl.text = c.substring(2); _search(c.substring(2)); setState(() {}); },
-                    )).toList(),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _categories.map((c) {
+                      final isSelected = _selectedCategory == c['id'];
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => _selectedCategory = c['id'] == '' ? null : c['id']);
+                          if (_ctrl.text.isNotEmpty) _search(_ctrl.text);
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppTheme.primary : AppTheme.surface,
+                            border: Border.all(
+                              color: isSelected ? AppTheme.primary : AppTheme.border,
+                              width: isSelected ? 2 : 1,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(c['icon']!, style: const TextStyle(fontSize: 14)),
+                              const SizedBox(width: 4),
+                              Text(
+                                c['label']!,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                  color: isSelected ? Colors.white : AppTheme.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 // ── Store Filter ──────────────────────────────────
@@ -145,26 +196,42 @@ class _SearchScreenState extends State<SearchScreen> {
               ]),
             )
           : Column(children: [
-              // Active store filter indicator
-              if (_selectedStore != null)
+              // Active filters indicator
+              if (_selectedStore != null || _selectedCategory != null)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   color: AppTheme.primaryLight.withValues(alpha: 0.1),
                   child: Row(children: [
-                    const Icon(Icons.store, size: 16, color: AppTheme.primary),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text('Menampilkan dari: ${_selectedStore!.name}',
-                        style: const TextStyle(fontSize: 12, color: AppTheme.primary, fontWeight: FontWeight.w600)),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() => _selectedStore = null);
-                        if (_ctrl.text.isNotEmpty) _search(_ctrl.text);
-                      },
-                      child: const Icon(Icons.close, size: 16, color: AppTheme.primary),
-                    ),
+                    if (_selectedStore != null) ...[
+                      const Icon(Icons.store, size: 16, color: AppTheme.primary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text('Toko: ${_selectedStore!.name}',
+                          style: const TextStyle(fontSize: 12, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() => _selectedStore = null);
+                          if (_ctrl.text.isNotEmpty) _search(_ctrl.text);
+                        },
+                        child: const Icon(Icons.close, size: 16, color: AppTheme.primary),
+                      ),
+                    ] else if (_selectedCategory != null) ...[
+                      const Icon(Icons.category, size: 16, color: AppTheme.primary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text('Kategori: ${_categories.firstWhere((c) => c['id'] == _selectedCategory)['label']}',
+                          style: const TextStyle(fontSize: 12, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() => _selectedCategory = null);
+                          if (_ctrl.text.isNotEmpty) _search(_ctrl.text);
+                        },
+                        child: const Icon(Icons.close, size: 16, color: AppTheme.primary),
+                      ),
+                    ],
                   ]),
                 ),
               Expanded(
@@ -182,9 +249,11 @@ class _SearchScreenState extends State<SearchScreen> {
                             Expanded(
                               child: GridView.builder(
                                 padding: const EdgeInsets.all(12),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2, childAspectRatio: 0.68,
-                                  crossAxisSpacing: 12, mainAxisSpacing: 12,
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: ResponsiveHelper.getGridColumns(context),
+                                  childAspectRatio: ResponsiveHelper.getResponsiveChildAspectRatio(context),
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
                                 ),
                                 itemCount: prod.searchResults.length,
                                 itemBuilder: (_, i) => ProductCard(product: prod.searchResults[i]),

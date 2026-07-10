@@ -11,6 +11,7 @@ import '../../providers/cart_provider.dart';
 import '../../services/api_service.dart';
 import '../../models/product_model.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/responsive_helper.dart';
 import '../../utils/image_helper.dart';
 import '../../widgets/product_card.dart';
 
@@ -185,7 +186,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ? const Center(
               child: CircularProgressIndicator(color: AppTheme.primary))
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: ResponsiveHelper.getResponsivePadding(context),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
