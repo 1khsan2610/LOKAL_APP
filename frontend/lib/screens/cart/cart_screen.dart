@@ -23,10 +23,10 @@ class CartScreen extends StatelessWidget {
                 title: const Text('Kosongkan Keranjang?'),
                 content: const Text('Semua produk di keranjang akan dihapus.'),
                 actions: [
-                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+                  TextButton(onPressed: () => context.pop(), child: const Text('Batal')),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
-                    onPressed: () { Navigator.pop(context); cart.clearCart(); },
+                    onPressed: () { context.pop(); cart.clearCart(); },
                     child: const Text('Hapus Semua'),
                   ),
                 ],

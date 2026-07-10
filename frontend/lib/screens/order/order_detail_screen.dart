@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../models/product_model.dart';
 import '../../services/api_service.dart';
@@ -148,7 +149,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('#${order.orderNumber}'),
-        leading: BackButton(onPressed: () => Navigator.pop(context)),
+        leading: BackButton(onPressed: () => context.pop()),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

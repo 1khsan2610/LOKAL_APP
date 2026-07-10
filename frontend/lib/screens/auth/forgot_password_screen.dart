@@ -53,7 +53,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               Text('Link reset password sudah dikirim ke ${_email.text}. Cek inbox atau folder spam kamu.',
                 textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.6)),
               const SizedBox(height: 28),
-              CustomButton(label: 'Kembali ke Login', onPressed: () => Navigator.pop(context)),
+              CustomButton(label: 'Kembali ke Login', onPressed: () => context.pop()),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => context.push('/reset-password?email=${Uri.encodeComponent(_email.text.trim())}'),

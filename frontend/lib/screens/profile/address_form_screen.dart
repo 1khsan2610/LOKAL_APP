@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/api_service.dart';
 import '../../models/product_model.dart';
 import '../../utils/app_theme.dart';
@@ -51,7 +52,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       
       // PERBAIKAN DI SINI: Dibungkus post frame agar navigasi pop tidak mengunci (lock) engine Flutter
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) Navigator.pop(context);
+        if (mounted) context.pop();
       });
     } catch (_) {
       AppSnackBar.show(context, 'Gagal menyimpan alamat', isError: true);
@@ -64,7 +65,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(_isEdit ? 'Edit Alamat' : 'Tambah Alamat Baru'),
-      leading: BackButton(onPressed: () => Navigator.pop(context)),
+        leading: BackButton(onPressed: () => context.pop()),
     ),
     body: SingleChildScrollView(
       padding: const EdgeInsets.all(16),

@@ -115,7 +115,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
           } catch (_) {}
           AppSnackBar.show(context, '⚠️ $uploadError, tetapi produk sudah tersimpan', isError: true);
           if (!mounted) return;
-          Navigator.pop(context);
+          context.pop();
           return;
         }
       }

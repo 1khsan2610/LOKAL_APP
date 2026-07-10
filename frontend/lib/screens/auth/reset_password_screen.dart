@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../utils/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
-import '../../widgets/product_card.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -13,99 +14,129 @@ class ResetPasswordScreen extends StatefulWidget {
 }
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _api = ApiService();
-  late final TextEditingController _email;
-  final _token = TextEditingController();
-  final _password = TextEditingController();
-  final _confirmPassword = TextEditingController();
-  bool _isLoading = false;
-  bool _obscure = true;
+  final _formKey     = GlobalKey<FormState>();
+  final _emailCtrl   = TextEditingController();
+  final _tokenCtrl   = TextEditingController();
+  final _passCtrl    = TextEditingController();
+  final _confirmCtrl = TextEditingController();
+  bool _obscurePass   = true;
+  bool _obscureConfirm = true;
 
   @override
   void initState() {
     super.initState();
-    _email = TextEditingController(text: widget.email);
+    if (widget.email.isNotEmpty) _emailCtrl.text = widget.email;
   }
 
   @override
   void dispose() {
-    _email.dispose();
-    _token.dispose();
-    _password.dispose();
-    _confirmPassword.dispose();
+    _emailCtrl.dispose(); _tokenCtrl.dispose();
+    _passCtrl.dispose(); _confirmCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
-    try {
-      await _api.resetPassword(
-        token: _token.text.trim(),
-        email: _email.text.trim(),
-        password: _password.text,
-        passwordConfirmation: _confirmPassword.text,
+
+    final auth = context.read<AuthProvider>();
+    final ok   = await auth.resetPassword(
+      _emailCtrl.text.trim(),
+      _tokenCtrl.text.trim(),
+      _passCtrl.text,
+      _confirmCtrl.text,
+    );
+
+    if (!mounted) return;
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✓ Password berhasil direset. Silakan login.')),
       );
-      if (!mounted) return;
-      AppSnackBar.show(context, '✓ Password berhasil direset. Silakan masuk kembali.');
       context.go('/login');
-    } catch (_) {
-      if (!mounted) return;
-      AppSnackBar.show(context, 'Kode reset tidak valid atau sudah kedaluwarsa.', isError: true);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.errorMessage ?? 'Gagal mereset password')),
+      );
     }
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Reset Password')),
-    body: SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Form(
-        key: _formKey,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('🔑 Buat Password Baru', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
-          const Text('Masukkan kode reset yang dikirimkan ke email kamu, beserta password baru.',
-            style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.6)),
-          const SizedBox(height: 24),
-          CustomTextField(
-            controller: _email, label: 'Email', hint: 'kamu@email.com',
-            prefixIcon: Icons.email_outlined, keyboardType: TextInputType.emailAddress,
-            validator: (v) => (v?.isEmpty ?? true) ? 'Email wajib diisi' : null,
-          ),
-          const SizedBox(height: 14),
-          CustomTextField(
-            controller: _token, label: 'Kode Reset', hint: 'Kode dari email',
-            prefixIcon: Icons.vpn_key_outlined,
-            validator: (v) => (v?.isEmpty ?? true) ? 'Kode reset wajib diisi' : null,
-          ),
-          const SizedBox(height: 14),
-          CustomTextField(
-            controller: _password, label: 'Password Baru', obscureText: _obscure,
-            prefixIcon: Icons.lock_outline,
-            suffixIcon: IconButton(
-              icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-              onPressed: () => setState(() => _obscure = !_obscure),
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    return Scaffold(
+      appBar: AppBar(title: const Text('Reset Password')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(children: [
+            const SizedBox(height: 20),
+            const Icon(Icons.lock_reset, size: 64, color: AppTheme.primary),
+            const SizedBox(height: 16),
+            const Text('Buat Password Baru', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 6),
+            const Text('Masukkan token reset yang dikirim ke email kamu',
+                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+            const SizedBox(height: 30),
+            CustomTextField(
+              controller: _emailCtrl,
+              label: 'Email',
+              hint: 'kamu@email.com',
+              prefixIcon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+              validator: (v) => (v == null || v.isEmpty) ? 'Email wajib diisi' : null,
             ),
-            validator: (v) {
-              if (v?.isEmpty ?? true) return 'Password baru wajib diisi';
-              if (v!.length < 8) return 'Minimal 8 karakter';
-              return null;
-            },
-          ),
-          const SizedBox(height: 14),
-          CustomTextField(
-            controller: _confirmPassword, label: 'Konfirmasi Password', obscureText: _obscure,
-            prefixIcon: Icons.lock_outline,
-            validator: (v) => v != _password.text ? 'Konfirmasi password tidak cocok' : null,
-          ),
-          const SizedBox(height: 24),
-          CustomButton(label: 'Reset Password', icon: Icons.check, isLoading: _isLoading, onPressed: _submit),
-        ]),
+            const SizedBox(height: 16),
+            CustomTextField(
+              controller: _tokenCtrl,
+              label: 'Token Reset',
+              hint: 'Masukkan token dari email',
+              prefixIcon: Icons.token_outlined,
+              validator: (v) => (v == null || v.isEmpty) ? 'Token wajib diisi' : null,
+            ),
+            const SizedBox(height: 16),
+            CustomTextField(
+              controller: _passCtrl,
+              label: 'Password Baru',
+              hint: 'Minimal 6 karakter',
+              prefixIcon: Icons.lock_outlined,
+              obscureText: _obscurePass,
+              suffixIcon: IconButton(
+                icon: Icon(_obscurePass ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                onPressed: () => setState(() => _obscurePass = !_obscurePass),
+              ),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Password wajib diisi';
+                if (v.length < 6) return 'Minimal 6 karakter';
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            CustomTextField(
+              controller: _confirmCtrl,
+              label: 'Konfirmasi Password',
+              hint: 'Ulangi password baru',
+              prefixIcon: Icons.lock_outlined,
+              obscureText: _obscureConfirm,
+              suffixIcon: IconButton(
+                icon: Icon(_obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+              ),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Konfirmasi password wajib diisi';
+                if (v != _passCtrl.text) return 'Password tidak cocok';
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            CustomButton(
+              label: 'Reset Password',
+              icon: Icons.lock_reset,
+              isLoading: auth.isLoading,
+              onPressed: _submit,
+            ),
+          ]),
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

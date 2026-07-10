@@ -12,7 +12,9 @@ class ApiService {
   static final String baseUrl = (() {
     const apiEnv = String.fromEnvironment('API_BASE_URL', defaultValue: '');
     const altEnv = String.fromEnvironment('BASE_URL', defaultValue: '');
-    final resolved = apiEnv.isNotEmpty ? apiEnv : (altEnv.isNotEmpty ? altEnv : 'http://Ekonomi_Lokal.1.test/api');
+    // Default ke localhost:8000 agar kompatibel dengan php artisan serve --port=8000
+    // Override dengan --dart-define=API_BASE_URL=http://domain-anda.test/api saat build
+    final resolved = apiEnv.isNotEmpty ? apiEnv : (altEnv.isNotEmpty ? altEnv : 'http://127.0.0.1:8000/api');
     // Ensure no trailing slash to keep endpoint concatenation consistent
     return resolved.endsWith('/') ? resolved.substring(0, resolved.length - 1) : resolved;
   })();
@@ -105,8 +107,12 @@ class ApiService {
     'per_page': perPage,
   });
 
-  Future<Response> searchProducts(String q, {int page = 1}) =>
-      _dio.get('/products/search', queryParameters: {'q': q, 'page': page});
+  Future<Response> searchProducts(String q, {int page = 1, int? umkmId}) =>
+      _dio.get('/products/search', queryParameters: {
+        'q': q,
+        'page': page,
+        if (umkmId != null) 'umkm_id': umkmId,
+      });
 
   Future<Response> getFlashSale() => _dio.get('/products/flash-sale');
 
@@ -366,6 +372,7 @@ class ApiService {
 class _AuthInterceptor extends Interceptor {
   final FlutterSecureStorage _storage;
   final Dio _dio;
+  bool _isRefreshing = false;
 
   _AuthInterceptor(this._storage, this._dio);
 
@@ -380,22 +387,33 @@ class _AuthInterceptor extends Interceptor {
 
   @override
   Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401) {
+    if (err.response?.statusCode == 401 && !_isRefreshing) {
+      _isRefreshing = true;
       try {
         final refreshToken = await _storage.read(key: 'refresh_token');
         if (refreshToken != null) {
-          final resp = await _dio.post('/auth/refresh',
-              options: Options(headers: {'Authorization': 'Bearer $refreshToken'}));
-          final newToken = resp.data['token'];
-          await _storage.write(key: 'jwt_token', value: newToken);
+          // Use a clean Dio instance without interceptors to avoid infinite loop
+          final cleanDio = Dio(BaseOptions(
+            baseUrl: _dio.options.baseUrl,
+            headers: {'Accept': 'application/json', 'Content-Type': 'application/json'},
+          ));
+          cleanDio.options.headers['Authorization'] = 'Bearer $refreshToken';
+          final resp = await cleanDio.post('/auth/refresh');
+          final newToken = resp.data['token'] as String?;
+          if (newToken != null) {
+            await _storage.write(key: 'jwt_token', value: newToken);
 
-          err.requestOptions.headers['Authorization'] = 'Bearer $newToken';
-          final retryResp = await _dio.fetch(err.requestOptions);
-          return handler.resolve(retryResp);
+            err.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+            final retryResp = await _dio.fetch(err.requestOptions);
+            return handler.resolve(retryResp);
+          }
         }
       } catch (_) {
-        await _storage.deleteAll();
+        // refresh failed
+      } finally {
+        _isRefreshing = false;
       }
+      await _storage.deleteAll();
     }
     return handler.next(err);
   }

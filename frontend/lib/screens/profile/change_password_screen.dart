@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/api_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -34,7 +35,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       await _api.changePassword(_oldPass.text, _newPass.text);
       if (!mounted) return;
       AppSnackBar.show(context, '✓ Password berhasil diubah');
-      Navigator.pop(context);
+      context.pop();
     } catch (e) {
       if (!mounted) return;
       AppSnackBar.show(context, 'Gagal mengubah password. Periksa password lama kamu.', isError: true);
@@ -47,7 +48,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text('Ubah Password'),
-      leading: BackButton(onPressed: () => Navigator.pop(context)),
+        leading: BackButton(onPressed: () => context.pop()),
     ),
     body: SingleChildScrollView(
       padding: const EdgeInsets.all(24),

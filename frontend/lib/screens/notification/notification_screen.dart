@@ -2,6 +2,7 @@
 //  NotificationScreen  —  lib/screens/notification/notification_screen.dart
 // ═══════════════════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/cart_provider.dart';
@@ -27,7 +28,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifikasi'),
-        leading: BackButton(onPressed: () => Navigator.pop(context)),
+        leading: BackButton(onPressed: () => context.pop()),
         actions: [
           TextButton(
             onPressed: () => context.read<NotificationProvider>().markAllRead(),

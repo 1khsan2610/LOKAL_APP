@@ -37,7 +37,6 @@ Route::prefix('auth')->group(function () {
     Route::post('/forgot-password',  [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password',   [AuthController::class, 'resetPassword']);
     Route::post('/verify-email',     [AuthController::class, 'verifyEmail']);
-    Route::post('/refresh',          [AuthController::class, 'refresh']);
 });
 
 // ─── PUBLIC ENDPOINTS ─────────────────────────────────────────────
@@ -55,9 +54,10 @@ Route::post('/payment/notification', [PaymentController::class, 'notification'])
 // ─── AUTHENTICATED ────────────────────────────────────────────────
 Route::middleware('auth:api')->group(function () {
 
-    // Auth management
+    // Auth management (refresh must be protected to prevent token blacklist abuse)
     Route::post('/auth/logout',      [AuthController::class, 'logout']);
     Route::get('/auth/me',           [AuthController::class, 'me']);
+    Route::post('/auth/refresh',     [AuthController::class, 'refresh']);
 
     // Profile
     Route::prefix('profile')->group(function () {
@@ -87,8 +87,6 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/{id}',          [OrderController::class, 'show']);
         Route::patch('/{id}/cancel', [OrderController::class, 'cancel']);
         Route::patch('/{id}/confirm-received', [OrderController::class, 'confirmReceived']);
-        
-        // ✨ Jalur mengambil riwayat tracking pesanan berdasarkan order_id
         Route::get('/{id}/tracking', [OrderTrackingController::class, 'tracking']);
     });
 

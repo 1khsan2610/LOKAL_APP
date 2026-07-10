@@ -137,10 +137,10 @@ class ProductProvider extends ChangeNotifier {
   }
 
   // Search
-  Future<void> search(String query) async {
+  Future<void> search(String query, {int? umkmId}) async {
     _isLoading = true; notifyListeners();
     try {
-      final resp = await _api.searchProducts(query);
+      final resp = await _api.searchProducts(query, umkmId: umkmId);
       _searchResults = (resp.data['data']['data'] as List)
           .map((e) => ProductModel.fromJson(e))
           .toList();

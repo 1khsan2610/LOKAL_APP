@@ -175,7 +175,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           expandedHeight: 320,
           pinned: true,
           backgroundColor: AppTheme.primary,
-          leading: BackButton(onPressed: () => Navigator.pop(context)),
+          leading: BackButton(onPressed: () => context.pop()),
           flexibleSpace: FlexibleSpaceBar(
             background: Stack(children: [
               // Main image

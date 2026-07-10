@@ -55,7 +55,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wishlist'),
-        leading: BackButton(onPressed: () => Navigator.pop(context)),
+        leading: const BackButton(),
         actions: [
           if (wishlist.favoriteProductIds.isNotEmpty)
             IconButton(

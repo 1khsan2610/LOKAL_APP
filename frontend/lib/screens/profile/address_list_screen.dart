@@ -31,7 +31,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text('Alamat Pengiriman'),
-      leading: BackButton(onPressed: () => Navigator.pop(context)),
+        leading: BackButton(onPressed: () => context.pop()),
     ),
     floatingActionButton: FloatingActionButton.extended(
       onPressed: () => context.push('/profile/addresses/form').then((_) => _load()),

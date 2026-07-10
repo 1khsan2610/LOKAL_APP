@@ -59,14 +59,20 @@ class ProductController extends Controller
     {
         $request->validate(['q' => 'required|string|min:2']);
 
-        $products = Product::with(['umkm', 'images'])
+        $query = Product::with(['umkm', 'images'])
             ->where('is_active', true)
             ->where(function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->q}%")
                   ->orWhere('description', 'like', "%{$request->q}%")
                   ->orWhereHas('umkm', fn($u) => $u->where('name', 'like', "%{$request->q}%"));
-            })
-            ->orderBy('sold_count', 'desc')
+            });
+
+        // Filter by UMKM store
+        if ($request->umkm_id) {
+            $query->where('umkm_id', $request->umkm_id);
+        }
+
+        $products = $query->orderBy('sold_count', 'desc')
             ->paginate(20);
 
         return response()->json(['success' => true, 'data' => $products]);

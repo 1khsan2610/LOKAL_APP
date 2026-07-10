@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/custom_button.dart';
@@ -32,7 +33,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _isSaving = true);
     final ok = await context.read<AuthProvider>().updateProfile({'name': _name.text.trim(), 'phone': _phone.text.trim()});
     if (!mounted) return;
-    if (ok) { AppSnackBar.show(context, '✓ Profil berhasil diperbarui'); Navigator.pop(context); }
+    if (ok) { AppSnackBar.show(context, '✓ Profil berhasil diperbarui'); context.pop(); }
     else {
       AppSnackBar.show(context, 'Gagal memperbarui profil', isError: true);
     }
@@ -43,7 +44,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text('Edit Profil'),
-      leading: BackButton(onPressed: () => Navigator.pop(context)),
+        leading: BackButton(onPressed: () => context.pop()),
     ),
     body: Padding(
       padding: const EdgeInsets.all(24),

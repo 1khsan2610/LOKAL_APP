@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/api_service.dart';
 import '../../models/product_model.dart';
 import '../../utils/app_theme.dart';
@@ -79,7 +80,7 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
       });
       if (!mounted) return;
       AppSnackBar.show(context, '✓ Profil toko berhasil diperbarui');
-      Navigator.pop(context);
+      context.pop();
     } catch (e) {
       if (!mounted) return;
       String msg = 'Gagal menyimpan perubahan';
@@ -94,7 +95,7 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text('Pengaturan Toko'),
-      leading: BackButton(onPressed: () => Navigator.pop(context)),
+        leading: const BackButton(),
     ),
     body: _isLoading
         ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))

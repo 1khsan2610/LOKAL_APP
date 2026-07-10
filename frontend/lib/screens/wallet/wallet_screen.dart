@@ -31,7 +31,7 @@ class _WalletScreenState extends State<WalletScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dompet & Lokal Coin'),
-        leading: BackButton(onPressed: () => Navigator.pop(context)),
+        leading: BackButton(onPressed: () => context.pop()),
       ),
       body: RefreshIndicator(
         color: AppTheme.primary,

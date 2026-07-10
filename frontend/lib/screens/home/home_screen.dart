@@ -19,9 +19,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final CarouselSliderController _carouselCtrl = CarouselSliderController();
 
   final List<Map<String, dynamic>> _banners = [
-    {'title': 'Ramadan Sale\n-60% OFF!', 'subtitle': 'Produk UMKM pilihan terbaik', 'color1': const Color(0xFF065F46), 'color2': const Color(0xFF059669), 'emoji': '🌙'},
-    {'title': 'Lokal Coin\n2x Reward! 🪙', 'subtitle': 'Kumpulkan coin setiap pembelian', 'color1': const Color(0xFF92400E), 'color2': const Color(0xFFF59E0B), 'emoji': '🪙'},
-    {'title': 'UMKM\ndi Sekitarmu 📍', 'subtitle': 'Belanja langsung dari pengusaha lokal', 'color1': const Color(0xFF1E3A5F), 'color2': const Color(0xFF3B82F6), 'emoji': '🗺️'},
+    {'title': 'Ramadan Sale\n-60% OFF!', 'subtitle': 'Produk UMKM pilihan terbaik', 'color1': const Color(0xFF065F46), 'color2': const Color(0xFF059669), 'emoji': '🌙', 'route': '/search?q=sale'},
+    {'title': 'Lokal Coin\n2x Reward! 🪙', 'subtitle': 'Kumpulkan coin setiap pembelian', 'color1': const Color(0xFF92400E), 'color2': const Color(0xFFF59E0B), 'emoji': '🪙', 'route': '/wallet'},
+    {'title': 'UMKM\ndi Sekitarmu 📍', 'subtitle': 'Belanja langsung dari pengusaha lokal', 'color1': const Color(0xFF1E3A5F), 'color2': const Color(0xFF3B82F6), 'emoji': '🗺️', 'route': '/map'},
   ];
 
   final List<Map<String, dynamic>> _categories = [
@@ -246,34 +246,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// Banner widget
+// Banner widget — clickable with navigation
 class _BannerItem extends StatelessWidget {
   final Map<String, dynamic> banner;
   const _BannerItem({required this.banner});
 
   @override
-  Widget build(BuildContext context) => Container(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(colors: [banner['color1'], banner['color2']]),
-    ),
-    child: Stack(children: [
-      Positioned(right: -10, bottom: -10,
-        child: Text(banner['emoji'], style: const TextStyle(fontSize: 100, color: Colors.white10))),
-      Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(banner['title'], style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2)),
-          const SizedBox(height: 6),
-          Text(banner['subtitle'], style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.85))),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(color: AppTheme.accent, borderRadius: BorderRadius.circular(8)),
-            child: const Text('Belanja Sekarang →', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
-          ),
-        ]),
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: () {
+      final route = banner['route'] as String?;
+      if (route != null && route.isNotEmpty) {
+        context.push(route);
+      }
+    },
+    child: Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [banner['color1'], banner['color2']]),
       ),
-    ]),
+      child: Stack(children: [
+        Positioned(right: -10, bottom: -10,
+          child: Text(banner['emoji'], style: const TextStyle(fontSize: 100, color: Colors.white10))),
+        Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(banner['title'], style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2)),
+            const SizedBox(height: 6),
+            Text(banner['subtitle'], style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.85))),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(color: AppTheme.accent, borderRadius: BorderRadius.circular(8)),
+              child: const Text('Belanja Sekarang →', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+            ),
+          ]),
+        ),
+      ]),
+    ),
   );
 }
 

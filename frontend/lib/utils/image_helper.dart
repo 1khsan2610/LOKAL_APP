@@ -6,6 +6,8 @@ String resolveImageUrl(String? url) {
   final trimmed = url.trim();
   if (trimmed.isEmpty) return '';
 
+  // The storage proxy route is inside the API prefix
+  // Route::get('/image/{path}...) in api.php is at {base}/image/{path}
   final base = ApiService.baseUrl;
   final storageProxy = '$base/image/';
   

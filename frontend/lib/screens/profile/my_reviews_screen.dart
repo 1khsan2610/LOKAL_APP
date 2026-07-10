@@ -41,7 +41,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ulasan Saya'),
-        leading: BackButton(onPressed: () => Navigator.pop(context)),
+        leading: const BackButton(),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

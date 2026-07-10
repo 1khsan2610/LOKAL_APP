@@ -120,6 +120,8 @@ class ProfileScreen extends StatelessWidget {
                   onTap: () => context.push('/admin')),
               _MenuItem(icon: Icons.lock_outlined, label: 'Keamanan Akun',
                 onTap: () => context.push('/profile/change-password')),
+              _MenuItem(icon: Icons.lock_reset, label: 'Reset Password',
+                onTap: () => context.push('/forgot-password')),
               const Divider(),
               _MenuItem(icon: Icons.logout, label: 'Keluar', color: AppTheme.danger,
                 onTap: () => _confirmLogout(context, auth)),
@@ -136,7 +138,7 @@ class ProfileScreen extends StatelessWidget {
       title: const Text('Keluar'),
       content: const Text('Yakin ingin keluar dari akun ini?'),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+        TextButton(onPressed: () => context.pop(), child: const Text('Batal')),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
           onPressed: () {

@@ -30,12 +30,27 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      // Only clear tokens when the server explicitly rejects them (401/403).
-      // Do not delete tokens on network errors or other transient failures,
-      // so the user stays logged in after a backend restart or temporary outage.
+      // On 401, try refreshing the token first before clearing
       try {
         final status = (e as dynamic).response?.statusCode as int?;
         if (status == 401 || status == 403) {
+          // Try to refresh the token
+          try {
+            final refreshResp = await _api.refreshToken();
+            if (refreshResp.data['token'] != null) {
+              await _storage.write(key: 'jwt_token', value: refreshResp.data['token']);
+              // Retry getMe with new token
+              final resp = await _api.getMe();
+              if (resp.data['success'] == true) {
+                _user      = UserModel.fromJson(resp.data['data']);
+                _isLoggedIn = true;
+                notifyListeners();
+                return;
+              }
+            }
+          } catch (_) {
+            // Refresh failed, clear tokens
+          }
           await _storage.deleteAll();
         }
       } catch (_) {
@@ -106,6 +121,41 @@ class AuthProvider extends ChangeNotifier {
       final resp = await _api.updateProfile(data);
       _user = UserModel.fromJson(resp.data['data']);
       notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // ─── Forgot Password ──────────────────────────────────────────────
+  Future<bool> forgotPassword(String email) async {
+    _setLoading(true);
+    _errorMessage = null;
+    try {
+      await _api.forgotPassword(email);
+      return true;
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // ─── Reset Password ──────────────────────────────────────────────
+  Future<bool> resetPassword(String email, String token, String password, String passwordConfirmation) async {
+    _setLoading(true);
+    _errorMessage = null;
+    try {
+      await _api.resetPassword(
+        token: token,
+        email: email,
+        password: password,
+        passwordConfirmation: passwordConfirmation,
+      );
       return true;
     } catch (e) {
       _errorMessage = _parseError(e);
