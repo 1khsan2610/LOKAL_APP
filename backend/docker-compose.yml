@@ -1,0 +1,81 @@
+services:
+  # Aplikasi Laravel (PHP-FPM)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ekonomi_lokal_app
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+    environment:
+      - APP_ENV=local
+    networks:
+      - ekonomi_lokal_network
+
+  # Web Server (Nginx)
+  nginx:
+    image: nginx:alpine
+    container_name: ekonomi_lokal_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - ekonomi_lokal_network
+
+  # Database
+  mysql:
+    image: mysql:8.0
+    container_name: ekonomi_lokal_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: ekonomi_lokal
+      MYSQL_USER: ekonomi_user
+      MYSQL_PASSWORD: secret
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - ekonomi_lokal_network
+
+  # Cache & Session
+  redis:
+    image: redis:7-alpine
+    container_name: ekonomi_lokal_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - ekonomi_lokal_network
+
+  # Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: ekonomi_lokal_minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - ekonomi_lokal_network
+
+# Definisi Jaringan & Volume (Tulis hanya SATU KALI di sini)
+networks:
+  ekonomi_lokal_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
+  minio_data:
