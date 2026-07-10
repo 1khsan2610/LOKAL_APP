@@ -23,9 +23,6 @@ import '../screens/wallet/wallet_screen.dart';
 import '../screens/notification/notification_screen.dart';
 import '../screens/map/map_screen.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
-import '../screens/admin/admin_umkm_list_screen.dart';
-import '../screens/admin/admin_users_list_screen.dart';
-import '../screens/admin/admin_orders_list_screen.dart';
 import '../screens/umkm/umkm_dashboard_screen.dart';
 import '../screens/umkm/manage_product_screen.dart';
 import '../screens/umkm/store_settings_screen.dart';
@@ -83,9 +80,6 @@ class AppRouterGo {
       GoRoute(path: '/notifications', builder: (ctx, state) => const NotificationScreen()),
       GoRoute(path: '/map', builder: (ctx, state) => const MapScreen()),
       GoRoute(path: '/admin', builder: (ctx, state) => const AdminDashboardScreen()),
-      GoRoute(path: '/admin/umkm', builder: (ctx, state) => const AdminUmkmListScreen()),
-      GoRoute(path: '/admin/users', builder: (ctx, state) => const AdminUsersListScreen()),
-      GoRoute(path: '/admin/orders', builder: (ctx, state) => const AdminOrdersListScreen()),
       GoRoute(path: '/umkm/dashboard', builder: (ctx, state) => const UmkmDashboardScreen()),
       GoRoute(path: '/umkm/products', builder: (ctx, state) => const ManageProductScreen()),
       GoRoute(path: '/umkm/products/form', builder: (ctx, state) => AddEditProductLoader(productId: state.uri.queryParameters['id'] != null ? int.tryParse(state.uri.queryParameters['id']!) : null)),

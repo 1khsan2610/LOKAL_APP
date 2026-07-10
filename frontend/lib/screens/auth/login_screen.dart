@@ -164,20 +164,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Text('🧪 Demo Akun (password: password123)',
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 6),
-                      // Konsumen
-                      _demoChip('👤 Konsumen', 'budi@test.com', 'Budi Santoso'),
+                      _demoChip('👤 Konsumen', 'budi@test.com'),
                       const SizedBox(height: 4),
-                      // UMKM accounts
-                      _demoChip('🏪 UMKM - Makanan', 'busari@test.com', 'Warung Bu Sari'),
+                      _demoChip('🏪 UMKM', 'busari@test.com'),
                       const SizedBox(height: 4),
-                      _demoChip('☕ UMKM - Minuman', 'kopi@test.com', 'Kopi Nusantara'),
-                      const SizedBox(height: 4),
-                      _demoChip('👗 UMKM - Fashion', 'batik@test.com', 'Batik Garuda'),
-                      const SizedBox(height: 4),
-                      _demoChip('🌾 UMKM - Bahan Pokok', 'tani@test.com', 'Tani Makmur'),
-                      const SizedBox(height: 4),
-                      // Admin
-                      _demoChip('⚙️ Admin', 'admin@ekonomilokal.id', 'Administrator'),
+                      _demoChip('⚙️ Admin', 'admin@ekonomilokal.id'),
                     ]),
                   ),
                   const SizedBox(height: 16),
@@ -190,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _demoChip(String label, String email, String description) => InkWell(
+  Widget _demoChip(String label, String email) => InkWell(
     onTap: () {
       _emailCtrl.text = email;
       _passCtrl.text  = 'password123';
@@ -204,13 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
         border: Border.all(color: AppTheme.border),
       ),
       child: Row(children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-            Text(description, style: const TextStyle(fontSize: 10, color: AppTheme.textHint)),
-          ],
-        ),
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
         const Spacer(),
         Text(email, style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w500)),
         const SizedBox(width: 4),

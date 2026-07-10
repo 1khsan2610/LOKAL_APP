@@ -57,29 +57,19 @@ class ProductController extends Controller
      */
     public function search(Request $request)
     {
-        // Make query optional - if empty, just filter by category/umkm
-        $q = $request->q ?? '';
+        $request->validate(['q' => 'required|string|min:2']);
 
         $query = Product::with(['umkm', 'images'])
-            ->where('is_active', true);
-
-        // Only apply search filter if query is provided
-        if (!empty($q) && strlen($q) >= 2) {
-            $query->where(function ($subQ) use ($q) {
-                $subQ->where('name', 'like', "%{$q}%")
-                      ->orWhere('description', 'like', "%{$q}%")
-                      ->orWhereHas('umkm', fn($u) => $u->where('name', 'like', "%{$q}%"));
+            ->where('is_active', true)
+            ->where(function ($q) use ($request) {
+                $q->where('name', 'like', "%{$request->q}%")
+                  ->orWhere('description', 'like', "%{$request->q}%")
+                  ->orWhereHas('umkm', fn($u) => $u->where('name', 'like', "%{$request->q}%"));
             });
-        }
 
         // Filter by UMKM store
         if ($request->umkm_id) {
             $query->where('umkm_id', $request->umkm_id);
-        }
-
-        // Filter by category
-        if ($request->category) {
-            $query->where('category', $request->category);
         }
 
         $products = $query->orderBy('sold_count', 'desc')
