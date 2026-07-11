@@ -27,6 +27,7 @@ import '../screens/admin/admin_umkm_list_screen.dart';
 import '../screens/admin/admin_users_list_screen.dart';
 import '../screens/admin/admin_orders_list_screen.dart';
 import '../screens/umkm/umkm_dashboard_screen.dart';
+import '../screens/umkm/umkm_analytics_screen.dart';
 import '../screens/umkm/manage_product_screen.dart';
 import '../screens/umkm/store_settings_screen.dart';
 import '../screens/umkm/umkm_order_list_screen.dart';
@@ -87,6 +88,7 @@ class AppRouterGo {
       GoRoute(path: '/admin/users', builder: (ctx, state) => const AdminUsersListScreen()),
       GoRoute(path: '/admin/orders', builder: (ctx, state) => const AdminOrdersListScreen()),
       GoRoute(path: '/umkm/dashboard', builder: (ctx, state) => const UmkmDashboardScreen()),
+      GoRoute(path: '/umkm/analytics', builder: (ctx, state) => const UmkmAnalyticsScreen()),
       GoRoute(path: '/umkm/products', builder: (ctx, state) => const ManageProductScreen()),
       GoRoute(path: '/umkm/products/form', builder: (ctx, state) => AddEditProductLoader(productId: state.uri.queryParameters['id'] != null ? int.tryParse(state.uri.queryParameters['id']!) : null)),
       GoRoute(path: '/umkm/store-settings', builder: (ctx, state) => const StoreSettingsScreen()),

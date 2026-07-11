@@ -48,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final prod = context.watch<ProductProvider>();
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: RichText(text: const TextSpan(
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
@@ -71,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
         color: AppTheme.primary,
         onRefresh: () => context.read<ProductProvider>().loadProducts(refresh: true),
         child: SingleChildScrollView(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewPadding.bottom + 24),
           child: Column(children: [
 
             // ── Banner Carousel ────────────────────────────────────
@@ -237,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       return ProductCard(product: prod.products[i]);
                     },
                   ),
-                const SizedBox(height: 80),
+                SizedBox(height: MediaQuery.of(context).viewPadding.bottom + 80),
               ]),
             ),
           ]),

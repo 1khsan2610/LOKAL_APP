@@ -30,10 +30,12 @@ class ResponsiveHelper {
   /// Get responsive child aspect ratio for grid
   static double getResponsiveChildAspectRatio(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    if (width < 400) return 0.65;   // Phones
-    if (width < 600) return 0.68;   // Tablets (small)
+    // Increase ratio on narrow screens so items become relatively wider and
+    // therefore shorter in height to avoid vertical overflow on short devices.
+    if (width < 400) return 0.9;    // Phones (make cards shorter)
+    if (width < 600) return 0.8;    // Tablets (small)
     if (width < 900) return 0.75;   // Tablets (medium)
-    return 0.8;                      // Desktop
+    return 0.85;                    // Desktop
   }
 
   /// Get responsive spacing

@@ -3267,3 +3267,7 @@ Did you mean one of these?
 #18 {main}
 "} 
 [2026-07-10 23:20:57] local.INFO: Payment create incoming request {"body":{"order_id":1,"payment_method":"qris","payment_type":"qris"},"raw":"{\"order_id\":1,\"payment_method\":\"qris\",\"payment_type\":\"qris\"}","query":{"order_id":"1","payment_method":"qris","payment_type":"qris"}} 
+[2026-07-11 00:42:33] local.INFO: Payment create incoming request {"body":{"order_id":1,"payment_method":"bca","payment_type":"bca"},"raw":"{\"order_id\":1,\"payment_method\":\"bca\",\"payment_type\":\"bca\"}","query":{"order_id":"1","payment_method":"bca","payment_type":"bca"}} 
+[2026-07-11 01:58:48] local.INFO: Payment create incoming request {"body":{"order_id":2,"payment_method":"bca","payment_type":"bca"},"raw":"{\"order_id\":2,\"payment_method\":\"bca\",\"payment_type\":\"bca\"}","query":{"order_id":"2","payment_method":"bca","payment_type":"bca"}} 
+[2026-07-11 03:05:36] local.INFO: Payment create incoming request {"body":{"order_id":3,"payment_method":"bca","payment_type":"bca"},"raw":"{\"order_id\":3,\"payment_method\":\"bca\",\"payment_type\":\"bca\"}","query":{"order_id":"3","payment_method":"bca","payment_type":"bca"}} 
+[2026-07-11 03:12:43] local.INFO: Payment create incoming request {"body":{"order_id":4,"payment_method":"bca","payment_type":"bca"},"raw":"{\"order_id\":4,\"payment_method\":\"bca\",\"payment_type\":\"bca\"}","query":{"order_id":"4","payment_method":"bca","payment_type":"bca"}} 
