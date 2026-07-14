@@ -151,21 +151,6 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  // Search with filters (category + store)
-  Future<void> searchWithFilters(String query, {int? umkmId, String? category}) async {
-    _isLoading = true; notifyListeners();
-    try {
-      final resp = await _api.searchProducts(query, umkmId: umkmId, category: category);
-      _searchResults = (resp.data['data']['data'] as List)
-          .map((e) => ProductModel.fromJson(e))
-          .toList();
-    } catch (_) {
-      _searchResults = [];
-    } finally {
-      _isLoading = false; notifyListeners();
-    }
-  }
-
   // Get product detail
   Future<void> loadDetail(int id) async {
     _isLoading = true; notifyListeners();

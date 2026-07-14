@@ -88,9 +88,9 @@ class AdminDashboardScreen extends StatelessWidget {
             crossAxisCount: 3, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
             childAspectRatio: 1.2, crossAxisSpacing: 10, mainAxisSpacing: 10,
             children: [
-              _ActionCard(icon: '🏪', label: 'Kelola UMKM',   onTap: () => context.push('/admin/umkm')),
-              _ActionCard(icon: '👥', label: 'Pengguna',      onTap: () => context.push('/admin/users')),
-              _ActionCard(icon: '📦', label: 'Pesanan',       onTap: () => context.push('/admin/orders')),
+              _ActionCard(icon: '🏪', label: 'Kelola UMKM',   onTap: () => AppSnackBar.show(context, '🏪 Daftar UMKM')),
+              _ActionCard(icon: '👥', label: 'Pengguna',      onTap: () => AppSnackBar.show(context, '👥 Daftar pengguna')),
+              _ActionCard(icon: '📦', label: 'Pesanan',       onTap: () => AppSnackBar.show(context, '📦 Semua pesanan')),
               _ActionCard(icon: '📊', label: 'Laporan',       onTap: () => AppSnackBar.show(context, '📊 Laporan platform')),
               _ActionCard(icon: '🔔', label: 'Broadcast',     onTap: () => AppSnackBar.show(context, '🔔 Kirim notifikasi')),
               _ActionCard(icon: '⚙️', label: 'Pengaturan',   onTap: () => AppSnackBar.show(context, '⚙️ Pengaturan sistem')),

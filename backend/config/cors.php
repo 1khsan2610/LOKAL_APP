@@ -24,7 +24,7 @@ return [
         '#^https://localhost(:\d+)?$#',
         '#^https://127\.0\.0\.1(:\d+)?$#',
         '#^capacitor://localhost$#',   // Ionic/Capacitor
-        '#^http://localhost:\d+$#',
+        '#^http://localhost(:\d+)?$#',  // Flutter web dev
     ],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],

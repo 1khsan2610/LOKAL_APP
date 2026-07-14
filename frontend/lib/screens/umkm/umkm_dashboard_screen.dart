@@ -26,14 +26,6 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
     _loadDashboard();
   }
 
-  num _parseNum(dynamic value) {
-    if (value is num) return value;
-    if (value is String) {
-      return num.tryParse(value.replaceAll(',', '')) ?? 0;
-    }
-    return 0;
-  }
-
   Future<void> _loadDashboard() async {
     try {
       final results = await Future.wait([
@@ -64,14 +56,17 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
     final revenue = _analytics?['total_sales'] != null
         ? NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(_parseNum(_analytics!['total_sales']))
         : 'Rp 0';
-    final orders = _analytics?['order_count'] != null
-        ? _parseNum(_analytics!['order_count']).toInt().toString()
-        : '0';
+    final orders = _analytics?['order_count']?.toString() ?? '0';
     final products = _activeProductCount.toString();
-    final ratingValue = _parseNum(_analytics?['avg_rating']);
-    final rating = ratingValue > 0 ? ratingValue.toStringAsFixed(1) : '0.0';
+    final rating = _analytics?['avg_rating'] != null ? (_analytics!['avg_rating'] as num).toStringAsFixed(1) : '0.0';
 
     // Build chart bars from real data
+    final chartMax = _salesChart!.isEmpty
+        ? 1
+        : _salesChart!
+            .map((e) => _parseNum(e['total']))
+            .fold<num>(0, (a, b) => a > b ? a : b);
+    final dayLabels = ['S', 'M', 'S', 'K', 'J', 'S', 'M'];
 
     return Scaffold(
       appBar: AppBar(

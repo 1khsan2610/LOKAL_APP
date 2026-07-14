@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../providers/product_provider.dart';
 import '../../widgets/product_card.dart';
 import '../../utils/app_theme.dart';
-import '../../utils/responsive_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -108,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // ── Promo Chips ────────────────────────────────────────
             SizedBox(
               height: 40,
-              child: ListView(scrollDirection: Axis.horizontal, padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.getResponsivePadding(context).left),
+              child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
                   '🔥 Flash Sale 50% OFF', '🚚 Gratis Ongkir', '🪙 2x Coin Weekend',
                 ].map((t) => Container(
@@ -123,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             Padding(
-              padding: ResponsiveHelper.getResponsivePadding(context),
+              padding: const EdgeInsets.all(16),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
                 // ── Categories ────────────────────────────────────
@@ -221,9 +220,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: ResponsiveHelper.getGridColumns(context),
-                      childAspectRatio: ResponsiveHelper.getResponsiveChildAspectRatio(context),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.68,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),
