@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Umkm;
+use App\Models\UmkmBankAccount;
 use Illuminate\Http\Request;
 
 class UmkmController extends Controller
@@ -88,5 +89,81 @@ class UmkmController extends Controller
         $umkm->update($request->only(['name','description','phone','address','city','province','latitude','longitude']));
 
         return response()->json(['success' => true, 'message' => 'Toko berhasil diperbarui.', 'data' => $umkm]);
+    }
+
+    /**
+     * GET /api/umkm/bank-account — Ambil data rekening bank UMKM.
+     */
+    public function getBankAccount()
+    {
+        $umkm = Umkm::where('user_id', auth('api')->id())->first();
+        if (!$umkm) {
+            return response()->json(['success' => false, 'message' => 'Toko UMKM tidak ditemukan.'], 403);
+        }
+
+        $account = UmkmBankAccount::where('umkm_id', $umkm->id)->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => $account ? [
+                'id'               => $account->id,
+                'bank_name'        => $account->bank_name,
+                'account_number'   => $account->account_number,
+                'account_holder'   => $account->account_holder,
+                'status'           => $account->status,
+                'rejection_reason' => $account->rejection_reason,
+                'created_at'       => $account->created_at,
+            ] : null,
+        ]);
+    }
+
+    /**
+     * POST /api/umkm/bank-account — Simpan/update rekening bank UMKM.
+     */
+    public function storeBankAccount(Request $request)
+    {
+        $request->validate([
+            'bank_name'      => 'required|string|max:100',
+            'account_number' => 'required|string|max:50',
+            'account_holder' => 'required|string|max:150',
+        ]);
+
+        $umkm = Umkm::where('user_id', auth('api')->id())->first();
+        if (!$umkm) {
+            return response()->json(['success' => false, 'message' => 'Toko UMKM tidak ditemukan.'], 403);
+        }
+
+        $account = UmkmBankAccount::updateOrCreate(
+            ['umkm_id' => $umkm->id],
+            [
+                'bank_name'      => $request->bank_name,
+                'account_number' => $request->account_number,
+                'account_holder' => $request->account_holder,
+                'status'         => 'pending', // Reset ke pending setiap update
+                'verified_at'    => null,
+                'verified_by'    => null,
+                'rejection_reason' => null,
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Rekening bank berhasil disimpan dan menunggu verifikasi admin.',
+            'data'    => [
+                'id'               => $account->id,
+                'bank_name'        => $account->bank_name,
+                'account_number'   => $account->account_number,
+                'account_holder'   => $account->account_holder,
+                'status'           => $account->status,
+            ],
+        ]);
+    }
+
+    /**
+     * PUT /api/umkm/bank-account — Update rekening bank yang sudah ada.
+     */
+    public function updateBankAccount(Request $request)
+    {
+        return $this->storeBankAccount($request);
     }
 }

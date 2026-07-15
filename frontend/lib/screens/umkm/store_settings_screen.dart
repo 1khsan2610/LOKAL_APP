@@ -132,6 +132,21 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
                     ),
                     const SizedBox(height: 24),
                     CustomButton(label: '✓ Simpan Perubahan', isLoading: _isSaving, onPressed: _save),
+                    const SizedBox(height: 20),
+                    // Bank account link
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => context.push('/umkm/bank-account'),
+                        icon: const Icon(Icons.account_balance_outlined),
+                        label: const Text('🏦 Atur Rekening Bank'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 24),
                   ]),
                 ),

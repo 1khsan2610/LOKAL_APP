@@ -28,6 +28,9 @@ import '../screens/umkm/umkm_analytics_screen.dart';
 import '../screens/umkm/manage_product_screen.dart';
 import '../screens/umkm/store_settings_screen.dart';
 import '../screens/umkm/umkm_order_list_screen.dart';
+import '../screens/umkm/bank_account_screen.dart';
+import '../screens/wallet/coin_history_screen.dart';
+import '../screens/wallet/withdrawal_screen.dart';
 import '../screens/profile/change_password_screen.dart';
 import '../screens/profile/wishlist_screen.dart';
 import '../screens/profile/my_reviews_screen.dart';
@@ -88,11 +91,14 @@ class AppRouterGo {
       GoRoute(path: '/umkm/products/form', builder: (ctx, state) => AddEditProductLoader(productId: state.uri.queryParameters['id'] != null ? int.tryParse(state.uri.queryParameters['id']!) : null)),
       GoRoute(path: '/umkm/store-settings', builder: (ctx, state) => const StoreSettingsScreen()),
       GoRoute(path: '/umkm/orders', builder: (ctx, state) => const UmkmOrderListScreen()),
+      GoRoute(path: '/umkm/bank-account', builder: (ctx, state) => const BankAccountScreen()),
       GoRoute(path: '/profile/change-password', builder: (ctx, state) => const ChangePasswordScreen()),
       GoRoute(path: '/profile/wishlist', builder: (ctx, state) => const WishlistScreen()),
       GoRoute(path: '/profile/reviews', builder: (ctx, state) => const MyReviewsScreen()),
       GoRoute(path: '/reset-password', builder: (ctx, state) => ResetPasswordScreen(email: state.uri.queryParameters['email'] ?? '')),
       GoRoute(path: '/ai-chat', builder: (ctx, state) => const AiChatScreen()),
+      GoRoute(path: '/wallet/coin-history', builder: (ctx, state) => const CoinHistoryScreen()),
+      GoRoute(path: '/wallet/withdrawal', builder: (ctx, state) => const WithdrawalScreen()),
     ],
     errorBuilder: (ctx, state) => Scaffold(body: Center(child: Text('Route ${state.uri.toString()} not found'))),
   );

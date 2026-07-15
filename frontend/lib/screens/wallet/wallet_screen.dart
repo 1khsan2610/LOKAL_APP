@@ -79,7 +79,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 Row(children: [
                   Expanded(child: _WalletAction(icon: '🛍️', label: 'Gunakan', onTap: () => context.push('/checkout'))),
                   const SizedBox(width: 8),
-                  Expanded(child: _WalletAction(icon: '📜', label: 'Riwayat', onTap: () {})),
+                  Expanded(child: _WalletAction(icon: '📜', label: 'Riwayat', onTap: () => context.push('/wallet/coin-history'))),
                   const SizedBox(width: 8),
                   Expanded(child: _WalletAction(icon: 'ℹ️', label: 'Info Coin', onTap: () => _showCoinInfo(context))),
                 ]),

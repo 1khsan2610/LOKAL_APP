@@ -210,6 +210,36 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             _DetailRow('Total', currency.format(order.total), isBold: true),
           ])),
           const SizedBox(height: 20),
+          // ⚠️ REFUND INFO: Jika status cancelled, tampilkan info refund koin
+          if (order.status == 'cancelled') ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFECACA)),
+              ),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Icon(Icons.info_outline, color: AppTheme.danger, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('❌ Pesanan Dibatalkan',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.danger)),
+                    const SizedBox(height: 4),
+                    Text(
+                      order.coinDiscount > 0
+                          ? 'Koin yang digunakan sebesar Rp ${NumberFormat.currency(locale: 'id_ID', symbol: '', decimalDigits: 0).format(order.coinDiscount)} telah dikembalikan ke saldo Lokal Coin Anda.'
+                          : 'Pesanan ini telah dibatalkan.',
+                      style: const TextStyle(fontSize: 12, color: AppTheme.danger),
+                    ),
+                  ]),
+                ),
+              ]),
+            ),
+            const SizedBox(height: 12),
+          ],
           if (order.status == 'pending' || order.status == 'awaiting_payment') ...[
             SizedBox(width: double.infinity, child: OutlinedButton.icon(
               onPressed: _cancelOrder,

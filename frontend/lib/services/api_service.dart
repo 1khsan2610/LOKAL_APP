@@ -315,6 +315,12 @@ class ApiService {
   Future<Response> getMyProductDetail(int id) => _dio.get('/umkm/products/$id');
   Future<Response> deleteProductImage(int productId, int imageId) => _dio.delete('/umkm/products/$productId/images/$imageId');
 
+  // ── Bank Account (UMKM) ──────────────────────────────────────────
+  Future<Response> getBankAccount() => _dio.get('/umkm/bank-account');
+
+  Future<Response> saveBankAccount(Map<String, dynamic> data) =>
+      _dio.post('/umkm/bank-account', data: data);
+
   // 3. PERBAIKAN UNTUK UPLOAD GAMBAR TERPISAH
   Future<Response> uploadProductImages(int productId, List<XFile> files) async {
     final formData = FormData();
