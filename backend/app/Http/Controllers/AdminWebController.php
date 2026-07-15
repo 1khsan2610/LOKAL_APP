@@ -21,12 +21,12 @@ class AdminWebController extends Controller
     public function index()
     {
         $team = [
-            ['name' => 'Ikhsan',       'role' => 'Project Manager',      'photo' => 'ikhsan.jpg'],
-            ['name' => 'Linda Anjarini',   'role' => 'Backend Developer',      'photo' => 'linda.jpg'],
-            ['name' => 'Najwa Alifah',          'role' => 'Backend Developer',  'photo' => 'najwa.jpg'],
-            ['name' => 'Kiara Evi Nurdiati',                'role' => 'Frontend Developer', 'photo' => 'kiara.jpg'],
+            ['name' => 'Ikhsan',                'role' => 'Project Manager',      'photo' => 'ikhsan.jpg'],
+            ['name' => 'Linda Anjarini',        'role' => 'Backend Developer',    'photo' => 'linda.jpg'],
+            ['name' => 'Najwa Alifah',          'role' => 'Backend Developer',    'photo' => 'najwa.jpg'],
+            ['name' => 'Kiara Evi Nurdiati',    'role' => 'Frontend Developer',   'photo' => 'kiara.jpg'],
             ['name' => 'Naufal Al Farros',      'role' => 'Frontend Developer',   'photo' => 'naufal.jpg'],
-            ['name' => 'Ikbal Maulana',         'role' => 'QA',    'photo' => 'ikbal.jpg'],
+            ['name' => 'Ikbal Maulana Aspahni', 'role' => 'QA',                   'photo' => 'ikbal.jpg'],
         ];
 
         return view('landing', compact('team'));

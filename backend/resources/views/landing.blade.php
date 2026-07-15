@@ -218,6 +218,67 @@
         </div>
     </section>
 
+    {{-- ===== MISI ===== --}}
+    <section id="misi" class="py-20 lg:py-28 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-14">
+                <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-full">Misi</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-4">Misi Kami</h2>
+                <p class="text-gray-500 mt-3 leading-relaxed">Langkah nyata untuk mewujudkan visi ekonomi lokal yang mandiri dan berkelanjutan.</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="stat-card bg-white rounded-2xl p-7 border border-gray-100 shadow-sm">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 text-base mb-2">Digitalisasi UMKM</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Memberdayakan pelaku UMKM dengan teknologi digital agar dapat mengelola usaha secara modern dan menjangkau pasar yang lebih luas.</p>
+                </div>
+
+                <div class="stat-card bg-white rounded-2xl p-7 border border-gray-100 shadow-sm">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10v11m16-11v11M10 10v11m4-11v11"/></svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 text-base mb-2">Membangun Ekosistem Lokal</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Menciptakan ekosistem ekonomi tertutup yang menghubungkan pelaku usaha, konsumen, dan komunitas dalam satu platform terintegrasi.</p>
+                </div>
+
+                <div class="stat-card bg-white rounded-2xl p-7 border border-gray-100 shadow-sm">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 text-base mb-2">Insentif Berbasis Koin</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Memberikan reward Lokal Coin kepada konsumen sebagai insentif berbelanja produk lokal, mendorong loyalitas dan sirkulasi ekonomi di dalam ekosistem.</p>
+                </div>
+
+                <div class="stat-card bg-white rounded-2xl p-7 border border-gray-100 shadow-sm">
+                    <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 text-base mb-2">Ekspansi Pasar Daerah</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Memperluas jangkauan pemasaran produk lokal ke berbagai kota di Indonesia melalui peta interaktif dan sistem rekomendasi berbasis lokasi.</p>
+                </div>
+
+                <div class="stat-card bg-white rounded-2xl p-7 border border-gray-100 shadow-sm">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 text-base mb-2">Keamanan & Kepercayaan</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Menjamin keamanan transaksi melalui payment gateway terpercaya serta verifikasi ketat bagi setiap pelaku UMKM yang bergabung.</p>
+                </div>
+
+                <div class="stat-card bg-white rounded-2xl p-7 border border-gray-100 shadow-sm">
+                    <div class="w-12 h-12 rounded-2xl bg-cyan-100 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 text-base mb-2">Analitik Berbasis ML</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Menyediakan rekomendasi harga cerdas dan dashboard analitik bagi UMKM untuk mendukung pengambilan keputusan bisnis yang lebih baik.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     {{-- ===== TEAM SECTION ===== --}}
     <section id="team" class="py-20 lg:py-28 bg-white border-t border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -279,6 +340,7 @@
                         <li><a href="#" class="hover:text-white transition">Beranda</a></li>
                         <li><a href="#tentang" class="hover:text-white transition">Tentang</a></li>
                         <li><a href="#keunggulan" class="hover:text-white transition">Keunggulan</a></li>
+                        <li><a href="#visi" class="hover:text-white transition">Visi & Misi</a></li>
                         <li><a href="#team" class="hover:text-white transition">Tim</a></li>
                     </ul>
                 </div>
