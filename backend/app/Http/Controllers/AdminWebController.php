@@ -7,6 +7,8 @@ use App\Models\Umkm;
 use App\Models\Order;
 use App\Models\CoinTransaction;
 use App\Models\Product;
+use App\Models\Wallet;
+use App\Models\WalletHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -81,15 +83,44 @@ class AdminWebController extends Controller
         if (!Auth::check() || Auth::user()->role !== 'admin') {
             return redirect()->route('login');
         }
+
+        // Ambil wallet admin untuk data komisi
+        $adminWallet = Wallet::whereHas('user', fn($q) => $q->where('role', 'admin'))->first();
+        $commissionBalance = $adminWallet ? $adminWallet->commission_balance : 0;
+
+        // Total cash_balance seluruh UMKM (dana tersedia untuk ditarik)
+        $totalUmkmCash = Wallet::whereHas('user', fn($q) => $q->where('role', 'umkm'))->sum('cash_balance');
+
+        // Total cash_balance seluruh konsumen (koin)
+        $totalConsumerCoin = Wallet::whereHas('user', fn($q) => $q->where('role', 'konsumen'))->sum('coin_balance');
+
+        // Total mutasi wallet_histories hari ini
+        $todayMutations = WalletHistory::whereDate('created_at', today())->count();
+
+        // Data grafik sederhana: 7 hari terakhir total pemasukan komisi
+        $commissionChart = collect(range(6, 0))->map(function ($daysAgo) {
+            $date = now()->subDays($daysAgo)->format('Y-m-d');
+            $total = WalletHistory::where('balance_type', 'commission')
+                ->where('type', 'credit')
+                ->whereDate('created_at', $date)
+                ->sum('amount');
+            return ['date' => $date, 'total' => $total];
+        });
+
         $stats = [
-            'total_umkm'            => Umkm::count(),
-            'umkm_pending'          => Umkm::where('is_verified', false)->count(),
-            'umkm_verified'         => Umkm::where('is_verified', true)->count(),
-            'total_products'        => Product::where('is_active', true)->count(),
-            'total_orders'          => Order::count(),
-            'total_revenue'         => Order::where('status', 'delivered')->sum('total'),
+            'total_umkm'              => Umkm::count(),
+            'umkm_pending'            => Umkm::where('is_verified', false)->count(),
+            'umkm_verified'           => Umkm::where('is_verified', true)->count(),
+            'total_products'          => Product::where('is_active', true)->count(),
+            'total_orders'            => Order::count(),
+            'total_revenue'           => Order::where('status', 'delivered')->sum('total'),
             'total_coin_transactions' => CoinTransaction::count(),
-            'total_users'           => User::count(),
+            'total_users'             => User::count(),
+            'commission_balance'      => $commissionBalance,
+            'total_umkm_cash'         => $totalUmkmCash,
+            'total_consumer_coin'     => $totalConsumerCoin,
+            'today_mutations'         => $todayMutations,
+            'commission_chart'        => $commissionChart,
         ];
 
         return view('admin.dashboard', compact('stats'));

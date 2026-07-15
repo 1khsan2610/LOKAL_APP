@@ -3,7 +3,12 @@
 @section('content')
 <div class="p-6">
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-bold">Kelola Produk</h2>
+        <div class="flex items-center gap-4">
+            <a href="{{ route('admin.dashboard') }}" class="text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            </a>
+            <h2 class="text-xl font-bold">Kelola Produk</h2>
+        </div>
         <a href="{{ route('admin.products.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Tambah Produk</a>
     </div>
 

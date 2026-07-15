@@ -275,6 +275,214 @@ class OrderController extends Controller
         return response()->json(['success' => true, 'message' => 'Status pesanan diperbarui.']);
     }
 
+    /**
+     * POST /api/orders/process-payment-webhook
+     *
+     * Public endpoint: Simulasi webhook sukses dari Midtrans.
+     */
+    public function processPaymentWebhook(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+        ]);
+
+        $order = Order::with(['items.product.umkm.user', 'user.wallet'])
+            ->lockForUpdate()
+            ->findOrFail($request->order_id);
+
+        if ($order->status === 'processing' || $order->status === 'delivered' || $order->status === 'cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesanan sudah diproses sebelumnya.',
+            ], 422);
+        }
+
+        return $this->distributePaymentFunds($order);
+    }
+
+    /**
+     * Internal: distribusi dana setelah pembayaran sukses.
+     * Dipanggil dari webhook Midtrans (PaymentController) dan endpoint simulasi.
+     */
+    public function distributePaymentFunds(Order $order)
+    {
+        return DB::transaction(function () use ($order) {
+            // --- Konfigurasi ---
+            $commissionPercent = 5;   // 5% komisi admin
+            $cashbackPercent   = 2;   // 2% cashback Lokal Coin untuk konsumen
+            $coinToRupiah      = 10;  // 1 coin = Rp 10 (sesuai CoinService)
+
+            $cashPaid   = $order->total;
+            $subtotal   = $order->subtotal;
+            $shipping   = $order->shipping_fee;
+            $coinUsed   = $order->coin_discount;
+
+            // --- 1. Hitung komisi & hak UMKM ---
+            $commissionAmount = (int) ($subtotal * $commissionPercent / 100);
+            $umkmCashAmount   = ($subtotal - $commissionAmount) + $shipping;
+
+            // --- 2. Jika konsumen pakai koin, UMKM tetap dibayar penuh ---
+            $adminCoversCoinDiscount = 0;
+            if ($coinUsed > 0) {
+                $adminCoversCoinDiscount = $coinUsed;
+                $umkmCashAmount += $adminCoversCoinDiscount;
+            }
+
+            // --- 3. Cashback 2% untuk konsumen (dalam Lokal Coin) ---
+            $cashbackRupiah = (int) ($cashPaid * $cashbackPercent / 100);
+            $cashbackCoin   = (int) ($cashbackRupiah / $coinToRupiah);
+            if ($cashbackCoin < 1 && $cashbackRupiah > 0) {
+                $cashbackCoin = 1;
+            }
+
+            // --- 4. Validasi saldo komisi admin ---
+            $adminWallet = Wallet::whereHas('user', fn($q) => $q->where('role', 'admin'))
+                ->lockForUpdate()
+                ->first();
+
+            if (!$adminWallet) {
+                throw new \Exception('Wallet admin tidak ditemukan. Hubungi administrator.');
+            }
+
+            $totalAdminDeduction = $commissionAmount + $adminCoversCoinDiscount + ($cashbackCoin * $coinToRupiah);
+            if ($adminWallet->commission_balance < $totalAdminDeduction) {
+                throw new \Exception(
+                    "Saldo komisi admin tidak mencukupi. Dibutuhkan: Rp " .
+                    number_format($totalAdminDeduction) .
+                    ", tersedia: Rp " . number_format($adminWallet->commission_balance)
+                );
+            }
+
+            // --- 5a. Admin: commission_balance bertambah dari komisi 5% ---
+            $adminWallet->increment('commission_balance', $commissionAmount);
+            $adminWallet->recordHistory(
+                'credit', 'commission', $commissionAmount,
+                "Komisi 5% dari Order #{$order->order_number} (subtotal: Rp " . number_format($subtotal) . ")",
+                'order', $order->id
+            );
+
+            // --- 5b. Admin: commission_balance berkurang untuk menutup diskon koin ---
+            if ($adminCoversCoinDiscount > 0) {
+                $adminWallet->decrement('commission_balance', $adminCoversCoinDiscount);
+                $adminWallet->recordHistory(
+                    'debit', 'commission', $adminCoversCoinDiscount,
+                    "Menutup diskon koin konsumen Order #{$order->order_number} (Rp " . number_format($coinUsed) . ")",
+                    'order', $order->id
+                );
+            }
+
+            // --- 5c. Admin: commission_balance berkurang untuk cashback koin konsumen ---
+            if ($cashbackCoin > 0) {
+                $cashbackCost = $cashbackCoin * $coinToRupiah;
+                $adminWallet->decrement('commission_balance', $cashbackCost);
+                $adminWallet->recordHistory(
+                    'debit', 'commission', $cashbackCost,
+                    "Cashback 2% Lokal Coin untuk Order #{$order->order_number} ({$cashbackCoin} koin)",
+                    'order', $order->id
+                );
+            }
+
+            // --- 5d. UMKM: cash_balance bertambah ---
+            $umkmGroups = [];
+            foreach ($order->items as $item) {
+                $umkmId    = $item->product->umkm_id;
+                $umkmUserId = $item->product->umkm->user_id;
+                if (!isset($umkmGroups[$umkmId])) {
+                    $umkmGroups[$umkmId] = [
+                        'user_id'  => $umkmUserId,
+                        'subtotal' => 0,
+                        'shipping' => 0,
+                    ];
+                }
+                $umkmGroups[$umkmId]['subtotal'] += $item->subtotal;
+            }
+
+            $totalSubtotal = $order->items->sum('subtotal');
+            foreach ($umkmGroups as $umkmId => &$group) {
+                $ratio = $totalSubtotal > 0 ? $group['subtotal'] / $totalSubtotal : 0;
+                $group['shipping'] = (int) ($shipping * $ratio);
+            }
+            unset($group);
+
+            foreach ($umkmGroups as $umkmId => $group) {
+                $umkmUserId    = $group['user_id'];
+                $umkmSubtotal  = $group['subtotal'];
+                $umkmShipping  = $group['shipping'];
+
+                $umkmCommission = (int) ($umkmSubtotal * $commissionPercent / 100);
+                $umkmShare      = ($umkmSubtotal - $umkmCommission) + $umkmShipping;
+
+                if ($coinUsed > 0 && $totalSubtotal > 0) {
+                    $umkmCoinTopUp = (int) ($coinUsed * ($umkmSubtotal / $totalSubtotal));
+                    $umkmShare += $umkmCoinTopUp;
+                }
+
+                $umkmWallet = Wallet::where('user_id', $umkmUserId)->lockForUpdate()->first();
+                if (!$umkmWallet) {
+                    $umkmWallet = Wallet::create([
+                        'user_id'           => $umkmUserId,
+                        'coin_balance'      => 0,
+                        'cash_balance'      => 0,
+                        'commission_balance' => 0,
+                    ]);
+                }
+
+                $umkmWallet->increment('cash_balance', $umkmShare);
+                $umkmWallet->recordHistory(
+                    'credit', 'cash', $umkmShare,
+                    "Pembayaran Order #{$order->order_number} (subtotal: Rp " .
+                    number_format($umkmSubtotal) . ", ongkir: Rp " . number_format($umkmShipping) . ")",
+                    'order', $order->id
+                );
+            }
+
+            // --- 5e. Konsumen: tambah Lokal Coin (cashback) ---
+            if ($cashbackCoin > 0) {
+                $this->coinService->add(
+                    $order->user_id,
+                    $cashbackCoin,
+                    "Cashback 2% pembelian Order #{$order->order_number}"
+                );
+
+                $consumerWallet = Wallet::where('user_id', $order->user_id)->lockForUpdate()->first();
+                if ($consumerWallet) {
+                    $consumerWallet->recordHistory(
+                        'credit', 'coin', $cashbackCoin,
+                        "Cashback 2% dari Order #{$order->order_number}",
+                        'order', $order->id
+                    );
+                }
+            }
+
+            // --- 6. Update status order → 'processing' (Sudah Dibayar) ---
+            $order->update(['status' => 'processing']);
+
+            // --- 7. Kirim notifikasi ---
+            $this->notifService->sendToUser($order->user_id, [
+                'title' => 'Pembayaran Berhasil! ✅',
+                'body'  => "Pesanan #{$order->order_number} sudah dibayar. Pesanan sedang diproses oleh penjual." .
+                    ($cashbackCoin > 0 ? " Kamu mendapat {$cashbackCoin} Lokal Coin! 🪙" : ''),
+                'type'  => 'payment',
+                'data'  => ['order_id' => $order->id],
+            ]);
+
+            foreach ($umkmGroups as $umkmId => $group) {
+                $this->notifService->sendToUser($group['user_id'], [
+                    'title' => 'Pesanan Baru Perlu Diproses 📦',
+                    'body'  => "Pesanan #{$order->order_number} sudah dibayar. Segera proses pesanan.",
+                    'type'  => 'order',
+                    'data'  => ['order_id' => $order->id],
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pembayaran berhasil diproses. Dana telah didistribusikan.',
+                'data'    => $order->fresh()->load('payment'),
+            ]);
+        });
+    }
+
     private function getShippingFee(string $method): int
     {
         return match ($method) {
