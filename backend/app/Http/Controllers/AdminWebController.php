@@ -77,7 +77,10 @@ class AdminWebController extends Controller
      */
     public function dashboard()
     {
-        // Pastikan hanya admin yang bisa akses (middleware sudah guard)
+        // Pastikan hanya admin yang bisa akses
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return redirect()->route('login');
+        }
         $stats = [
             'total_umkm'            => Umkm::count(),
             'umkm_pending'          => Umkm::where('is_verified', false)->count(),

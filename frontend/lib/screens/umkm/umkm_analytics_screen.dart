@@ -3,6 +3,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_theme.dart';
+import '../../widgets/app_card.dart';
+import '../../widgets/product_card.dart';
 
 class UmkmAnalyticsScreen extends StatefulWidget {
   const UmkmAnalyticsScreen({super.key});
@@ -72,13 +74,23 @@ class _UmkmAnalyticsScreenState extends State<UmkmAnalyticsScreen> {
           ),
         ],
       ),
+      backgroundColor: AppTheme.bg,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
           : SafeArea(
               child: RefreshIndicator(
                 onRefresh: _loadAnalytics,
                 color: AppTheme.primary,
-                child: SingleChildScrollView(
+                // LayoutBuilder: jumlah kolom & aspect ratio kartu ringkasan
+                // memakai lebar konstrain aktual, konsisten dengan pendekatan
+                // di Dashboard Toko — supaya tampil proporsional di HP, tablet,
+                // maupun Flutter web tanpa teks/angka terpotong.
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final width = constraints.maxWidth;
+                    final statColumns = width < 500 ? 2 : 4;
+                    final statAspect = width < 400 ? 1.7 : width < 700 ? 2.1 : 2.4;
+                    return SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   child: Column(
@@ -87,10 +99,10 @@ class _UmkmAnalyticsScreenState extends State<UmkmAnalyticsScreen> {
                       const Text('Ringkasan Penjualan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 12),
                       GridView.count(
-                        crossAxisCount: 2,
+                        crossAxisCount: statColumns,
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        childAspectRatio: 2.2,
+                        childAspectRatio: statAspect,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
                         children: [
@@ -123,23 +135,19 @@ class _UmkmAnalyticsScreenState extends State<UmkmAnalyticsScreen> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppTheme.border),
-                        ),
+                      AppCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text('Tinjauan Penjualan Harian', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                             const SizedBox(height: 10),
-                            Row(
+                            // Wrap: legenda tetap rapi menyusun ulang baris
+                            // baru kalau lebar sempit, bukan overflow.
+                            Wrap(
+                              spacing: 12,
+                              runSpacing: 6,
                               children: const [
                                 _ChartLegend(color: AppTheme.primary, label: 'Pendapatan'),
-                                SizedBox(width: 12),
                                 _ChartLegend(color: AppTheme.accentDark, label: 'Trend penjualan'),
                               ],
                             ),
@@ -154,28 +162,37 @@ class _UmkmAnalyticsScreenState extends State<UmkmAnalyticsScreen> {
                       const SizedBox(height: 20),
                       const Text('Detail Penjualan', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 12),
-                      ..._salesData.map((item) {
+                      // Kalau belum ada data sama sekali, tampilkan EmptyState
+                      // konsisten (bukan header kosong tanpa penjelasan).
+                      if (_salesData.isEmpty)
+                        const EmptyState(
+                          emoji: '📊',
+                          title: 'Belum Ada Data Penjualan',
+                          subtitle: 'Data penjualan harian akan muncul di sini setelah ada transaksi',
+                        )
+                      else
+                        ..._salesData.map((item) {
                         final date = _formatDate(item['date']);
                         final total = amountFormat.format(_parseNum(item['total']));
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppTheme.border),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(child: Text(date, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
-                              Text(total, style: const TextStyle(fontSize: 13)),
-                            ],
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: AppCard(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            child: Row(
+                              children: [
+                                Expanded(child: Text(date, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+                                const SizedBox(width: 8),
+                                Text(total, style: const TextStyle(fontSize: 13)),
+                              ],
+                            ),
                           ),
                         );
                       }),
                       const SizedBox(height: 24),
                     ],
                   ),
+                );
+                  },
                 ),
               ),
             ),
@@ -337,22 +354,28 @@ class _MiniStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(icon, style: const TextStyle(fontSize: 22)),
-          const SizedBox(height: 10),
-          Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: accent)),
-          Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-        ],
+      // FittedBox membungkus SELURUH isi kartu (ikon + nilai + label), bukan
+      // cuma baris nilai. Sebelumnya hanya baris nilai yang elastis, sehingga
+      // di HP sempit total tinggi ikon+spasi+label yang tetap (non-elastis)
+      // masih bisa sedikit melebihi tinggi sel grid (overflow beberapa
+      // pixel walau tipis). Dengan satu FittedBox di luar, seluruh konten
+      // ikut menyusut proporsional sebagai upaya terakhir — dijamin tidak
+      // overflow di lebar/tinggi berapa pun.
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 22)),
+            const SizedBox(height: 10),
+            Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: accent)),
+            Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+          ],
+        ),
       ),
     );
   }

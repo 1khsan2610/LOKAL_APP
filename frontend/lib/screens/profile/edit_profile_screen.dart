@@ -1,7 +1,13 @@
+// ═══════════════════════════════════════════════════════════════════
+//  EditProfileScreen  —  lib/screens/profile/edit_profile_screen.dart
+//  Prinsip desain: bg #F8FAFC, SafeArea + SingleChildScrollView agar
+//  aman saat keyboard muncul di layar pendek. Logika save TIDAK diubah.
+// ═══════════════════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/product_card.dart';
@@ -42,21 +48,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppTheme.bg,
     appBar: AppBar(
       title: const Text('Edit Profil'),
         leading: BackButton(onPressed: () => context.pop()),
     ),
-    body: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Form(key: _formKey, child: Column(children: [
-        CustomTextField(controller: _name, label: 'Nama Lengkap', prefixIcon: Icons.person_outlined,
-          validator: (v) => (v?.isEmpty ?? true) ? 'Nama wajib diisi' : null),
-        const SizedBox(height: 14),
-        CustomTextField(controller: _phone, label: 'No. HP', prefixIcon: Icons.phone_outlined, keyboardType: TextInputType.phone),
-        const SizedBox(height: 24),
-        CustomButton(label: '✓ Simpan Perubahan', isLoading: _isSaving, onPressed: _save),
-      ])),
+    body: SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(key: _formKey, child: Column(children: [
+          CustomTextField(controller: _name, label: 'Nama Lengkap', prefixIcon: Icons.person_outlined,
+            validator: (v) => (v?.isEmpty ?? true) ? 'Nama wajib diisi' : null),
+          const SizedBox(height: 14),
+          CustomTextField(controller: _phone, label: 'No. HP', prefixIcon: Icons.phone_outlined, keyboardType: TextInputType.phone),
+          const SizedBox(height: 24),
+          CustomButton(label: '✓ Simpan Perubahan', isLoading: _isSaving, onPressed: _save),
+        ])),
+      ),
     ),
   );
 }
-

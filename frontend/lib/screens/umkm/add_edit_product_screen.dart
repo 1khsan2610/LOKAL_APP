@@ -144,11 +144,13 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppTheme.bg,
     appBar: AppBar(
       title: Text(widget.product != null ? 'Edit Produk' : 'Tambah Produk'),
       leading: BackButton(onPressed: () => context.pop()),
     ),
-    body: SingleChildScrollView(
+    body: SafeArea(
+      child: SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Form(
         key: _formKey,
@@ -211,7 +213,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                   onTap: _pickImages,
                   child: Container(
                     width: 96, height: 96,
-                    decoration: BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.border)),
+                    decoration: BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.cardBorder)),
                     child: const Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                       Icon(Icons.camera_alt_outlined, size: 26, color: AppTheme.textHint),
                       SizedBox(height: 4),
@@ -241,8 +243,12 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
           Row(children: [
             Expanded(child: DropdownButtonFormField<String>(
               initialValue: _category,
+              isExpanded: true,
               decoration: const InputDecoration(labelText: 'Kategori', prefixIcon: Icon(Icons.category_outlined, color: AppTheme.primary, size: 20)),
-              items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 13)))).toList(),
+              items: _categories.map((c) => DropdownMenuItem(
+                value: c,
+                child: Text(c, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
+              )).toList(),
               onChanged: (v) => setState(() => _category = v!),
             )),
             const SizedBox(width: 12),
@@ -266,6 +272,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
           const SizedBox(height: 24),
         ]),
       ),
+    ),
     ),
   );
 }

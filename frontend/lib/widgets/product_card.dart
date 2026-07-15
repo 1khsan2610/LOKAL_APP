@@ -42,8 +42,8 @@ class ProductCard extends StatelessWidget {
         width: width,
         decoration: BoxDecoration(
           color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppTheme.border),
+          borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+          border: Border.all(color: AppTheme.cardBorder),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -132,7 +132,11 @@ class ProductCard extends StatelessWidget {
                     const SizedBox(width: 2),
                     Text(product.avgRating.toStringAsFixed(1), style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
                     const Spacer(),
-                    Text('${_formatSold(product.soldCount)} terjual', style: const TextStyle(fontSize: 10, color: AppTheme.textHint)),
+                    Flexible(
+                      child: Text('${_formatSold(product.soldCount)} terjual',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 10, color: AppTheme.textHint)),
+                    ),
                   ]),
                 ]),
               ),
@@ -238,7 +242,7 @@ class _ShimmerCard extends StatelessWidget {
     child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Flexible(fit: FlexFit.tight, child: AspectRatio(aspectRatio: 1, child: Container(color: Colors.grey.shade200))),
@@ -271,8 +275,8 @@ class ShimmerListItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        color: Colors.white, borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        border: Border.all(color: AppTheme.cardBorder),
       ),
       child: Row(children: [
         Container(width: 64, height: 64, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(10))),

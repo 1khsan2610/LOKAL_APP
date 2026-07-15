@@ -3,23 +3,30 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color primary       = Color(0xFF2D6A4F);
-  static const Color primaryLight  = Color(0xFF40916C);
-  static const Color primaryXLight = Color(0xFF52B788);
-  static const Color primaryDark   = Color(0xFF1B4332);
-  static const Color accent        = Color(0xFFF4A261);
+  // ── Brand palette — sinkron dengan LOKAL Admin Dashboard (web) ──────
+  // #151B26 = warna sidebar/utama dashboard admin (Navy/Dark)
+  // #F8FAFC = warna latar belakang dashboard admin (Soft White/Gray)
+  static const Color primary       = Color(0xFF151B26); // Navy — brand utama
+  static const Color primaryLight  = Color(0xFF2A3648); // Navy lebih terang (state hover/selected)
+  static const Color primaryXLight = Color(0xFF3E4C63); // Navy paling terang (subtle tint)
+  static const Color primaryDark   = Color(0xFF0B0F16); // Navy paling gelap (pressed/emphasis)
+  static const Color accent        = Color(0xFFF4A261); // Amber — CTA, kontras terhadap navy
   static const Color accentDark    = Color(0xFFE76F51);
-  static const Color bg            = Color(0xFFF5F7F5);
-  static const Color surface       = Color(0xFFFFFFFF);
-  static const Color surface2      = Color(0xFFEEF4EE);
-  static const Color border        = Color(0xFFE2E8F0);
-  static const Color textPrimary   = Color(0xFF1A1A1A);
+  static const Color bg            = Color(0xFFF8FAFC); // Soft white — latar utama
+  static const Color surface       = Color(0xFFFFFFFF); // Kartu/putih bersih
+  static const Color surface2      = Color(0xFFF1F5F9); // Latar sekunder (chip/section terpilih)
+  static const Color border        = Color(0xFFE2E8F0); // Border input
+  static const Color cardBorder    = Color(0xFFE5E7EB); // grey.shade200 — border kartu ala dashboard
+  static const Color textPrimary   = Color(0xFF151B26);
   static const Color textSecondary = Color(0xFF4A5568);
   static const Color textHint      = Color(0xFF9CA3AF);
   static const Color success       = Color(0xFF22C55E);
   static const Color danger        = Color(0xFFEF4444);
   static const Color warning       = Color(0xFFF59E0B);
   static const Color info          = Color(0xFF3B82F6);
+
+  // Radius kartu konsisten dengan dashboard admin (≈16px)
+  static const double cardRadius = 16;
 
   static ThemeData get lightTheme => ThemeData(
     useMaterial3: true,
@@ -66,7 +73,7 @@ class AppTheme {
     ),
     cardTheme: CardThemeData(
       color: surface, elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: border)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(cardRadius), side: const BorderSide(color: cardBorder)),
       margin: EdgeInsets.zero,
     ),
     dividerTheme: const DividerThemeData(color: border, thickness: 1, space: 0),

@@ -1,3 +1,12 @@
+// ═══════════════════════════════════════════════════════════════════
+//  PaymentScreen  —  lib/screens/checkout/payment_screen.dart
+//  Prinsip desain (sinkron dgn Cart & Checkout):
+//   • AppCard utk kartu info kepercayaan (trust badges)
+//   • SingleChildScrollView + SafeArea → aman di layar pendek & gesture nav
+//   • FittedBox pada nominal besar → tidak overflow di layar sempit
+//   • Palet: bg #F8FAFC, aksen utama Navy #151B26 (AppTheme.primary)
+//   Logika (polling status, launch Midtrans, lifecycle) TIDAK diubah.
+// ═══════════════════════════════════════════════════════════════════
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -7,6 +16,7 @@ import '../../utils/app_theme.dart';
 import '../../utils/url_opener.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/api_service.dart';
+import '../../widgets/app_card.dart';
 import '../../widgets/product_card.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -118,67 +128,101 @@ class _PaymentScreenState extends State<PaymentScreen> with WidgetsBindingObserv
 
   @override
   Widget build(BuildContext context) {
-    // In production, load Midtrans Snap URL via WebView
     final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(title: const Text('Konfirmasi Pembayaran')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(
-              width: 80, height: 80,
-              decoration: const BoxDecoration(color: AppTheme.surface2, shape: BoxShape.circle),
-              child: const Center(child: Text('🔒', style: TextStyle(fontSize: 40))),
+      // SingleChildScrollView + SafeArea: konten tetap aman & bisa
+      // digulir penuh di layar pendek (mis. mode landscape/HP kecil),
+      // dan tombol paling bawah tidak terpotong gesture nav bar.
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height - 140),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: const BoxDecoration(color: AppTheme.surface2, shape: BoxShape.circle),
+                  child: const Center(child: Text('🔒', style: TextStyle(fontSize: 40))),
+                ),
+                const SizedBox(height: 20),
+                // ── Hierarki 1: judul halaman ──
+                const Text(
+                  'Pembayaran via Midtrans',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                ),
+                const SizedBox(height: 8),
+                // ── Hierarki tertinggi: nominal total ── FittedBox
+                // mencegah overflow saat total sangat besar (mis. Rp
+                // 999.999.999) di layar sempit.
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    currency.format(widget.total),
+                    style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppTheme.primary),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text('Aman & terenkripsi SSL', style: TextStyle(fontSize: 12, color: AppTheme.textHint)),
+                const SizedBox(height: 28),
+
+                // ── Trust badges — dibungkus AppCard agar konsisten
+                // dgn kartu section lain (Cart/Checkout/Beranda) ──
+                AppCard(
+                  padding: const EdgeInsets.all(14),
+                  color: AppTheme.surface2,
+                  child: const Column(
+                    children: [
+                      Row(children: [
+                        Icon(Icons.security_rounded, size: 16, color: AppTheme.primary),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text('Transaksi dilindungi oleh Midtrans', style: TextStyle(fontSize: 12)),
+                        ),
+                      ]),
+                      SizedBox(height: 6),
+                      Row(children: [
+                        Icon(Icons.verified_user_outlined, size: 16, color: AppTheme.success),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text('Garansi uang kembali tersedia', style: TextStyle(fontSize: 12)),
+                        ),
+                      ]),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  _statusText,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _launchPaymentUrl,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text('Buka Halaman Bayar 💳', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: _checkPaymentStatus,
+                  child: const Text('Saya sudah bayar, cek status', style: TextStyle(color: AppTheme.primary)),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            const Text('Pembayaran via Midtrans',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            Text('Total: ${currency.format(widget.total)}',
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppTheme.primary)),
-            const SizedBox(height: 6),
-            const Text('Aman & terenkripsi SSL', style: TextStyle(fontSize: 12, color: AppTheme.textHint)),
-            const SizedBox(height: 28),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(12)),
-              child: const Column(children: [
-                Row(children: [
-                  Icon(Icons.security_rounded, size: 16, color: AppTheme.primary),
-                  SizedBox(width: 8),
-                  Text('Transaksi dilindungi oleh Midtrans', style: TextStyle(fontSize: 12)),
-                ]),
-                SizedBox(height: 6),
-                Row(children: [
-                  Icon(Icons.verified_user_outlined, size: 16, color: AppTheme.success),
-                  SizedBox(width: 8),
-                  Text('Garansi uang kembali tersedia', style: TextStyle(fontSize: 12)),
-                ]),
-              ]),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              _statusText,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-            ),
-            const SizedBox(height: 28),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _launchPaymentUrl,
-                style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accent, padding: const EdgeInsets.symmetric(vertical: 16)),
-                child: const Text('Buka Halaman Bayar 💳', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: _checkPaymentStatus,
-              child: const Text('Saya sudah bayar, cek status', style: TextStyle(color: AppTheme.primary)),
-            ),
-          ]),
+          ),
         ),
       ),
     );

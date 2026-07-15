@@ -5,6 +5,8 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/app_card.dart';
+import '../../widgets/dashboard_components.dart';
 
 class UmkmDashboardScreen extends StatefulWidget {
   const UmkmDashboardScreen({super.key});
@@ -51,6 +53,12 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
     }
   }
 
+  num _parseNum(dynamic value) {
+    if (value is num) return value;
+    if (value is String) return num.tryParse(value.replaceAll(',', '')) ?? 0;
+    return 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final revenue = _analytics?['total_sales'] != null
@@ -61,7 +69,7 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
     final rating = _analytics?['avg_rating'] != null ? (_analytics!['avg_rating'] as num).toStringAsFixed(1) : '0.0';
 
     // Build chart bars from real data
-    final chartMax = _salesChart!.isEmpty
+    final chartMax = (_salesChart?.isEmpty ?? true)
         ? 1
         : _salesChart!
             .map((e) => _parseNum(e['total']))
@@ -86,53 +94,57 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
               child: RefreshIndicator(
                 onRefresh: _loadDashboard,
                 color: AppTheme.primary,
-                child: SingleChildScrollView(
+                // LayoutBuilder: kolom & aspect ratio grid statistik memakai
+                // lebar konstrain aktual, bukan asumsi dari MediaQuery layar
+                // penuh — konsisten dengan pendekatan di Beranda & Admin
+                // Dashboard.
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final width = constraints.maxWidth;
+                    final statColumns = width < 700 ? 2 : width < 1000 ? 3 : 4;
+                    final statAspect = width < 400 ? 1.3 : width < 600 ? 1.6 : 1.9;
+
+                    return SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  // Stats cards (responsive aspect ratio to avoid overflow on short screens)
-                  Builder(builder: (ctx) {
-                    final width = MediaQuery.of(ctx).size.width;
-                    final childAspect = width < 400 ? 3.0 : width < 600 ? 2.4 : 1.8;
-                    return GridView.count(
-                      crossAxisCount: 2,
+                  // Stats cards — chip ikon pastel ala dashboard admin web
+                  GridView.count(
+                      crossAxisCount: statColumns,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      childAspectRatio: childAspect,
+                      childAspectRatio: statAspect,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       children: [
-                        _StatCard(icon: '💰', label: 'Pendapatan Bulan Ini', value: revenue, trend: '↑ 15%', isUp: true),
-                        _StatCard(icon: '📦', label: 'Pesanan Masuk', value: orders, trend: '8 baru', isUp: true),
-                        _StatCard(icon: '🛍️', label: 'Produk Aktif', value: products, trend: 'Stabil', isUp: null),
-                        _StatCard(icon: '⭐', label: 'Rating Toko', value: rating, trend: '89 ulasan', isUp: true),
+                        StatCard(icon: Icons.payments_outlined, iconColor: const Color(0xFF15803D), iconBg: const Color(0xFFDCFCE7),
+                          value: revenue, label: 'Pendapatan Bulan Ini', badge: '↑ 15%', badgeColor: AppTheme.success),
+                        StatCard(icon: Icons.inventory_2_outlined, iconColor: const Color(0xFF1E40AF), iconBg: const Color(0xFFDBEAFE),
+                          value: orders, label: 'Pesanan Masuk', badge: '8 baru', badgeColor: AppTheme.info),
+                        StatCard(icon: Icons.shopping_bag_outlined, iconColor: const Color(0xFFB45309), iconBg: const Color(0xFFFEF3C7),
+                          value: products, label: 'Produk Aktif', badge: 'Stabil', badgeColor: AppTheme.textHint),
+                        StatCard(icon: Icons.star_outline, iconColor: const Color(0xFF6D28D9), iconBg: const Color(0xFFEDE9FE),
+                          value: rating, label: 'Rating Toko', badge: '89 ulasan', badgeColor: AppTheme.success),
                       ],
-                    );
-                  }),
+                  ),
                   const SizedBox(height: 20),
 
                   // Quick actions
                   const Text('Kelola Toko', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 12),
                   Row(children: [
-                    Expanded(child: _ActionCard(icon: '📦', label: 'Produk', onTap: () => context.push('/umkm/products'))),
+                    Expanded(child: QuickActionTile(icon: Icons.inventory_2_outlined, label: 'Produk', onTap: () => context.push('/umkm/products'))),
                     const SizedBox(width: 10),
-                    Expanded(child: _ActionCard(icon: '📋', label: 'Pesanan', onTap: () => context.push('/umkm/orders'))),
+                    Expanded(child: QuickActionTile(icon: Icons.list_alt_outlined, label: 'Pesanan', onTap: () => context.push('/umkm/orders'))),
                     const SizedBox(width: 10),
-                    Expanded(child: _ActionCard(icon: '📊', label: 'Analitik', onTap: () => context.push('/umkm/analytics'))),
+                    Expanded(child: QuickActionTile(icon: Icons.bar_chart_outlined, label: 'Analitik', onTap: () => context.push('/umkm/analytics'))),
                     const SizedBox(width: 10),
-                    Expanded(child: _ActionCard(icon: '⚙️', label: 'Pengaturan', onTap: () => context.push('/umkm/store-settings'))),
+                    Expanded(child: QuickActionTile(icon: Icons.settings_outlined, label: 'Pengaturan', onTap: () => context.push('/umkm/store-settings'))),
                   ]),
                   const SizedBox(height: 20),
 
                   // Sales chart (LineChart via fl_chart)
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppTheme.border),
-                    ),
+                  AppCard(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       const Text('📊 Penjualan 7 Hari', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 14),
@@ -236,78 +248,42 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
                   ...(_recentOrders ?? []).map((o) {
                     final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
                     final dateStr = o['created_at']?.toString().substring(0, 10) ?? '-';
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppTheme.border),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: AppCard(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        child: Row(children: [
+                          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text('#${o['order_number']}', maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.primary)),
+                            Text(dateStr, style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
+                          ])),
+                          const SizedBox(width: 8),
+                          // Flexible+FittedBox: total harga + status badge tetap
+                          // dalam satu baris tapi menyusut proporsional saat
+                          // harga panjang & layar sempit, bukan overflow.
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                Text(currency.format(_parseNum(o['total'])), style: const TextStyle(fontSize: 13)),
+                                const SizedBox(width: 8),
+                                StatusBadge(status: o['status']?.toString() ?? ''),
+                              ]),
+                            ),
+                          ),
+                        ]),
                       ),
-                      child: Row(children: [
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text('#${o['order_number']}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.primary)),
-                          Text(dateStr, style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
-                        ])),
-                        Text(currency.format(_parseNum(o['total'])), style: const TextStyle(fontSize: 13)),
-                        const SizedBox(width: 8),
-                        StatusBadge(status: o['status']?.toString() ?? ''),
-                      ]),
                     );
                   }),
                   SizedBox(height: MediaQuery.of(context).viewPadding.bottom + 80),
                 ]),
+              );
+                  },
+                ),
               ),
             ),
-          ),
-        );
+    );
   }
 }
-
-class _StatCard extends StatelessWidget {
-  final String icon, label, value, trend;
-  final bool? isUp;
-  const _StatCard({required this.icon, required this.label, required this.value, required this.trend, required this.isUp});
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppTheme.border)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-      Text(icon, style: const TextStyle(fontSize: 24)),
-      const SizedBox(height: 6),
-      Flexible(
-        fit: FlexFit.loose,
-        child: FittedBox(alignment: Alignment.centerLeft, fit: BoxFit.scaleDown,
-          child: Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-        ),
-      ),
-      const SizedBox(height: 6),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.textHint), maxLines: 1, overflow: TextOverflow.ellipsis),
-        Text(trend, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: isUp == null ? AppTheme.textHint : isUp! ? AppTheme.success : AppTheme.danger)),
-      ]),
-    ]),
-  );
-}
-
-class _ActionCard extends StatelessWidget {
-  final String icon, label;
-  final VoidCallback onTap;
-  const _ActionCard({required this.icon, required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.border)),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(icon, style: const TextStyle(fontSize: 24)),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
-      ]),
-    ),
-  );
-}
-

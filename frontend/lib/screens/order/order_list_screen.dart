@@ -6,6 +6,7 @@ import '../../models/product_model.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/image_helper.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/app_card.dart';
 import 'tracking_page.dart'; // Tambahkan import ini
 
 class OrderListScreen extends StatefulWidget {
@@ -48,6 +49,7 @@ class _OrderListScreenState extends State<OrderListScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppTheme.bg,
     appBar: AppBar(
       title: const Text('Pesanan Saya'),
       bottom: TabBar(
@@ -59,7 +61,8 @@ class _OrderListScreenState extends State<OrderListScreen> with SingleTickerProv
         tabs: _tabs.map((t) => Tab(text: t)).toList(),
       ),
     ),
-    body: _isLoading
+    body: SafeArea(
+      child: _isLoading
         ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
         : _orders.isEmpty
             ? EmptyState(emoji: '📦', title: 'Belum Ada Pesanan', subtitle: 'Yuk mulai belanja produk UMKM lokal!',
@@ -69,6 +72,7 @@ class _OrderListScreenState extends State<OrderListScreen> with SingleTickerProv
                 itemCount: _orders.length,
                 itemBuilder: (_, i) => _OrderCard(order: _orders[i]),
               ),
+    ),
   );
 }
 
@@ -83,7 +87,7 @@ class _OrderCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppTheme.surface, borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: AppTheme.cardBorder),
       ),
       child: Column(children: [
         Container(
@@ -93,29 +97,44 @@ class _OrderCard extends StatelessWidget {
             borderRadius: BorderRadius.only(topLeft: Radius.circular(14), topRight: Radius.circular(14)),
           ),
           child: Row(children: [
-            Text('#${order.orderNumber}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primary)),
-            const Spacer(),
+            Expanded(child: Text('#${order.orderNumber}', maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primary))),
+            const SizedBox(width: 8),
             StatusBadge(status: order.status),
           ]),
         ),
         Padding(
           padding: const EdgeInsets.all(12),
           child: Row(children: [
-            ...order.items.take(3).map((item) => Container(
-              margin: const EdgeInsets.only(right: 6),
-              width: 52, height: 52,
-              decoration: BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(8)),
-              child: item.product?.primaryImage != null
-                  ? ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(resolveImageUrl(item.product!.primaryImage), fit: BoxFit.cover))
-                  : const Icon(Icons.image_outlined, color: AppTheme.textHint),
-            )),
-            if (order.items.length > 3)
-              Container(
-                width: 52, height: 52,
-                decoration: BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(8)),
-                child: Center(child: Text('+${order.items.length - 3}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700))),
+            // Expanded + ListView horizontal: thumbnail produk tetap dalam
+            // batas lebar kartu berapa pun jumlah item, tidak lagi
+            // menggantungkan diri pada Spacer yang bisa overflow di layar
+            // sempit saat total harga juga panjang.
+            Expanded(
+              child: SizedBox(
+                height: 52,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    ...order.items.take(3).map((item) => Container(
+                      margin: const EdgeInsets.only(right: 6),
+                      width: 52, height: 52,
+                      decoration: BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(8)),
+                      child: item.product?.primaryImage != null
+                          ? ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(resolveImageUrl(item.product!.primaryImage), fit: BoxFit.cover))
+                          : const Icon(Icons.image_outlined, color: AppTheme.textHint),
+                    )),
+                    if (order.items.length > 3)
+                      Container(
+                        width: 52, height: 52,
+                        decoration: BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(8)),
+                        child: Center(child: Text('+${order.items.length - 3}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700))),
+                      ),
+                  ],
+                ),
               ),
-            const Spacer(),
+            ),
+            const SizedBox(width: 10),
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               const Text('Total', style: TextStyle(fontSize: 11, color: AppTheme.textHint)),
               Text(currency.format(order.total), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.primary)),
@@ -124,28 +143,33 @@ class _OrderCard extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-            if (order.status == 'delivered')
-              TextButton(
-                onPressed: () => context.push('/orders/detail/${order.id}'),
-                child: const Text('Beri Ulasan', style: TextStyle(color: AppTheme.primary, fontSize: 12)),
+          child: Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 4,
+            runSpacing: 4,
+            children: [
+              if (order.status == 'delivered')
+                TextButton(
+                  onPressed: () => context.push('/orders/detail/${order.id}'),
+                  child: const Text('Beri Ulasan', style: TextStyle(color: AppTheme.primary, fontSize: 12)),
+                ),
+              if (order.status == 'shipped')
+                TextButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TrackingPage(orderId: order.id, orderCode: order.orderNumber))),
+                  child: const Text('Lacak Paket', style: TextStyle(color: AppTheme.primary, fontSize: 12)),
+                ),
+              OutlinedButton(
+                onPressed: () async {
+                  final changed = await context.push('/orders/detail/${order.id}');
+                  if (changed == true && context.mounted) {
+                    (context.findAncestorStateOfType<_OrderListScreenState>())?._load(null);
+                  }
+                },
+                style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), textStyle: const TextStyle(fontSize: 12), minimumSize: Size.zero),
+                child: const Text('Detail'),
               ),
-            if (order.status == 'shipped')
-              TextButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TrackingPage(orderId: order.id, orderCode: order.orderNumber))),
-                child: const Text('Lacak Paket', style: TextStyle(color: AppTheme.primary, fontSize: 12)),
-              ),
-            OutlinedButton(
-              onPressed: () async {
-                final changed = await context.push('/orders/detail/${order.id}');
-                if (changed == true && context.mounted) {
-                  (context.findAncestorStateOfType<_OrderListScreenState>())?._load(null);
-                }
-              },
-              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), textStyle: const TextStyle(fontSize: 12), minimumSize: Size.zero),
-              child: const Text('Detail'),
-            ),
-          ]),
+            ],
+          ),
         ),
       ]),
     );
