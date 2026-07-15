@@ -23,7 +23,8 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-2">
-                    <span class="text-2xl font-extrabold tracking-tight text-primary-600">LOKAL</span>
+                    <span class="text-xl font-extrabold tracking-tight text-gray-900">Ekonomi</span>
+                    <span class="text-xl font-extrabold tracking-tight text-blue-600">Lokal</span>
                     <span class="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">v2.0</span>
                 </div>
                 <div class="flex items-center gap-4">
@@ -45,10 +46,13 @@
                         <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
                         Platform UMKM Digital
                     </span>
-                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight">
-                        Bangun Bisnis<br>
-                        <span class="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Lokal</span> yang Kuat
-                    </h1>
+                    <div>
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight">
+                            Bangun Bisnis
+                            <span class="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Lokal</span>
+                            yang Kuat
+                        </h1>
+                    </div>
                     <p class="text-lg text-gray-300 leading-relaxed max-w-lg">
                         LOKAL adalah ekosistem digital yang memberdayakan UMKM Indonesia untuk go-digital, 
                         terhubung dengan konsumen, dan berkembang bersama.
@@ -62,26 +66,9 @@
                 </div>
                 <div class="hidden lg:flex justify-center">
                     <div class="relative">
-                        <div class="w-72 h-72 bg-gradient-to-br from-cyan-400/20 to-blue-600/20 rounded-full blur-3xl absolute -top-10 -right-10"></div>
-                        <div class="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8 shadow-2xl">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="bg-white/10 rounded-2xl p-5 text-center">
-                                    <div class="text-3xl font-extrabold text-white">100+</div>
-                                    <div class="text-xs text-gray-400 mt-1">UMKM Aktif</div>
-                                </div>
-                                <div class="bg-white/10 rounded-2xl p-5 text-center">
-                                    <div class="text-3xl font-extrabold text-white">500+</div>
-                                    <div class="text-xs text-gray-400 mt-1">Produk</div>
-                                </div>
-                                <div class="bg-white/10 rounded-2xl p-5 text-center">
-                                    <div class="text-3xl font-extrabold text-white">1000+</div>
-                                    <div class="text-xs text-gray-400 mt-1">Transaksi</div>
-                                </div>
-                                <div class="bg-white/10 rounded-2xl p-5 text-center">
-                                    <div class="text-3xl font-extrabold text-white">50rb+</div>
-                                    <div class="text-xs text-gray-400 mt-1">Koin Diedarkan</div>
-                                </div>
-                            </div>
+                        <div class="w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-600/20 rounded-full blur-3xl absolute -top-20 -right-20"></div>
+                        <div class="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-12 shadow-2xl flex items-center justify-center">
+                            <img src="<?php echo e(asset('images/logo.jpg')); ?>" alt="LOKAL Logo" class="h-48 w-auto max-w-full">
                         </div>
                     </div>
                 </div>
@@ -317,4 +304,4 @@
     </footer>
 
 </body>
-</html><?php /**PATH C:\laragon\www\ekonomi_lokal\backend\resources\views/landing.blade.php ENDPATH**/ ?>
+</html><?php /**PATH D:\laragon\www\LOKAL_APP\backend\resources\views/landing.blade.php ENDPATH**/ ?>

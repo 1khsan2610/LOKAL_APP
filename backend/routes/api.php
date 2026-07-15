@@ -50,6 +50,7 @@ Route::get('/umkm/nearby',           [UmkmController::class, 'nearby']);
 Route::get('/umkm/{id}',             [UmkmController::class, 'show'])->whereNumber('id');
 Route::get('/umkm/{id}/products',    [UmkmController::class, 'products'])->whereNumber('id');
 Route::post('/payment/notification', [PaymentController::class, 'notification']); // Midtrans webhook
+Route::post('/orders/process-payment-webhook', [OrderController::class, 'processPaymentWebhook']); // Simulasi webhook sukses
 
 // ─── AUTHENTICATED ────────────────────────────────────────────────
 Route::middleware('auth:api')->group(function () {

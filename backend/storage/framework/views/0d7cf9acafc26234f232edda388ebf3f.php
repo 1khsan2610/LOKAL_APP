@@ -146,4 +146,4 @@ unset($__errorArgs, $__bag); ?>"
 
     </div>
 </body>
-</html><?php /**PATH C:\laragon\www\ekonomi_lokal\backend\resources\views/auth/admin-login.blade.php ENDPATH**/ ?>
+</html><?php /**PATH D:\laragon\www\LOKAL_APP\backend\resources\views/auth/admin-login.blade.php ENDPATH**/ ?>

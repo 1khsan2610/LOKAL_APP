@@ -2,7 +2,12 @@
 
 @section('content')
 <div class="p-6 max-w-2xl">
-    <h2 class="text-xl font-bold mb-4">{{ $mode === 'edit' ? 'Edit' : 'Tambah' }} UMKM</h2>
+    <div class="flex items-center gap-4 mb-4">
+        <a href="{{ route('admin.dashboard') }}" class="text-gray-400 hover:text-gray-600 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </a>
+        <h2 class="text-xl font-bold">{{ $mode === 'edit' ? 'Edit' : 'Tambah' }} UMKM</h2>
+    </div>
 
     @if($errors->any())
     <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded">{{ $errors->first() }}</div>

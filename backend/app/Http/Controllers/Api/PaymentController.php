@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Wallet;
+use App\Services\CoinService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -13,7 +15,10 @@ use App\Models\OrderTrack;
 
 class PaymentController extends Controller
 {
-    public function __construct(private NotificationService $notifService) {}
+    public function __construct(
+        private NotificationService $notifService,
+        private OrderController $orderController
+    ) {}
 
     /**
      * POST /api/payment/create
@@ -207,6 +212,13 @@ class PaymentController extends Controller
 
     /**
      * POST /api/payment/notification  (Midtrans webhook — public)
+     *
+     * Saat Midtrans mengirim notifikasi sukses (settlement/capture):
+     * 1. Update payment status menjadi 'paid'
+     * 2. Update order status menjadi 'processing' (Sudah Dibayar)
+     * 3. Distribusikan dana ke wallet UMKM, komisi admin, cashback koin
+     * 4. Buat tracking record
+     * 5. Kirim notifikasi
      */
     public function notification(Request $request)
     {
@@ -224,52 +236,88 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Invalid signature'], 403);
         }
 
-        $order = Order::where('order_number', $request->order_id)->first();
+        $order = Order::with(['items.product.umkm.user', 'user.wallet'])
+            ->where('order_number', $request->order_id)
+            ->first();
+
         if (!$order) return response()->json(['message' => 'Order not found'], 404);
+
+        // Cegah duplikasi: jika sudah processing/delivered, skip
+        if (in_array($order->status, ['processing', 'delivered', 'cancelled'])) {
+            Log::info('Midtrans webhook skipped — order already processed', [
+                'order_id' => $order->id,
+                'status'   => $order->status,
+            ]);
+            return response()->json(['success' => true, 'message' => 'Already processed']);
+        }
 
         $transactionStatus = $request->transaction_status;
         $fraudStatus       = $request->fraud_status;
 
-        // Determine payment and order status
-        $paymentStatus = 'pending';
-        $orderStatus   = $order->status;
+        // Tentukan apakah pembayaran sukses
+        $isSuccess = ($transactionStatus === 'settlement')
+            || ($transactionStatus === 'capture' && $fraudStatus !== 'challenge');
 
-        if ($transactionStatus === 'capture') {
-            $paymentStatus = $fraudStatus === 'challenge' ? 'challenge' : 'paid';
-            $orderStatus   = $paymentStatus === 'paid' ? 'shipped' : $order->status;
-        } elseif ($transactionStatus === 'settlement') {
-            $paymentStatus = 'paid';
-            $orderStatus   = 'shipped';
-        } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
-            $paymentStatus = $transactionStatus;
-            $orderStatus   = 'cancelled';
-        }
-
-        // Update payment
-        Payment::where('order_id', $order->id)->update([
-            'status'         => $paymentStatus,
-            'payment_method' => $request->payment_type,
-            'transaction_id' => $request->transaction_id,
-            'paid_at'        => $paymentStatus === 'paid' ? now() : null,
-            'raw_response'   => json_encode($request->all()),
-        ]);
-
-        $order->update(['status' => $orderStatus]);
-
-        // ✨ DETAIL LANGKAH 2: Otomatis buat data tracking jika transaksi lunas/settlement
-        if ($transactionStatus === 'settlement' || ($transactionStatus === 'capture' && $paymentStatus === 'paid')) {
-            OrderTrack::create([
-                'order_id' => $order->id,
-                'status' => 'Pembayaran Berhasil',
-                'description' => 'Pesanan Anda telah dikonfirmasi dan sedang dipersiapkan oleh penjual.',
+        if ($isSuccess) {
+            // ✅ Pembayaran sukses → update payment & distribusikan dana
+            Payment::where('order_id', $order->id)->update([
+                'status'         => 'paid',
+                'payment_method' => $request->payment_type,
+                'transaction_id' => $request->transaction_id,
+                'paid_at'        => now(),
+                'raw_response'   => json_encode($request->all()),
             ]);
-        }
 
-        // Notify user
-        if ($paymentStatus === 'paid') {
+            // Panggil distribusi dana (update status → 'processing' + bagi dana)
+            $this->orderController->distributePaymentFunds($order);
+
+            // Buat tracking record
+            OrderTrack::create([
+                'order_id'   => $order->id,
+                'status'     => 'Pembayaran Berhasil',
+                'description' => 'Pembayaran telah dikonfirmasi. Pesanan sudah dibayar dan sedang diproses oleh penjual.',
+            ]);
+
+            Log::info('Midtrans webhook — payment success, funds distributed', [
+                'order_id'    => $order->id,
+                'order_number' => $order->order_number,
+            ]);
+
+        } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
+            // ❌ Pembayaran gagal/dibatalkan
+            Payment::where('order_id', $order->id)->update([
+                'status'         => $transactionStatus,
+                'payment_method' => $request->payment_type,
+                'transaction_id' => $request->transaction_id,
+                'raw_response'   => json_encode($request->all()),
+            ]);
+
+            $order->update(['status' => 'cancelled']);
+
             $this->notifService->sendToUser($order->user_id, [
-                'title' => 'Pembayaran Berhasil! 🎉',
-                'body'  => "Pembayaran pesanan #{$order->order_number} diterima. Pesanan masuk ke status dikirim.",
+                'title' => 'Pembayaran Gagal ❌',
+                'body'  => "Pembayaran pesanan #{$order->order_number} gagal: {$transactionStatus}.",
+                'type'  => 'payment',
+                'data'  => ['order_id' => $order->id],
+            ]);
+
+            Log::info('Midtrans webhook — payment failed', [
+                'order_id' => $order->id,
+                'status'   => $transactionStatus,
+            ]);
+
+        } elseif ($transactionStatus === 'capture' && $fraudStatus === 'challenge') {
+            // ⚠️ Transaksi challenge (menunggu verifikasi)
+            Payment::where('order_id', $order->id)->update([
+                'status'         => 'challenge',
+                'payment_method' => $request->payment_type,
+                'transaction_id' => $request->transaction_id,
+                'raw_response'   => json_encode($request->all()),
+            ]);
+
+            $this->notifService->sendToUser($order->user_id, [
+                'title' => 'Pembayaran dalam Verifikasi ⏳',
+                'body'  => "Pembayaran pesanan #{$order->order_number} sedang diverifikasi.",
                 'type'  => 'payment',
                 'data'  => ['order_id' => $order->id],
             ]);

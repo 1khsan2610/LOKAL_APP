@@ -60,7 +60,19 @@
                 
                 <a href="<?php echo e(route('admin.orders.index')); ?>" class="sidebar-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-300">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Transaksi
+                    Transaksi Order
+                </a>
+
+                
+                <a href="<?php echo e(route('admin.wallets.index')); ?>" class="sidebar-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    Manajemen Wallet
+                </a>
+
+                
+                <a href="<?php echo e(route('admin.wallet-histories.index')); ?>" class="sidebar-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                    Riwayat Mutasi
                 </a>
 
                 
@@ -114,7 +126,7 @@
                 
                 <div class="mb-8">
                     <h1 class="text-2xl lg:text-3xl font-extrabold text-gray-900">Dashboard</h1>
-                    <p class="text-gray-500 mt-1">Ringkasan data platform LOKAL.</p>
+                    <p class="text-gray-500 mt-1">Ringkasan data platform LOKAL dan sirkulasi dana.</p>
                 </div>
 
                 
@@ -176,7 +188,7 @@
                 </div>
 
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
                     
                     <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                         <div class="flex items-center gap-3 mb-3">
@@ -223,6 +235,81 @@
                 </div>
 
                 
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">💰 Sirkulasi Dana Platform</h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+                    
+                    <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <span class="text-sm font-semibold text-gray-700">Saldo Komisi Admin</span>
+                        </div>
+                        <p class="text-xl font-extrabold text-blue-600">Rp <?php echo e(number_format($stats['commission_balance'], 0, ',', '.')); ?></p>
+                        <p class="text-xs text-gray-400 mt-1">Dari potongan 5% transaksi</p>
+                    </div>
+
+                    
+                    <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <span class="text-sm font-semibold text-gray-700">Total Saldo UMKM</span>
+                        </div>
+                        <p class="text-xl font-extrabold text-emerald-600">Rp <?php echo e(number_format($stats['total_umkm_cash'], 0, ',', '.')); ?></p>
+                        <p class="text-xs text-gray-400 mt-1">Bisa ditarik oleh UMKM</p>
+                    </div>
+
+                    
+                    <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <span class="text-sm font-semibold text-gray-700">Total Koin Konsumen</span>
+                        </div>
+                        <p class="text-xl font-extrabold text-amber-600"><?php echo e(number_format($stats['total_consumer_coin'], 0, ',', '.')); ?> 🪙</p>
+                        <p class="text-xs text-gray-400 mt-1">~ Rp <?php echo e(number_format($stats['total_consumer_coin'] * 10, 0, ',', '.')); ?></p>
+                    </div>
+
+                    
+                    <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                            </div>
+                            <span class="text-sm font-semibold text-gray-700">Mutasi Hari Ini</span>
+                        </div>
+                        <p class="text-xl font-extrabold text-purple-600"><?php echo e($stats['today_mutations']); ?></p>
+                        <p class="text-xs text-gray-400 mt-1">Transaksi tercatat</p>
+                    </div>
+                </div>
+
+                
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-8">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">📈 Komisi Masuk (7 Hari Terakhir)</h3>
+                    <div class="flex items-end gap-2 h-32">
+                        <?php $__currentLoopData = $stats['commission_chart']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
+                            $maxTotal = $stats['commission_chart']->max('total');
+                            $height = $maxTotal > 0 ? ($day['total'] / $maxTotal) * 100 : 0;
+                            $dayName = \Carbon\Carbon::parse($day['date'])->isoFormat('dd');
+                        ?>
+                        <div class="flex-1 flex flex-col items-center gap-1">
+                            <span class="text-xs text-gray-400 font-medium">Rp<?php echo e(number_format($day['total'], 0, ',', '.')); ?></span>
+                            <div class="w-full bg-blue-50 rounded-t-lg relative" style="height: 100px;">
+                                <div class="absolute bottom-0 w-full bg-blue-500 rounded-t-lg transition-all duration-300" style="height: <?php echo e($height); ?>%;"></div>
+                            </div>
+                            <span class="text-xs text-gray-500"><?php echo e($dayName); ?></span>
+                        </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </div>
+                </div>
+
+                
                 <p class="mt-8 text-center text-xs text-gray-400">
                     &copy; <?php echo e(date('Y')); ?> LOKAL App — Panel Admin v2.0
                 </p>
@@ -233,4 +320,4 @@
     </div>
 
 </body>
-</html><?php /**PATH C:\laragon\www\ekonomi_lokal\backend\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>
+</html><?php /**PATH D:\laragon\www\LOKAL_APP\backend\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>

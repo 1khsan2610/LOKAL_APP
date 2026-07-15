@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminUmkmController;
 use App\Http\Controllers\AdminProductController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\AdminCoinController;
+use App\Http\Controllers\AdminWalletController;
 use App\Http\Controllers\Api\PaymentController;
 
 /*
@@ -33,7 +34,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::put('/products/{id}', [AdminProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{id}', [AdminProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{id}/edit', [AdminOrderController::class, 'edit'])->name('orders.edit');
+    Route::put('/orders/{id}', [AdminOrderController::class, 'update'])->name('orders.update');
+    Route::delete('/orders/{id}', [AdminOrderController::class, 'destroy'])->name('orders.destroy');
     Route::get('/coins', [AdminCoinController::class, 'index'])->name('coins.index');
+    // Wallet & Mutasi Dana
+    Route::get('/wallets', [AdminWalletController::class, 'index'])->name('wallets.index');
+    Route::get('/wallet-histories', [AdminWalletController::class, 'histories'])->name('wallet-histories.index');
     // UMKM CRUD
     Route::get('/umkm', [AdminUmkmController::class, 'index'])->name('umkm.index');
     Route::get('/umkm/create', [AdminUmkmController::class, 'create'])->name('umkm.create');
