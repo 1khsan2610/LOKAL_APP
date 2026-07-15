@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/app_card.dart';
 
 class UmkmOrderListScreen extends StatefulWidget {
   const UmkmOrderListScreen({super.key});
@@ -104,12 +105,14 @@ class _UmkmOrderListScreenState extends State<UmkmOrderListScreen> {
           ),
         ),
       ),
-      body: _isLoading
+      backgroundColor: AppTheme.bg,
+      body: SafeArea(
+        child: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
           : _orders.isEmpty
               ? const EmptyState(emoji: '📦', title: 'Belum Ada Pesanan', subtitle: 'Pesanan dari pembeli akan muncul di sini')
               : ListView.builder(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 24),
                   itemCount: _orders.length,
                   itemBuilder: (_, index) {
                     final order = _orders[index];
@@ -118,50 +121,51 @@ class _UmkmOrderListScreenState extends State<UmkmOrderListScreen> {
                     final isLoading = _updatingIds.contains(order['id']);
                     final dateStr = order['created_at']?.toString().substring(0, 10) ?? '-';
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppTheme.border),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(child: Text('#${order['order_number']}', style: const TextStyle(fontWeight: FontWeight.w700))),
-                              StatusBadge(status: status),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text('Pembeli: ${order['user']?['name'] ?? '-'}', style: const TextStyle(fontSize: 12, color: AppTheme.textHint), maxLines: 2),
-                          const SizedBox(height: 6),
-                          Text('Total: ${currency.format(order['total'] ?? 0)}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 3),
-                          Text(dateStr, style: const TextStyle(fontSize: 12, color: AppTheme.textHint)),
-                          if (status == 'pending' || status == 'processing' || status == 'shipped') ...[
-                            const SizedBox(height: 8),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: AppCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Row(
                               children: [
-                                if (status == 'pending')
-                                  _ActionButton(label: 'Proses', color: AppTheme.primary, isLoading: isLoading, onTap: () => _updateStatus(order, 'processing')),
-                                if (status == 'processing')
-                                  _ActionButton(label: 'Kirim', color: Colors.orange, isLoading: isLoading, onTap: () => _updateStatus(order, 'shipped')),
-                                if (status == 'shipped')
-                                  _ActionButton(label: 'Selesai', color: Colors.green, isLoading: isLoading, onTap: () => _updateStatus(order, 'delivered')),
+                                Expanded(child: Text('#${order['order_number']}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))),
                                 const SizedBox(width: 8),
-                                if (status == 'pending' || status == 'processing')
-                                  _ActionButton(label: 'Batalkan', color: AppTheme.danger, isLoading: isLoading, onTap: () => _updateStatus(order, 'cancelled')),
+                                StatusBadge(status: status),
                               ],
                             ),
+                            const SizedBox(height: 6),
+                            Text('Pembeli: ${order['user']?['name'] ?? '-'}', style: const TextStyle(fontSize: 12, color: AppTheme.textHint), maxLines: 2, overflow: TextOverflow.ellipsis),
+                            const SizedBox(height: 6),
+                            Text('Total: ${currency.format(order['total'] ?? 0)}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 3),
+                            Text(dateStr, style: const TextStyle(fontSize: 12, color: AppTheme.textHint)),
+                            if (status == 'pending' || status == 'processing' || status == 'shipped') ...[
+                              const SizedBox(height: 8),
+                              // Wrap: tombol aksi menyusun ulang ke baris baru
+                              // di layar sempit alih-alih overflow di kanan.
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  if (status == 'pending')
+                                    _ActionButton(label: 'Proses', color: AppTheme.primary, isLoading: isLoading, onTap: () => _updateStatus(order, 'processing')),
+                                  if (status == 'processing')
+                                    _ActionButton(label: 'Kirim', color: Colors.orange, isLoading: isLoading, onTap: () => _updateStatus(order, 'shipped')),
+                                  if (status == 'shipped')
+                                    _ActionButton(label: 'Selesai', color: Colors.green, isLoading: isLoading, onTap: () => _updateStatus(order, 'delivered')),
+                                  if (status == 'pending' || status == 'processing')
+                                    _ActionButton(label: 'Batalkan', color: AppTheme.danger, isLoading: isLoading, onTap: () => _updateStatus(order, 'cancelled')),
+                                ],
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     );
                   },
                 ),
+      ),
     );
   }
 }

@@ -42,92 +42,106 @@ class ProductCard extends StatelessWidget {
         width: width,
         decoration: BoxDecoration(
           color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppTheme.border),
+          borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+          border: Border.all(color: AppTheme.cardBorder),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // Image
-          Stack(children: [
-            AspectRatio(
-              aspectRatio: 1,
-              child: product.primaryImage != null
-                  ? CachedNetworkImage(
-                      imageUrl: resolveImageUrl(product.primaryImage),
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(color: AppTheme.surface2,
-                        child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary))),
-                      errorWidget: (_, __, ___) => Container(color: AppTheme.surface2,
-                        child: const Icon(Icons.image_not_supported_outlined, color: AppTheme.textHint, size: 40)),
-                    )
-                  : Container(color: AppTheme.surface2,
-                      child: const Center(child: Text('📦', style: TextStyle(fontSize: 40)))),
-            ),
-            // Badge
-            if (product.badge != null)
-              Positioned(top: 8, left: 8, child: _Badge(text: product.badge!)),
-            // Wishlist
-            Positioned(
-              top: 8, right: 8,
-              child: GestureDetector(
-                onTap: () async {
-                  await context.read<WishlistProvider>().toggleFavorite(product);
-                },
-                child: Container(
-                  width: 30, height: 30,
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.9), shape: BoxShape.circle),
-                  child: Icon(isFavorite ? Icons.favorite : Icons.favorite_border, size: 16, color: isFavorite ? AppTheme.danger : AppTheme.textSecondary),
+            // Image - make this take the available space proportionally so
+            // the info section can size itself without causing overflow.
+            Flexible(
+              fit: FlexFit.tight,
+              child: Stack(children: [
+                AspectRatio(
+                  aspectRatio: 1,
+                  child: product.primaryImage != null
+                      ? CachedNetworkImage(
+                          imageUrl: resolveImageUrl(product.primaryImage),
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(color: AppTheme.surface2,
+                            child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary))),
+                          errorWidget: (_, __, ___) => Container(color: AppTheme.surface2,
+                            child: const Icon(Icons.image_not_supported_outlined, color: AppTheme.textHint, size: 40)),
+                        )
+                      : Container(color: AppTheme.surface2,
+                          child: const Center(child: Text('📦', style: TextStyle(fontSize: 40)))),
                 ),
-              ),
-            ),
-            // Flash sale overlay
-            if (isFlashSale && product.flashSaleDiscount != null)
-              Positioned(
-                bottom: 0, left: 0, right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  color: Colors.red.withValues(alpha: 0.85),
-                  child: Text(
-                    '⚡ -${product.flashSaleDiscount}% OFF',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                // Badge
+                if (product.badge != null)
+                  Positioned(top: 8, left: 8, child: _Badge(text: product.badge!)),
+                // Wishlist
+                Positioned(
+                  top: 8, right: 8,
+                  child: GestureDetector(
+                    onTap: () async {
+                      await context.read<WishlistProvider>().toggleFavorite(product);
+                    },
+                    child: Container(
+                      width: 30, height: 30,
+                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.9), shape: BoxShape.circle),
+                      child: Icon(isFavorite ? Icons.favorite : Icons.favorite_border, size: 16, color: isFavorite ? AppTheme.danger : AppTheme.textSecondary),
+                    ),
                   ),
                 ),
-              ),
-          ]),
-
-          // Info
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(product.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, height: 1.3)),
-              const SizedBox(height: 3),
-              Text(product.umkm?.name ?? '',
-                maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
-              const SizedBox(height: 6),
-              if (isFlashSale && product.flashSalePrice != null) ...[
-                Text(currency.format(product.flashSalePrice),
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.primary)),
-                Text(currency.format(product.price),
-                  style: const TextStyle(fontSize: 11, color: AppTheme.textHint, decoration: TextDecoration.lineThrough)),
-              ] else
-                Text(currency.format(product.price),
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.primary)),
-              const SizedBox(height: 5),
-              Row(children: [
-                const Icon(Icons.star_rounded, size: 13, color: AppTheme.warning),
-                const SizedBox(width: 2),
-                Text(product.avgRating.toStringAsFixed(1), style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-                const Spacer(),
-                Text('${_formatSold(product.soldCount)} terjual', style: const TextStyle(fontSize: 10, color: AppTheme.textHint)),
+                // Flash sale overlay
+                if (isFlashSale && product.flashSaleDiscount != null)
+                  Positioned(
+                    bottom: 0, left: 0, right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      color: Colors.red.withValues(alpha: 0.85),
+                      child: Text(
+                        '⚡ -${product.flashSaleDiscount}% OFF',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
               ]),
-            ]),
-          ),
-        ]),
+            ),
+
+            // Info - keep this column minimal so it doesn't try to expand
+            // beyond the grid cell. Use Flexible + mainAxisSize=min inside
+            // to allow text to ellipsize and the overall card to remain
+            // within its constraints.
+            Flexible(
+              fit: FlexFit.loose,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                  Text(product.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, height: 1.3)),
+                  const SizedBox(height: 3),
+                  Text(product.umkm?.name ?? '',
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
+                  const SizedBox(height: 6),
+                  if (isFlashSale && product.flashSalePrice != null) ...[
+                    Text(currency.format(product.flashSalePrice),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.primary)),
+                    Text(currency.format(product.price),
+                      style: const TextStyle(fontSize: 11, color: AppTheme.textHint, decoration: TextDecoration.lineThrough)),
+                  ] else
+                    Text(currency.format(product.price),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.primary)),
+                  const SizedBox(height: 5),
+                  Row(children: [
+                    const Icon(Icons.star_rounded, size: 13, color: AppTheme.warning),
+                    const SizedBox(width: 2),
+                    Text(product.avgRating.toStringAsFixed(1), style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                    const Spacer(),
+                    Flexible(
+                      child: Text('${_formatSold(product.soldCount)} terjual',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 10, color: AppTheme.textHint)),
+                    ),
+                  ]),
+                ]),
+              ),
+            ),
+          ]),
       ),
     );
   }
@@ -228,19 +242,22 @@ class _ShimmerCard extends StatelessWidget {
     child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        AspectRatio(aspectRatio: 1, child: Container(color: Colors.grey.shade200)),
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(height: 13, width: double.infinity, color: Colors.grey.shade200),
-            const SizedBox(height: 6),
-            Container(height: 11, width: 100, color: Colors.grey.shade200),
-            const SizedBox(height: 8),
-            Container(height: 15, width: 80, color: Colors.grey.shade200),
-          ]),
+        Flexible(fit: FlexFit.tight, child: AspectRatio(aspectRatio: 1, child: Container(color: Colors.grey.shade200))),
+        Flexible(
+          fit: FlexFit.loose,
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Container(height: 13, width: double.infinity, color: Colors.grey.shade200),
+              const SizedBox(height: 6),
+              Container(height: 11, width: 100, color: Colors.grey.shade200),
+              const SizedBox(height: 8),
+              Container(height: 15, width: 80, color: Colors.grey.shade200),
+            ]),
+          ),
         ),
       ]),
     ),
@@ -258,8 +275,8 @@ class ShimmerListItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        color: Colors.white, borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        border: Border.all(color: AppTheme.cardBorder),
       ),
       child: Row(children: [
         Container(width: 64, height: 64, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(10))),

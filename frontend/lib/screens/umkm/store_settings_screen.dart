@@ -93,6 +93,7 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppTheme.bg,
     appBar: AppBar(
       title: const Text('Pengaturan Toko'),
         leading: const BackButton(),
@@ -101,7 +102,8 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
         ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
         : _store == null
             ? const EmptyState(emoji: '🏪', title: 'Toko Tidak Ditemukan', subtitle: 'Tidak dapat memuat data toko kamu')
-            : SingleChildScrollView(
+            : SafeArea(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Form(
                   key: _formKey,
@@ -134,5 +136,6 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
                   ]),
                 ),
               ),
+            ),
   );
 }

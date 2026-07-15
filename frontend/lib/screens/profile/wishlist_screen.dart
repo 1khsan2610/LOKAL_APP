@@ -1,3 +1,9 @@
+// ═══════════════════════════════════════════════════════════════════
+//  WishlistScreen  —  lib/screens/profile/wishlist_screen.dart
+//  Prinsip desain: AppCard menggantikan Card/ListTile bawaan agar
+//  konsisten dgn kartu produk di Beranda. bg #F8FAFC. Nama produk &
+//  toko dibungkus Expanded/Flexible agar tidak overflow.
+// ═══════════════════════════════════════════════════════════════════
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +13,7 @@ import '../../providers/wishlist_provider.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/image_helper.dart';
+import '../../widgets/app_card.dart';
 import '../../widgets/product_card.dart';
 
 class WishlistScreen extends StatefulWidget {
@@ -51,8 +58,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
   @override
   Widget build(BuildContext context) {
     final wishlist = context.watch<WishlistProvider>();
+    final bottomSafe = MediaQuery.of(context).viewPadding.bottom;
 
     return Scaffold(
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
         title: const Text('Wishlist'),
         leading: const BackButton(),
@@ -69,7 +78,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
           : wishlist.favoriteProductIds.isEmpty || _products.isEmpty
               ? const EmptyState(
                   emoji: '💛',
@@ -77,39 +86,65 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   subtitle: 'Simpan produk favoritmu dari halaman produk untuk melihatnya di sini.',
                 )
               : ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, bottomSafe + 16),
                   itemCount: _products.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (_, index) {
                     final product = _products[index];
-                    return Card(
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(12),
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: SizedBox(
-                            width: 56,
-                            height: 56,
-                            child: product.primaryImage != null
-                                ? CachedNetworkImage(
-                                    imageUrl: resolveImageUrl(product.primaryImage),
-                                    fit: BoxFit.cover,
-                                    placeholder: (_, __) => Container(color: AppTheme.surface2),
-                                    errorWidget: (_, __, ___) => Container(color: AppTheme.surface2),
-                                  )
-                                : Container(color: AppTheme.surface2, child: const Icon(Icons.image_outlined)),
+                    return AppCard(
+                      padding: const EdgeInsets.all(12),
+                      onTap: () => context.push('/product/detail/${product.id}'),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: SizedBox(
+                              width: 64,
+                              height: 64,
+                              child: product.primaryImage != null
+                                  ? CachedNetworkImage(
+                                      imageUrl: resolveImageUrl(product.primaryImage),
+                                      fit: BoxFit.cover,
+                                      placeholder: (_, __) => Container(color: AppTheme.surface2),
+                                      errorWidget: (_, __, ___) => Container(color: AppTheme.surface2),
+                                    )
+                                  : Container(color: AppTheme.surface2, child: const Icon(Icons.image_outlined, color: AppTheme.textHint)),
+                            ),
                           ),
-                        ),
-                        title: Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-                        subtitle: Text('${product.price.toString()} • ${product.umkm?.name ?? ''}', maxLines: 2),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.favorite, color: AppTheme.danger),
-                          onPressed: () async {
-                            await context.read<WishlistProvider>().toggleFavorite(product);
-                            await _loadWishlistProducts();
-                          },
-                        ),
-                        onTap: () => context.push('/product/detail/${product.id}'),
+                          const SizedBox(width: 12),
+                          // Expanded WAJIB: nama produk & toko panjang tidak
+                          // akan mendorong tombol favorit keluar layar.
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  product.name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, height: 1.25),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  product.umkm?.name ?? '',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 11, color: AppTheme.textHint),
+                                ),
+                                const SizedBox(height: 6),
+                                PriceText(product.displayPrice, fontSize: 14),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.favorite, color: AppTheme.danger),
+                            onPressed: () async {
+                              await context.read<WishlistProvider>().toggleFavorite(product);
+                              await _loadWishlistProducts();
+                            },
+                          ),
+                        ],
                       ),
                     );
                   },

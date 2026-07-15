@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/app_card.dart';
+import '../../widgets/dashboard_components.dart';
 
 class UmkmDashboardScreen extends StatefulWidget {
   const UmkmDashboardScreen({super.key});
@@ -50,15 +53,27 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
     }
   }
 
+  num _parseNum(dynamic value) {
+    if (value is num) return value;
+    if (value is String) return num.tryParse(value.replaceAll(',', '')) ?? 0;
+    return 0;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final revenue = _analytics?['total_sales'] != null ? NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(_analytics!['total_sales']) : 'Rp 0';
+    final revenue = _analytics?['total_sales'] != null
+        ? NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(_parseNum(_analytics!['total_sales']))
+        : 'Rp 0';
     final orders = _analytics?['order_count']?.toString() ?? '0';
     final products = _activeProductCount.toString();
     final rating = _analytics?['avg_rating'] != null ? (_analytics!['avg_rating'] as num).toStringAsFixed(1) : '0.0';
 
     // Build chart bars from real data
-    final chartMax = _salesChart!.isEmpty ? 1 : _salesChart!.map((e) => (e['total'] ?? 0) as num).fold<num>(0, (a, b) => a > b ? a : b);
+    final chartMax = (_salesChart?.isEmpty ?? true)
+        ? 1
+        : _salesChart!
+            .map((e) => _parseNum(e['total']))
+            .fold<num>(0, (a, b) => a > b ? a : b);
     final dayLabels = ['S', 'M', 'S', 'K', 'J', 'S', 'M'];
 
     return Scaffold(
@@ -75,27 +90,42 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
-          : RefreshIndicator(
-              onRefresh: _loadDashboard,
-              color: AppTheme.primary,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  // Stats cards
+          : SafeArea(
+              child: RefreshIndicator(
+                onRefresh: _loadDashboard,
+                color: AppTheme.primary,
+                // LayoutBuilder: kolom & aspect ratio grid statistik memakai
+                // lebar konstrain aktual, bukan asumsi dari MediaQuery layar
+                // penuh — konsisten dengan pendekatan di Beranda & Admin
+                // Dashboard.
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final width = constraints.maxWidth;
+                    final statColumns = width < 700 ? 2 : width < 1000 ? 3 : 4;
+                    final statAspect = width < 400 ? 1.3 : width < 600 ? 1.6 : 1.9;
+
+                    return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  // Stats cards — chip ikon pastel ala dashboard admin web
                   GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    childAspectRatio: 1.6,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    children: [
-                      _StatCard(icon: '💰', label: 'Pendapatan Bulan Ini', value: revenue, trend: '↑ 15%', isUp: true),
-                      _StatCard(icon: '📦', label: 'Pesanan Masuk', value: orders, trend: '8 baru', isUp: true),
-                      _StatCard(icon: '🛍️', label: 'Produk Aktif', value: products, trend: 'Stabil', isUp: null),
-                      _StatCard(icon: '⭐', label: 'Rating Toko', value: rating, trend: '89 ulasan', isUp: true),
-                    ],
+                      crossAxisCount: statColumns,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      childAspectRatio: statAspect,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      children: [
+                        StatCard(icon: Icons.payments_outlined, iconColor: const Color(0xFF15803D), iconBg: const Color(0xFFDCFCE7),
+                          value: revenue, label: 'Pendapatan Bulan Ini', badge: '↑ 15%', badgeColor: AppTheme.success),
+                        StatCard(icon: Icons.inventory_2_outlined, iconColor: const Color(0xFF1E40AF), iconBg: const Color(0xFFDBEAFE),
+                          value: orders, label: 'Pesanan Masuk', badge: '8 baru', badgeColor: AppTheme.info),
+                        StatCard(icon: Icons.shopping_bag_outlined, iconColor: const Color(0xFFB45309), iconBg: const Color(0xFFFEF3C7),
+                          value: products, label: 'Produk Aktif', badge: 'Stabil', badgeColor: AppTheme.textHint),
+                        StatCard(icon: Icons.star_outline, iconColor: const Color(0xFF6D28D9), iconBg: const Color(0xFFEDE9FE),
+                          value: rating, label: 'Rating Toko', badge: '89 ulasan', badgeColor: AppTheme.success),
+                      ],
                   ),
                   const SizedBox(height: 20),
 
@@ -103,50 +133,110 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
                   const Text('Kelola Toko', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 12),
                   Row(children: [
-                    Expanded(child: _ActionCard(icon: '📦', label: 'Produk', onTap: () => context.push('/umkm/products'))),
+                    Expanded(child: QuickActionTile(icon: Icons.inventory_2_outlined, label: 'Produk', onTap: () => context.push('/umkm/products'))),
                     const SizedBox(width: 10),
-                    Expanded(child: _ActionCard(icon: '📋', label: 'Pesanan', onTap: () => context.push('/umkm/orders'))),
+                    Expanded(child: QuickActionTile(icon: Icons.list_alt_outlined, label: 'Pesanan', onTap: () => context.push('/umkm/orders'))),
                     const SizedBox(width: 10),
-                    Expanded(child: _ActionCard(icon: '📊', label: 'Analitik', onTap: () => AppSnackBar.show(context, '📊 Analitik penjualan'))),
+                    Expanded(child: QuickActionTile(icon: Icons.bar_chart_outlined, label: 'Analitik', onTap: () => context.push('/umkm/analytics'))),
                     const SizedBox(width: 10),
-                    Expanded(child: _ActionCard(icon: '⚙️', label: 'Pengaturan', onTap: () => context.push('/umkm/store-settings'))),
+                    Expanded(child: QuickActionTile(icon: Icons.settings_outlined, label: 'Pengaturan', onTap: () => context.push('/umkm/store-settings'))),
                   ]),
                   const SizedBox(height: 20),
 
-                  // Sales chart
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppTheme.border),
-                    ),
+                  // Sales chart (LineChart via fl_chart)
+                  AppCard(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       const Text('📊 Penjualan 7 Hari', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 14),
-                      SizedBox(
-                        height: 100,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: List.generate(_salesChart!.length > 7 ? 7 : _salesChart!.length, (i) {
-                            final val = (_salesChart![i]['total'] ?? 0) as num;
-                            final pct = chartMax > 0 ? val / chartMax : 0;
-                            return Expanded(child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 3),
-                              child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-                                Container(
-                                  height: 100 * pct.toDouble(),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.primary.withValues(alpha: 0.7 + pct * 0.3),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
+                      // Use AspectRatio to keep height proportional to width and avoid overflow
+                      AspectRatio(
+                        aspectRatio: 2.5,
+                        child: Builder(builder: (ctx) {
+                          final dataList = (_salesChart ?? []).take(7).toList();
+                          if (dataList.isEmpty) {
+                            return Center(child: Text('Tidak ada data', style: TextStyle(color: AppTheme.textHint)));
+                          }
+
+                          final spots = <FlSpot>[];
+                          final barGroups = <BarChartGroupData>[];
+                          num maxVal = 1;
+                          for (var i = 0; i < dataList.length; i++) {
+                            final val = _parseNum(dataList[i]['total']).toDouble();
+                            spots.add(FlSpot(i.toDouble(), val));
+                            barGroups.add(BarChartGroupData(
+                              x: i,
+                              barRods: [
+                                BarChartRodData(
+                                  toY: val,
+                                  width: 16,
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: AppTheme.primary.withValues(alpha: 0.65),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(dayLabels[i % 7], style: const TextStyle(fontSize: 9, color: AppTheme.textHint)),
-                              ]),
+                              ],
                             ));
-                          }),
-                        ),
+                            if (val > maxVal) maxVal = val;
+                          }
+
+                          final maxY = (maxVal.toDouble() * 1.25).clamp(1.0, double.infinity);
+                          final showDots = spots.length == 1;
+
+                          return Stack(children: [
+                            BarChart(
+                              BarChartData(
+                                maxY: maxY,
+                                minY: 0,
+                                alignment: BarChartAlignment.spaceBetween,
+                                barGroups: barGroups,
+                                gridData: FlGridData(show: false),
+                                titlesData: FlTitlesData(show: false),
+                                borderData: FlBorderData(show: false),
+                                barTouchData: BarTouchData(enabled: false),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: LineChart(
+                                LineChartData(
+                                  gridData: FlGridData(show: false),
+                                  titlesData: FlTitlesData(show: false),
+                                  borderData: FlBorderData(show: false),
+                                  lineTouchData: LineTouchData(
+                                    enabled: true,
+                                    touchTooltipData: LineTouchTooltipData(
+                                      getTooltipColor: (spot) => Colors.white.withValues(alpha: 0.9),
+                                      getTooltipItems: (touchedSpots) {
+                                        return touchedSpots.map((ts) {
+                                          return LineTooltipItem(
+                                            NumberFormat.compactCurrency(locale: 'id_ID', symbol: 'Rp').format(ts.y),
+                                            const TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+                                          );
+                                        }).toList();
+                                      },
+                                    ),
+                                  ),
+                                  minX: 0,
+                                  maxX: (spots.length - 1).toDouble(),
+                                  minY: 0,
+                                  maxY: maxY,
+                                  lineBarsData: [
+                                    LineChartBarData(
+                                      spots: spots,
+                                      isCurved: true,
+                                      color: AppTheme.accentDark,
+                                      barWidth: 3,
+                                      isStrokeCapRound: true,
+                                      dotData: FlDotData(show: !showDots),
+                                      belowBarData: BarAreaData(
+                                        show: true,
+                                        color: AppTheme.accent.withValues(alpha: 0.16),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ]);
+                        }),
                       ),
                     ]),
                   ),
@@ -158,70 +248,42 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
                   ...(_recentOrders ?? []).map((o) {
                     final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
                     final dateStr = o['created_at']?.toString().substring(0, 10) ?? '-';
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppTheme.border),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: AppCard(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        child: Row(children: [
+                          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text('#${o['order_number']}', maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.primary)),
+                            Text(dateStr, style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
+                          ])),
+                          const SizedBox(width: 8),
+                          // Flexible+FittedBox: total harga + status badge tetap
+                          // dalam satu baris tapi menyusut proporsional saat
+                          // harga panjang & layar sempit, bukan overflow.
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                Text(currency.format(_parseNum(o['total'])), style: const TextStyle(fontSize: 13)),
+                                const SizedBox(width: 8),
+                                StatusBadge(status: o['status']?.toString() ?? ''),
+                              ]),
+                            ),
+                          ),
+                        ]),
                       ),
-                      child: Row(children: [
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text('#${o['order_number']}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.primary)),
-                          Text(dateStr, style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
-                        ])),
-                        Text(currency.format(o['total'] ?? 0), style: const TextStyle(fontSize: 13)),
-                        const SizedBox(width: 8),
-                        StatusBadge(status: o['status']?.toString() ?? ''),
-                      ]),
                     );
                   }),
-                  const SizedBox(height: 80),
+                  SizedBox(height: MediaQuery.of(context).viewPadding.bottom + 80),
                 ]),
+              );
+                  },
+                ),
               ),
             ),
     );
   }
 }
-
-class _StatCard extends StatelessWidget {
-  final String icon, label, value, trend;
-  final bool? isUp;
-  const _StatCard({required this.icon, required this.label, required this.value, required this.trend, required this.isUp});
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppTheme.border)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Text(icon, style: const TextStyle(fontSize: 24)),
-      Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.textHint), maxLines: 1, overflow: TextOverflow.ellipsis),
-        Text(trend, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: isUp == null ? AppTheme.textHint : isUp! ? AppTheme.success : AppTheme.danger)),
-      ]),
-    ]),
-  );
-}
-
-class _ActionCard extends StatelessWidget {
-  final String icon, label;
-  final VoidCallback onTap;
-  const _ActionCard({required this.icon, required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.border)),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(icon, style: const TextStyle(fontSize: 24)),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
-      ]),
-    ),
-  );
-}
-

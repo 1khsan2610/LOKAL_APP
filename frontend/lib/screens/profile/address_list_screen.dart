@@ -1,4 +1,12 @@
+// ═══════════════════════════════════════════════════════════════════
+//  AddressListScreen  —  lib/screens/profile/address_list_screen.dart
+//  Prinsip desain (sinkron dgn Beranda / Cart / Checkout / Profile):
+//   • AppCard membungkus tiap alamat → konsisten dgn kartu produk
+//   • Label + badge "Utama" dibungkus Expanded/Wrap → tidak overflow
+//   • Palet: bg #F8FAFC, aksen utama Navy #151B26 (AppTheme.primary)
+// ═══════════════════════════════════════════════════════════════════
 import '../../widgets/product_card.dart';
+import '../../widgets/app_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/api_service.dart';
@@ -28,76 +36,102 @@ class _AddressListScreenState extends State<AddressListScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Alamat Pengiriman'),
+  Widget build(BuildContext context) {
+    final bottomSafe = MediaQuery.of(context).viewPadding.bottom;
+    return Scaffold(
+      backgroundColor: AppTheme.bg,
+      appBar: AppBar(
+        title: const Text('Alamat Pengiriman'),
         leading: BackButton(onPressed: () => context.pop()),
-    ),
-    floatingActionButton: FloatingActionButton.extended(
-      onPressed: () => context.push('/profile/addresses/form').then((_) => _load()),
-      backgroundColor: AppTheme.primary,
-      icon: const Icon(Icons.add),
-      label: const Text('Tambah Alamat'),
-    ),
-    body: _isLoading
-        ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
-        : _addresses.isEmpty
-            ? EmptyState(emoji: '📍', title: 'Belum Ada Alamat',
-                subtitle: 'Tambahkan alamat pengiriman kamu',
-                buttonLabel: 'Tambah Alamat',
-                onButton: () => context.push('/profile/addresses/form').then((_) => _load()))
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _addresses.length,
-                itemBuilder: (_, i) {
-                  final a = _addresses[i];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface, borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: a.isDefault ? AppTheme.primary : AppTheme.border, width: a.isDefault ? 2 : 1),
-                    ),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Row(children: [
-                        Text(a.label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                        if (a.isDefault) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                            decoration: BoxDecoration(color: AppTheme.surface2, borderRadius: BorderRadius.circular(5), border: Border.all(color: AppTheme.primary)),
-                            child: const Text('Utama', style: TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w700)),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/profile/addresses/form').then((_) => _load()),
+        backgroundColor: AppTheme.primary,
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah Alamat'),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          : _addresses.isEmpty
+              ? EmptyState(
+                  emoji: '📍',
+                  title: 'Belum Ada Alamat',
+                  subtitle: 'Tambahkan alamat pengiriman kamu',
+                  buttonLabel: 'Tambah Alamat',
+                  onButton: () => context.push('/profile/addresses/form').then((_) => _load()),
+                )
+              : ListView.separated(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, bottomSafe + 88),
+                  itemCount: _addresses.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (_, i) {
+                    final a = _addresses[i];
+                    return AppCard(
+                      padding: const EdgeInsets.all(14),
+                      color: a.isDefault ? AppTheme.surface2 : AppTheme.surface,
+                      radius: AppTheme.cardRadius,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              // Expanded + Wrap: label & badge "Utama" tidak
+                              // akan mendorong tombol edit/hapus keluar layar.
+                              Expanded(
+                                child: Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: 8,
+                                  runSpacing: 4,
+                                  children: [
+                                    Text(a.label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                                    if (a.isDefault)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.surface,
+                                          borderRadius: BorderRadius.circular(5),
+                                          border: Border.all(color: AppTheme.primary),
+                                        ),
+                                        child: const Text('Utama',
+                                            style: TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w700)),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 18, color: AppTheme.textHint),
+                                onPressed: () => context.push('/profile/addresses/form?id=${a.id}').then((_) => _load()),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                              const SizedBox(width: 12),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, size: 18, color: AppTheme.danger),
+                                onPressed: () async { await _api.deleteAddress(a.id); _load(); },
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 6),
+                          Text('${a.recipientName} · ${a.phone}',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                          const SizedBox(height: 3),
+                          Text(a.fullAddress, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                          if (!a.isDefault) ...[
+                            const SizedBox(height: 8),
+                            TextButton(
+                              onPressed: () async { await _api.setDefaultAddress(a.id); _load(); },
+                              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                              child: const Text('Jadikan Utama', style: TextStyle(fontSize: 12, color: AppTheme.primary)),
+                            ),
+                          ],
                         ],
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined, size: 18, color: AppTheme.textHint),
-                          onPressed: () => context.push('/profile/addresses/form?id=${a.id}').then((_) => _load()),
-                          padding: EdgeInsets.zero, constraints: const BoxConstraints(),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, size: 18, color: AppTheme.danger),
-                          onPressed: () async { await _api.deleteAddress(a.id); _load(); },
-                          padding: EdgeInsets.zero, constraints: const BoxConstraints(),
-                        ),
-                      ]),
-                      const SizedBox(height: 4),
-                      Text('${a.recipientName} · ${a.phone}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 3),
-                      Text(a.fullAddress, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                      if (!a.isDefault) ...[
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: () async { await _api.setDefaultAddress(a.id); _load(); },
-                          style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                          child: const Text('Jadikan Utama', style: TextStyle(fontSize: 12, color: AppTheme.primary)),
-                        ),
-                      ],
-                    ]),
-                  );
-                },
-              ),
-  );
+                      ),
+                    );
+                  },
+                ),
+    );
+  }
 }
-

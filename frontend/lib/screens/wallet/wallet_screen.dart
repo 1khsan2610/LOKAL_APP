@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../providers/cart_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/app_card.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -29,11 +30,13 @@ class _WalletScreenState extends State<WalletScreen> {
     final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
         title: const Text('Dompet & Lokal Coin'),
         leading: BackButton(onPressed: () => context.pop()),
       ),
-      body: RefreshIndicator(
+      body: SafeArea(
+        child: RefreshIndicator(
         color: AppTheme.primary,
         onRefresh: () async { await wallet.load(); await wallet.loadTransactions(); },
         child: SingleChildScrollView(
@@ -55,30 +58,37 @@ class _WalletScreenState extends State<WalletScreen> {
                 const Text('🪙 Lokal Coin Kamu',
                   style: TextStyle(fontSize: 13, color: Colors.white70)),
                 const SizedBox(height: 6),
-                Text(wallet.coinBalance.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.'),
-                  style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: Colors.white)),
+                // FittedBox: saldo coin besar (mis. "1.250.000") tetap satu
+                // baris rapi, tidak lagi berisiko wrap/overflow di HP sempit.
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(wallet.coinBalance.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.'),
+                      style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: Colors.white)),
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text('≈ ${currency.format(wallet.rupiahValue)} diskon',
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 12, color: Colors.white60)),
                 const SizedBox(height: 16),
+                // Expanded pada tiap aksi: 3 tombol berbagi lebar rata dan
+                // teks di dalamnya menyusut proporsional (bukan overflow)
+                // ketika layar sempit.
                 Row(children: [
-                  _WalletAction(icon: '🛍️', label: 'Gunakan', onTap: () => context.push('/checkout')),
-                  const SizedBox(width: 10),
-                  _WalletAction(icon: '📜', label: 'Riwayat', onTap: () {}),
-                  const SizedBox(width: 10),
-                  _WalletAction(icon: 'ℹ️', label: 'Info Coin', onTap: () => _showCoinInfo(context)),
+                  Expanded(child: _WalletAction(icon: '🛍️', label: 'Gunakan', onTap: () => context.push('/checkout'))),
+                  const SizedBox(width: 8),
+                  Expanded(child: _WalletAction(icon: '📜', label: 'Riwayat', onTap: () {})),
+                  const SizedBox(width: 8),
+                  Expanded(child: _WalletAction(icon: 'ℹ️', label: 'Info Coin', onTap: () => _showCoinInfo(context))),
                 ]),
               ]),
             ),
             const SizedBox(height: 20),
 
             // How to earn
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppTheme.surface, borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.border),
-              ),
+            AppCard(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Text('💡 Cara Mendapatkan Coin',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
@@ -93,7 +103,8 @@ class _WalletScreenState extends State<WalletScreen> {
                   child: Row(children: [
                     Text(item.$1, style: const TextStyle(fontSize: 16)),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(item.$2, style: const TextStyle(fontSize: 12))),
+                    Expanded(child: Text(item.$2, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12))),
+                    const SizedBox(width: 8),
                     Text(item.$3, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primary)),
                   ]),
                 )),
@@ -111,11 +122,8 @@ class _WalletScreenState extends State<WalletScreen> {
             else if (wallet.transactions.isEmpty)
               const EmptyState(emoji: '🪙', title: 'Belum Ada Transaksi Coin', subtitle: 'Mulai berbelanja untuk mendapatkan Lokal Coin!')
             else
-              Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.surface, borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppTheme.border),
-                ),
+              AppCard(
+                padding: EdgeInsets.zero,
                 child: Column(
                   children: wallet.transactions.asMap().entries.map((e) {
                     final i   = e.key;
@@ -134,18 +142,28 @@ class _WalletScreenState extends State<WalletScreen> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(txn.description, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            Text(txn.description, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                             Text(txn.createdAt, style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
                           ])),
-                          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                            Text(
-                              '${txn.isCredit ? '+' : '-'}${txn.amount} Coin',
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
-                                color: txn.isCredit ? AppTheme.success : AppTheme.danger),
+                          const SizedBox(width: 8),
+                          // Flexible+FittedBox: jumlah coin & saldo tetap satu
+                          // baris meski nilainya besar, menyusut proporsional
+                          // alih-alih overflow di layar sempit.
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                                Text(
+                                  '${txn.isCredit ? '+' : '-'}${txn.amount} Coin',
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
+                                    color: txn.isCredit ? AppTheme.success : AppTheme.danger),
+                                ),
+                                Text('${txn.balanceAfter} total',
+                                  style: const TextStyle(fontSize: 10, color: AppTheme.textHint)),
+                              ]),
                             ),
-                            Text('${txn.balanceAfter} total',
-                              style: const TextStyle(fontSize: 10, color: AppTheme.textHint)),
-                          ]),
+                          ),
                         ]),
                       ),
                       if (i < wallet.transactions.length - 1) const Divider(height: 1),
@@ -155,6 +173,7 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
             const SizedBox(height: 24),
           ]),
+        ),
         ),
       ),
     );
@@ -187,12 +206,13 @@ class _WalletAction extends StatelessWidget {
   Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
       ),
-      child: Text('$icon $label', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
+      child: Text('$icon $label', textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
     ),
   );
 }

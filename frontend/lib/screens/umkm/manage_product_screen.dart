@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../../services/api_service.dart';
 import '../../models/product_model.dart';
 import '../../utils/app_theme.dart';
-import '../../utils/image_helper.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/product_manage_tile.dart';
 
 class ManageProductScreen extends StatefulWidget {
   const ManageProductScreen({super.key});
@@ -85,6 +85,7 @@ class _ManageProductScreenState extends State<ManageProductScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppTheme.bg,
     appBar: AppBar(title: const Text('Kelola Produk')),
     floatingActionButton: FloatingActionButton.extended(
       onPressed: _checkUmkmAndAddProduct,
@@ -107,47 +108,49 @@ class _ManageProductScreenState extends State<ManageProductScreen> {
             ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
             : _filtered.isEmpty
                 ? const EmptyState(emoji: '📦', title: 'Belum Ada Produk', subtitle: 'Tambahkan produk pertama kamu!')
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    itemCount: _filtered.length,
-                    itemBuilder: (_, i) {
-                      final p = _filtered[i];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.border)),
-                        child: Row(children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(9),
-                            child: SizedBox(
-                              width: 58, height: 58,
-                              child: p.primaryImage != null
-                                  ? Image.network(resolveImageUrl(p.primaryImage), fit: BoxFit.cover)
-                                  : Container(color: AppTheme.surface2, child: const Icon(Icons.image_outlined)),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(p.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
-                            const SizedBox(height: 3),
-                            Row(children: [
-                              PriceText(p.price, fontSize: 12, color: AppTheme.primary, fontWeight: FontWeight.w700),
-                              const SizedBox(width: 10),
-                              Text('Stok: ${p.stock}', style: TextStyle(fontSize: 11, color: p.stock < 5 ? AppTheme.danger : AppTheme.textHint)),
-                            ]),
-                            Text('${p.soldCount} terjual · ⭐${p.avgRating.toStringAsFixed(1)}', style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
-                          ])),
-                          PopupMenuButton<String>(
-                            onSelected: (v) {
-                              if (v == 'edit') context.push('/umkm/products/form?id=${p.id}').then((_) => _load());
-                              if (v == 'delete') _confirmDelete(p);
-                            },
-                            itemBuilder: (_) => const [
-                              PopupMenuItem(value: 'edit',   child: Text('✏️ Edit')),
-                              PopupMenuItem(value: 'delete', child: Text('🗑️ Hapus', style: TextStyle(color: AppTheme.danger))),
-                            ],
-                          ),
-                        ]),
+                // LayoutBuilder: di layar sempit (HP) daftar tampil sebagai
+                // satu kolom kartu horizontal; begitu lebar tersedia cukup
+                // (tablet/desktop/Flutter web), otomatis beralih ke grid
+                // kartu vertikal — supaya "Kelola Produk" tidak terasa kaku
+                // memanjang ke bawah saat ruang layar sebenarnya lebih luas.
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      if (width < 700) {
+                        return ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(14, 0, 14, 90),
+                          itemCount: _filtered.length,
+                          itemBuilder: (_, i) {
+                            final p = _filtered[i];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: ProductManageTile(
+                                product: p,
+                                onEdit: () => context.push('/umkm/products/form?id=${p.id}').then((_) => _load()),
+                                onDelete: () => _confirmDelete(p),
+                              ),
+                            );
+                          },
+                        );
+                      }
+                      final crossAxisCount = width < 1000 ? 3 : width < 1300 ? 4 : 5;
+                      return GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(14, 0, 14, 90),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          childAspectRatio: 0.78,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                        itemCount: _filtered.length,
+                        itemBuilder: (_, i) {
+                          final p = _filtered[i];
+                          return ProductManageGridTile(
+                            product: p,
+                            onEdit: () => context.push('/umkm/products/form?id=${p.id}').then((_) => _load()),
+                            onDelete: () => _confirmDelete(p),
+                          );
+                        },
                       );
                     },
                   ),
@@ -155,4 +158,3 @@ class _ManageProductScreenState extends State<ManageProductScreen> {
     ]),
   );
 }
-

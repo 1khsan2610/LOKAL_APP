@@ -6,6 +6,7 @@ import '../../services/api_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/image_helper.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/app_card.dart';
 import 'tracking_page.dart'; // Tambahkan import ini
 
 class OrderDetailScreen extends StatefulWidget {
@@ -147,22 +148,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget build(BuildContext context) {
     final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     return Scaffold(
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        title: Text('#${order.orderNumber}'),
+        title: Text('#${order.orderNumber}', maxLines: 1, overflow: TextOverflow.ellipsis),
         leading: BackButton(onPressed: () => context.pop()),
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppTheme.border)),
+          AppCard(
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Text('Status Pesanan', style: TextStyle(fontSize: 12, color: AppTheme.textHint)),
                 const SizedBox(height: 4),
                 StatusBadge(status: order.status),
               ]),
+              const SizedBox(width: 8),
               Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 const Text('Tanggal Pesanan', style: TextStyle(fontSize: 12, color: AppTheme.textHint)),
                 const SizedBox(height: 4),
@@ -173,9 +175,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           const SizedBox(height: 12),
           if (order.address != null) ...[
             _DetailSection(title: '📍 Alamat Pengiriman', child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(order.address!.recipientName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              Text(order.address!.recipientName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
               const SizedBox(height: 2),
-              Text(order.address!.phone, style: const TextStyle(fontSize: 12, color: AppTheme.textHint)),
+              Text(order.address!.phone, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: AppTheme.textHint)),
               const SizedBox(height: 2),
               Text(order.address!.fullAddress, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
             ])),
@@ -235,6 +237,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             )),
           const SizedBox(height: 24),
         ]),
+        ),
       ),
     );
   }
@@ -246,9 +249,7 @@ class _DetailSection extends StatelessWidget {
   const _DetailSection({required this.title, required this.child});
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppTheme.border)),
+  Widget build(BuildContext context) => AppCard(
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
       const SizedBox(height: 12),
