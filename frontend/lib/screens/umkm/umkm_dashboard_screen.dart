@@ -68,13 +68,7 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
     final products = _activeProductCount.toString();
     final rating = _analytics?['avg_rating'] != null ? (_analytics!['avg_rating'] as num).toStringAsFixed(1) : '0.0';
 
-    // Build chart bars from real data
-    final chartMax = (_salesChart?.isEmpty ?? true)
-        ? 1
-        : _salesChart!
-            .map((e) => _parseNum(e['total']))
-            .fold<num>(0, (a, b) => a > b ? a : b);
-    final dayLabels = ['S', 'M', 'S', 'K', 'J', 'S', 'M'];
+    // Chart values are computed inline in the chart builder below
 
     return Scaffold(
       appBar: AppBar(

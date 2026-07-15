@@ -33,6 +33,7 @@ import '../screens/profile/wishlist_screen.dart';
 import '../screens/profile/my_reviews_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
+import '../screens/ai_chat_screen.dart';
 
 
 class AppRouterGo {
@@ -91,6 +92,7 @@ class AppRouterGo {
       GoRoute(path: '/profile/wishlist', builder: (ctx, state) => const WishlistScreen()),
       GoRoute(path: '/profile/reviews', builder: (ctx, state) => const MyReviewsScreen()),
       GoRoute(path: '/reset-password', builder: (ctx, state) => ResetPasswordScreen(email: state.uri.queryParameters['email'] ?? '')),
+      GoRoute(path: '/ai-chat', builder: (ctx, state) => const AiChatScreen()),
     ],
     errorBuilder: (ctx, state) => Scaffold(body: Center(child: Text('Route ${state.uri.toString()} not found'))),
   );

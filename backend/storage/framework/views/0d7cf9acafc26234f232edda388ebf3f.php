@@ -18,10 +18,10 @@
         
         <div class="hidden lg:flex lg:w-1/2 login-gradient relative items-center justify-center p-12">
             <div class="relative z-10 text-center max-w-md">
-                <div class="w-24 h-24 mx-auto mb-8 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
-                    <span class="text-4xl font-extrabold text-white">L</span>
+                <div class="mb-8">
+                    <img src="<?php echo e(asset('images/logo.jpg')); ?>" alt="LOKAL Logo" class="h-20 w-auto mx-auto brightness-0 invert">
                 </div>
-                <h1 class="text-4xl font-extrabold text-white mb-4">LOKAL Admin</h1>
+                <h1 class="text-4xl font-extrabold text-white mb-4">Admin Panel</h1>
                 <p class="text-gray-300 leading-relaxed">
                     Kelola UMKM, pantau transaksi, dan kendalikan ekosistem koin dari satu panel terpadu.
                 </p>
@@ -56,10 +56,8 @@
             <div class="w-full max-w-sm">
                 
                 <div class="lg:hidden text-center mb-8">
-                    <div class="w-16 h-16 mx-auto rounded-full bg-gray-900 flex items-center justify-center mb-3">
-                        <span class="text-2xl font-extrabold text-white">L</span>
-                    </div>
-                    <h2 class="text-2xl font-bold text-gray-900">LOKAL Admin</h2>
+                    <img src="<?php echo e(asset('images/logo.jpg')); ?>" alt="LOKAL Logo" class="h-14 w-auto mx-auto mb-3">
+                    <h2 class="text-2xl font-bold text-gray-900">Admin Panel</h2>
                     <p class="text-sm text-gray-500 mt-1">Masuk ke panel admin</p>
                 </div>
 

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/product_model.dart';
-import '../../models/order_model.dart';
 import 'order_detail_screen.dart';
 
 class OrderDetailLoader extends StatefulWidget {

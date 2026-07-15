@@ -7,6 +7,8 @@ use App\Http\Controllers\AdminProductController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\AdminCoinController;
 use App\Http\Controllers\AdminWalletController;
+use App\Http\Controllers\AdminSettingController;
+use App\Http\Controllers\AdminBankVerificationController;
 use App\Http\Controllers\Api\PaymentController;
 
 /*
@@ -49,6 +51,20 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/umkm/{id}/edit', [AdminUmkmController::class, 'edit'])->name('umkm.edit');
     Route::put('/umkm/{id}', [AdminUmkmController::class, 'update'])->name('umkm.update');
     Route::delete('/umkm/{id}', [AdminUmkmController::class, 'destroy'])->name('umkm.destroy');
+
+    // Verifikasi Rekening Bank UMKM
+    Route::get('/verifikasi-bank', [AdminBankVerificationController::class, 'index'])->name('bank-verification.index');
+    Route::post('/verifikasi-bank/{id}/approve', [AdminBankVerificationController::class, 'approve'])->name('bank-verification.approve');
+    Route::post('/verifikasi-bank/{id}/reject', [AdminBankVerificationController::class, 'reject'])->name('bank-verification.reject');
+
+    // Pengaturan Global (Full CRUD)
+    Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
+    Route::get('/settings/create', [AdminSettingController::class, 'create'])->name('settings.create');
+    Route::post('/settings', [AdminSettingController::class, 'store'])->name('settings.store');
+    Route::get('/settings/{id}/edit', [AdminSettingController::class, 'edit'])->name('settings.edit');
+    Route::put('/settings/{id}', [AdminSettingController::class, 'update'])->name('settings.update');
+    Route::delete('/settings/{id}', [AdminSettingController::class, 'destroy'])->name('settings.destroy');
+
     Route::post('/logout', [AdminWebController::class, 'logout'])->name('logout');
 
 });

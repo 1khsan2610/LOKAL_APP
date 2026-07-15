@@ -217,6 +217,7 @@ class ProfileScreen extends StatelessWidget {
                       _MenuItem(icon: Icons.list_alt_outlined, label: 'Pesanan Toko', onTap: () => context.push('/umkm/orders')),
                       _MenuItem(icon: Icons.settings_outlined, label: 'Pengaturan Toko', onTap: () => context.push('/umkm/store-settings')),
                     ],
+                    _MenuItem(icon: Icons.smart_toy_outlined, label: 'LOKAL AI Assistant', onTap: () => context.push('/ai-chat')),
                     _MenuItem(icon: Icons.account_balance_wallet_outlined, label: 'Dompet & Lokal Coin', onTap: () => context.push('/wallet')),
                     _MenuItem(icon: Icons.notifications_outlined, label: 'Notifikasi', onTap: () => context.push('/notifications')),
                     if (user.isAdmin)

@@ -7,7 +7,7 @@ import '../../utils/app_theme.dart';
 import '../../utils/image_helper.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/app_card.dart';
-import 'tracking_page.dart'; // Tambahkan import ini
+import 'tracking_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final OrderModel order;
@@ -220,7 +220,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ],
           if (order.status == 'shipped') ...[
             SizedBox(width: double.infinity, child: ElevatedButton.icon(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TrackingPage(orderId: order.id, orderCode: order.orderNumber))),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TrackingScreen(orderId: order.id, orderNumber: order.orderNumber))),
               icon: const Icon(Icons.local_shipping_outlined), label: const Text('Lacak Paket'),
             )),
             const SizedBox(height: 10),

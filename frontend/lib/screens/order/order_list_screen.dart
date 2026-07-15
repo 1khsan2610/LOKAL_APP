@@ -6,8 +6,7 @@ import '../../models/product_model.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/image_helper.dart';
 import '../../widgets/product_card.dart';
-import '../../widgets/app_card.dart';
-import 'tracking_page.dart'; // Tambahkan import ini
+import 'tracking_screen.dart';
 
 class OrderListScreen extends StatefulWidget {
   const OrderListScreen({super.key});
@@ -155,7 +154,7 @@ class _OrderCard extends StatelessWidget {
                 ),
               if (order.status == 'shipped')
                 TextButton(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TrackingPage(orderId: order.id, orderCode: order.orderNumber))),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TrackingScreen(orderId: order.id, orderNumber: order.orderNumber))),
                   child: const Text('Lacak Paket', style: TextStyle(color: AppTheme.primary, fontSize: 12)),
                 ),
               OutlinedButton(

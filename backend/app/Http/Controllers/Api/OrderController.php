@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\OrderHistory;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Cart;
 use App\Models\Umkm;
 use App\Models\Wallet;
+use App\Models\Setting;
 use App\Services\CoinService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -181,16 +183,26 @@ class OrderController extends Controller
                 $item->product->increment('stock', $item->quantity);
             }
 
-            // Refund coin if used
+            // Refund coin if used — kembalikan penuh koin yang dipakai
             if ($order->coin_discount > 0) {
-                $this->coinService->add(
-                    $order->user_id,
-                    (int)($order->coin_discount / 10),
-                    "Refund Coin - Order #{$order->order_number}"
-                );
+                $coinToRefund = (int)($order->coin_discount / CoinService::COIN_TO_RUPIAH);
+                if ($coinToRefund > 0) {
+                    $this->coinService->add(
+                        $order->user_id,
+                        $coinToRefund,
+                        "Refund Coin - Order #{$order->order_number} (pembatalan)"
+                    );
+                }
             }
 
             $order->update(['status' => 'cancelled']);
+
+            // Catat riwayat status ke order_histories
+            OrderHistory::create([
+                'order_id' => $order->id,
+                'status'   => 'cancelled',
+                'notes'    => 'Pesanan dibatalkan oleh konsumen',
+            ]);
         });
 
         $this->notifService->sendToUser(auth()->id(), [
@@ -213,6 +225,13 @@ class OrderController extends Controller
 
         DB::transaction(function () use ($order) {
             $order->update(['status' => 'delivered', 'delivered_at' => now()]);
+
+            // Catat riwayat status ke order_histories
+            OrderHistory::create([
+                'order_id' => $order->id,
+                'status'   => 'delivered',
+                'notes'    => 'Pesanan telah diterima oleh konsumen',
+            ]);
 
             // Award Lokal Coin to buyer
             $coinEarned = (int)($order->subtotal / 1000);
@@ -258,16 +277,42 @@ class OrderController extends Controller
         $umkm  = auth()->user()->umkm;
         $order = Order::whereHas('items.product', fn($q) => $q->where('umkm_id', $umkm->id))->findOrFail($id);
 
+        // Prepare tracking notes based on status
+        $trackingNotes = $request->notes;
+        if ($request->status === 'shipped' && $request->tracking_number) {
+            $trackingNotes = $trackingNotes 
+                ? $trackingNotes 
+                : "Pesanan telah dikirim dengan nomor resi: {$request->tracking_number}";
+        } elseif ($request->status === 'processing') {
+            $trackingNotes = $trackingNotes ?: 'Pesanan sedang diproses oleh penjual';
+        } elseif ($request->status === 'cancelled') {
+            $trackingNotes = $trackingNotes ?: 'Pesanan dibatalkan oleh penjual';
+        }
+
         $order->update([
             'status'          => $request->status,
             'tracking_number' => $request->tracking_number,
             'seller_notes'    => $request->notes,
         ]);
 
+        // Catat riwayat status ke order_histories
+        OrderHistory::create([
+            'order_id' => $order->id,
+            'status'   => $request->status,
+            'notes'    => $trackingNotes,
+        ]);
+
         // Notify buyer
+        $statusLabels = [
+            'processing' => 'Diproses',
+            'shipped'    => 'Dikirim',
+            'cancelled'  => 'Dibatalkan',
+        ];
+        $label = $statusLabels[$request->status] ?? $request->status;
+
         $this->notifService->sendToUser($order->user_id, [
-            'title' => 'Update Status Pesanan',
-            'body'  => "Pesanan #{$order->order_number} sekarang: {$request->status}",
+            'title' => "Pesanan {$label} 📦",
+            'body'  => "Pesanan #{$order->order_number} sekarang: {$label}. {$trackingNotes}",
             'type'  => 'order',
             'data'  => ['order_id' => $order->id],
         ]);
@@ -307,10 +352,10 @@ class OrderController extends Controller
     public function distributePaymentFunds(Order $order)
     {
         return DB::transaction(function () use ($order) {
-            // --- Konfigurasi ---
-            $commissionPercent = 5;   // 5% komisi admin
-            $cashbackPercent   = 2;   // 2% cashback Lokal Coin untuk konsumen
-            $coinToRupiah      = 10;  // 1 coin = Rp 10 (sesuai CoinService)
+            // --- Konfigurasi dari tabel settings ---
+            $commissionPercent = Setting::commissionPercent();   // default 5%
+            $cashbackPercent   = Setting::cashbackPercent();     // default 2%
+            $coinToRupiah      = CoinService::COIN_TO_RUPIAH;    // 1 coin = Rp 10
 
             $cashPaid   = $order->total;
             $subtotal   = $order->subtotal;
@@ -456,6 +501,13 @@ class OrderController extends Controller
 
             // --- 6. Update status order → 'processing' (Sudah Dibayar) ---
             $order->update(['status' => 'processing']);
+
+            // Catat riwayat status ke order_histories
+            OrderHistory::create([
+                'order_id' => $order->id,
+                'status'   => 'processing',
+                'notes'    => 'Pembayaran berhasil, pesanan siap diproses penjual',
+            ]);
 
             // --- 7. Kirim notifikasi ---
             $this->notifService->sendToUser($order->user_id, [

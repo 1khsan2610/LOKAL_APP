@@ -47,12 +47,49 @@ class _UmkmOrderListScreenState extends State<UmkmOrderListScreen> {
 
   Future<void> _updateStatus(dynamic order, String status) async {
     final id = order['id'];
+
+    // Jika status 'shipped', minta tracking number dulu
+    String? trackingNumber;
+    if (status == 'shipped') {
+      final controller = TextEditingController();
+      final result = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Nomor Resi Pengiriman'),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Text('Masukkan nomor resi pengiriman:', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                hintText: 'Contoh: JNE001234567',
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+              child: const Text('Kirim'),
+            ),
+          ],
+        ),
+      );
+      if (result == null || result.isEmpty) {
+        if (mounted) setState(() => _updatingIds.remove(id));
+        return;
+      }
+      trackingNumber = result;
+    }
+
     setState(() => _updatingIds.add(id));
 
     Map<String, dynamic> payload = {'status': status};
-    if (status == 'shipped') {
-      payload['tracking_number'] = '';
-      payload['notes'] = 'Pesanan sedang dikirim';
+    if (status == 'shipped' && trackingNumber != null) {
+      payload['tracking_number'] = trackingNumber;
+      payload['notes'] = 'Pesanan telah dikirim dengan nomor resi: $trackingNumber';
     }
 
     try {

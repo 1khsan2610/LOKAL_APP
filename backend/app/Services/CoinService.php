@@ -4,12 +4,20 @@ namespace App\Services;
 
 use App\Models\Wallet;
 use App\Models\CoinTransaction;
+use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 
 class CoinService
 {
     const COIN_TO_RUPIAH = 10; // 1 Coin = Rp 10
-    const MAX_DISCOUNT_PERCENT = 20; // Max 20% diskon dari coin
+
+    /**
+     * Get max discount percent from settings (fallback 20).
+     */
+    public static function maxDiscountPercent(): int
+    {
+        return Setting::maxCoinDiscountPercent();
+    }
 
     /**
      * Add coin to user wallet
@@ -65,7 +73,7 @@ class CoinService
      */
     public function calculateDiscount(int $coinBalance, int $subtotal): int
     {
-        $maxDiscountFromSubtotal = (int)($subtotal * self::MAX_DISCOUNT_PERCENT / 100);
+        $maxDiscountFromSubtotal = (int)($subtotal * self::maxDiscountPercent() / 100);
         $maxDiscountFromCoin     = $coinBalance * self::COIN_TO_RUPIAH;
         return min($maxDiscountFromSubtotal, $maxDiscountFromCoin);
     }

@@ -5,99 +5,75 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\RateLimiter;
 
 class AiChatController extends Controller
 {
     /**
      * POST /api/ai/chat
-     * Gemini AI Chat untuk EkonomiLokal
+     * Chat dengan LOKAL AI Assistant via Gemini API
      */
     public function chat(Request $request)
     {
+        // Validasi input
         $request->validate([
-            'message'  => 'required|string|max:1000',
-            'history'  => 'nullable|array|max:20',
+            'message' => 'required|string|max:1000',
         ]);
 
-        $userId = auth()->id();
+        try {
+            $apiKey = env('GEMINI_API_KEY');
+            $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}";
 
-        // Rate limiting: 30 requests per minute per user
-        $key = "ai_chat:{$userId}";
-        if (RateLimiter::tooManyAttempts($key, 30)) {
-            $seconds = RateLimiter::availableIn($key);
-            return response()->json([
-                'success' => false,
-                'message' => "Terlalu banyak request. Coba lagi dalam {$seconds} detik.",
-            ], 429);
-        }
-        RateLimiter::hit($key, 60);
+            // System instruction untuk LOKAL AI Assistant
+            $systemInstruction = "Kamu adalah LOKAL AI Assistant, asisten virtual ramah dari platform EkonomiLokal. " .
+                "Tugasmu membantu konsumen menemukan produk UMKM lokal Indonesia, memberikan rekomendasi produk lokal, " .
+                "serta memberi solusi bisnis sederhana untuk pelaku UMKM. " .
+                "Gunakan Bahasa Indonesia kasual yang santun dan mudah dipahami. " .
+                "Jawablah dengan hangat, informatif, dan tetap fokus pada topik UMKM serta produk lokal Indonesia.";
 
-        $apiKey  = config('services.gemini.api_key');
-        $baseUrl = config('services.gemini.base_url');
-
-        // Build conversation history
-        $contents = [];
-
-        // System context
-        $systemPrompt = "Kamu adalah AI assistant untuk EkonomiLokal, sebuah platform e-commerce yang memfokuskan produk dari UMKM (Usaha Mikro Kecil Menengah) lokal Indonesia. " .
-            "Tugasmu membantu pengguna mencari produk, info harga, rekomendasi UMKM, dan info tentang Lokal Coin (sistem reward kami). " .
-            "Selalu jawab dalam Bahasa Indonesia yang ramah dan informatif. " .
-            "Jangan menjawab pertanyaan di luar konteks belanja dan UMKM lokal. " .
-            "Jika ada pertanyaan teknis atau keluhan, arahkan ke tim support kami.";
-
-        // Add chat history
-        if ($request->history) {
-            foreach ($request->history as $msg) {
-                $contents[] = [
-                    'role'  => $msg['role'] === 'user' ? 'user' : 'model',
-                    'parts' => [['text' => $msg['content']]],
-                ];
-            }
-        }
-
-        // Add current message
-        $contents[] = [
-            'role'  => 'user',
-            'parts' => [['text' => $request->message]],
-        ];
-
-        $response = Http::timeout(30)->post(
-            "{$baseUrl}/models/gemini-1.5-flash:generateContent?key={$apiKey}",
-            [
+            // Susun payload sesuai dokumentasi Gemini API
+            $payload = [
                 'system_instruction' => [
-                    'parts' => [['text' => $systemPrompt]],
+                    'parts' => [
+                        ['text' => $systemInstruction],
+                    ],
                 ],
-                'contents'           => $contents,
-                'generationConfig'   => [
-                    'temperature'     => 0.7,
-                    'topK'            => 40,
-                    'topP'            => 0.95,
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $request->message],
+                        ],
+                    ],
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.7,
                     'maxOutputTokens' => 512,
                 ],
-                'safetySettings' => [
-                    ['category' => 'HARM_CATEGORY_HARASSMENT', 'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'],
-                    ['category' => 'HARM_CATEGORY_HATE_SPEECH', 'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'],
-                ],
-            ]
-        );
+            ];
 
-        if (!$response->successful()) {
+            // Kirim request ke Gemini API
+            $response = Http::timeout(30)->post($endpoint, $payload);
+
+            // Jika gagal
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Asisten AI sedang sibuk, coba lagi nanti.',
+                ], 500);
+            }
+
+            // Parse response
+            $data = $response->json();
+            $reply = $data['candidates'][0]['content']['parts'][0]['text'] ?? 'Maaf, saya belum bisa menjawab pertanyaan Anda saat ini.';
+
+            return response()->json([
+                'success' => true,
+                'response' => $reply,
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'AI sedang tidak tersedia. Coba lagi nanti.',
-            ], 503);
+                'message' => 'Asisten AI sedang sibuk, coba lagi nanti.',
+            ], 500);
         }
-
-        $data  = $response->json();
-        $reply = $data['candidates'][0]['content']['parts'][0]['text'] ?? 'Maaf, aku tidak bisa menjawab saat ini.';
-
-        return response()->json([
-            'success' => true,
-            'data'    => [
-                'reply'         => $reply,
-                'finish_reason' => $data['candidates'][0]['finishReason'] ?? 'STOP',
-            ],
-        ]);
     }
 }

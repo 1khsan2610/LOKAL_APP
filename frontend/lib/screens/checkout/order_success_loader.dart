@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
-import '../../models/order_model.dart';
+import '../../models/product_model.dart';
 import 'order_success_screen.dart';
 
 class OrderSuccessLoader extends StatefulWidget {

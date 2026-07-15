@@ -136,6 +136,10 @@ Route::middleware('auth:api')->group(function () {
         Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
         Route::get('/analytics/summary', [AnalyticsController::class, 'umkmSummary']);
         Route::get('/analytics/sales',   [AnalyticsController::class, 'salesChart']);
+        // Bank account for UMKM withdrawal
+        Route::get('/bank-account',      [UmkmController::class, 'getBankAccount']);
+        Route::post('/bank-account',     [UmkmController::class, 'storeBankAccount']);
+        Route::put('/bank-account',      [UmkmController::class, 'updateBankAccount']);
     });
 
     // ── Admin Role ─────────────────────────────────────────────────
