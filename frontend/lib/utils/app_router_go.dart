@@ -37,6 +37,8 @@ import '../screens/profile/my_reviews_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 import '../screens/ai_chat_screen.dart';
+import '../screens/chat/chat_list_screen.dart';
+import '../screens/chat/chat_screen.dart';
 
 
 class AppRouterGo {
@@ -99,6 +101,15 @@ class AppRouterGo {
       GoRoute(path: '/ai-chat', builder: (ctx, state) => const AiChatScreen()),
       GoRoute(path: '/wallet/coin-history', builder: (ctx, state) => const CoinHistoryScreen()),
       GoRoute(path: '/wallet/withdrawal', builder: (ctx, state) => const WithdrawalScreen()),
+      // ── Chat ─────────────────────────────────────────────────────
+      GoRoute(path: '/chats', builder: (ctx, state) => const ChatListScreen()),
+      GoRoute(
+        path: '/chat/:id',
+        builder: (ctx, state) {
+          final chatId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return ChatScreen(initialChatId: chatId);
+        },
+      ),
     ],
     errorBuilder: (ctx, state) => Scaffold(body: Center(child: Text('Route ${state.uri.toString()} not found'))),
   );

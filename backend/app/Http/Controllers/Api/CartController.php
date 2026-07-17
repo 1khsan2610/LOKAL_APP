@@ -28,10 +28,21 @@ class CartController extends Controller
             return response()->json(['success' => false, 'message' => 'Stok tidak mencukupi.'], 422);
         }
 
-        $cartItem = Cart::updateOrCreate(
-            ['user_id' => auth()->id(), 'product_id' => $request->product_id, 'variant_id' => $request->variant_id],
-            ['quantity' => \DB::raw("quantity + {$request->quantity}")]
-        );
+        $cartItem = Cart::where('user_id', auth()->id())
+            ->where('product_id', $request->product_id)
+            ->where('variant_id', $request->variant_id)
+            ->first();
+
+        if ($cartItem) {
+            $cartItem->increment('quantity', $request->quantity);
+        } else {
+            $cartItem = Cart::create([
+                'user_id'    => auth()->id(),
+                'product_id' => $request->product_id,
+                'variant_id' => $request->variant_id,
+                'quantity'   => $request->quantity,
+            ]);
+        }
 
         return response()->json(['success' => true, 'message' => 'Produk ditambahkan ke keranjang.', 'data' => $cartItem->load('product.images')]);
     }

@@ -10,6 +10,7 @@ use App\Services\CoinService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\OrderTrack;
 
@@ -213,117 +214,314 @@ class PaymentController extends Controller
     /**
      * POST /api/payment/notification  (Midtrans webhook — public)
      *
-     * Saat Midtrans mengirim notifikasi sukses (settlement/capture):
-     * 1. Update payment status menjadi 'paid'
-     * 2. Update order status menjadi 'processing' (Sudah Dibayar)
-     * 3. Distribusikan dana ke wallet UMKM, komisi admin, cashback koin
-     * 4. Buat tracking record
-     * 5. Kirim notifikasi
+     * Midtrans akan mengirim notifikasi HTTP POST ke endpoint ini untuk setiap
+     * perubahan status transaksi. Endpoint ini wajib diakses publik (tanpa API token).
+     *
+     * Keamanan:
+     * 1. Validasi Signature Key dari header x-midtrans-signature atau body signature_key
+     * 2. Gunakan DB::transaction untuk atomic update
+     * 3. Cek status payment di DB untuk cegah race condition
+     * 4. Simpan data audit (transaction_id, payment_type, gross_amount)
+     * 5. Log semua notifikasi dengan payload mentah
+     * 6. Tidak bocorkan detail teknis ke response publik
      */
     public function notification(Request $request)
     {
-        $serverKey = config('services.midtrans.server_key');
+        $serverKey   = config('services.midtrans.server_key');
+        $rawPayload  = $request->getContent();
+        $allBody     = $request->all();
 
-        // Verify signature
-        $signatureKey = hash('sha512',
+        // ── 1. Validasi Signature Key (header ATAU body) ───────────────
+        // Midtrans Sandbox mengirim signature_key di body,
+        // Production mengirim x-midtrans-signature di header.
+        // Kita dukung keduanya.
+        $signatureFromHeader = $request->header('x-midtrans-signature');
+        $signatureFromBody   = $request->input('signature_key');
+        $incomingSignature   = $signatureFromHeader ?: $signatureFromBody;
+
+        $calculatedSignature = hash('sha512',
             $request->order_id .
             $request->status_code .
             $request->gross_amount .
             $serverKey
         );
 
-        if ($signatureKey !== $request->signature_key) {
-            return response()->json(['message' => 'Invalid signature'], 403);
+        // Log mentah untuk audit
+        Log::channel('midtrans')->info('[INCOMING] Midtrans notification', [
+            'headers'              => $request->headers->all(),
+            'raw_payload'          => $rawPayload,
+            'parsed_body'          => $allBody,
+            'signature_from_header' => $signatureFromHeader,
+            'signature_from_body'  => $signatureFromBody,
+            'signature_calculated' => $calculatedSignature,
+            'ip'                   => $request->ip(),
+            'user_agent'           => $request->userAgent(),
+        ]);
+
+        if (empty($serverKey)) {
+            Log::channel('midtrans')->critical('[REJECTED] Server key kosong');
+            return response('', 403);
         }
 
+        if (empty($incomingSignature) || !hash_equals($calculatedSignature, $incomingSignature)) {
+            Log::channel('midtrans')->warning('[REJECTED] Invalid signature', [
+                'order_id'                  => $request->order_id,
+                'status_code'               => $request->status_code,
+                'gross_amount'              => $request->gross_amount,
+                'incoming_signature'        => $incomingSignature,
+                'calculated_signature'      => $calculatedSignature,
+            ]);
+
+            // Tolak tanpa detail teknis
+            return response('', 403);
+        }
+
+        Log::channel('midtrans')->info('[VERIFIED] Signature valid', [
+            'order_id'     => $request->order_id,
+            'order_number' => $request->order_id,
+        ]);
+
+        // ── 2. Proses dalam Database Transaction ───────────────────────
+        // Catatan: distributePaymentFunds() sudah punya DB::transaction sendiri.
+        // Daripada nested transaction, kita panggil dulu distributePaymentFunds
+        // lalu lanjut update payment. Jika gagal, tidak ada update sama sekali.
         $order = Order::with(['items.product.umkm.user', 'user.wallet'])
             ->where('order_number', $request->order_id)
             ->first();
 
-        if (!$order) return response()->json(['message' => 'Order not found'], 404);
-
-        // Cegah duplikasi: jika sudah processing/delivered, skip
-        if (in_array($order->status, ['processing', 'delivered', 'cancelled'])) {
-            Log::info('Midtrans webhook skipped — order already processed', [
-                'order_id' => $order->id,
-                'status'   => $order->status,
+        if (!$order) {
+            Log::channel('midtrans')->warning('[SKIPPED] Order not found', [
+                'order_number' => $request->order_id,
             ]);
-            return response()->json(['success' => true, 'message' => 'Already processed']);
+            // Tetap 200 agar Midtrans tidak retry terus
+            return response('', 200);
         }
 
         $transactionStatus = $request->transaction_status;
         $fraudStatus       = $request->fraud_status;
 
-        // Tentukan apakah pembayaran sukses
+        // Data audit yang akan disimpan ke payment record
+        $auditData = [
+            'transaction_id' => $request->transaction_id,
+            'payment_method' => $request->payment_type,
+            'amount'         => (int) $request->gross_amount,
+            'raw_response'   => $rawPayload,
+        ];
+
+        // ── 3. Mapping status ──────────────────────────────────────────
         $isSuccess = ($transactionStatus === 'settlement')
             || ($transactionStatus === 'capture' && $fraudStatus !== 'challenge');
 
+        $isFailed = in_array($transactionStatus, ['cancel', 'deny', 'expire']);
+
+        // ── 4. Eksekusi sesuai status ──────────────────────────────────
         if ($isSuccess) {
-            // ✅ Pembayaran sukses → update payment & distribusikan dana
-            Payment::where('order_id', $order->id)->update([
-                'status'         => 'paid',
-                'payment_method' => $request->payment_type,
-                'transaction_id' => $request->transaction_id,
-                'paid_at'        => now(),
-                'raw_response'   => json_encode($request->all()),
-            ]);
+            // ------------------------------------------------------------
+            // SETTLEMENT / CAPTURE (sukses)
+            // ------------------------------------------------------------
+            try {
+                DB::beginTransaction();
 
-            // Panggil distribusi dana (update status → 'processing' + bagi dana)
-            $this->orderController->distributePaymentFunds($order);
+                // Lock order & payment untuk cegah race condition
+                // WAJIB load relasi karena distributePaymentFunds membutuhkan items, user, wallet, dll
+                $lockedOrder = Order::with(['items.product.umkm.user', 'user.wallet'])
+                    ->where('id', $order->id)
+                    ->lockForUpdate()
+                    ->first();
 
-            // Buat tracking record
-            OrderTrack::create([
-                'order_id'   => $order->id,
-                'status'     => 'Pembayaran Berhasil',
-                'description' => 'Pembayaran telah dikonfirmasi. Pesanan sudah dibayar dan sedang diproses oleh penjual.',
-            ]);
+                // Cek payment status di DB
+                $existingPayment = Payment::where('order_id', $order->id)
+                    ->lockForUpdate()
+                    ->first();
 
-            Log::info('Midtrans webhook — payment success, funds distributed', [
-                'order_id'    => $order->id,
-                'order_number' => $order->order_number,
-            ]);
+                // Sudah pernah diproses? skip
+                if ($existingPayment && in_array($existingPayment->status, ['paid', 'challenge']) && $existingPayment->status !== 'pending') {
+                    DB::commit();
+                    Log::channel('midtrans')->info('[SKIPPED] Payment already processed (paid)', [
+                        'order_id'          => $order->id,
+                        'payment_status_db' => $existingPayment->status,
+                    ]);
+                    return response('', 200);
+                }
 
-        } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
-            // ❌ Pembayaran gagal/dibatalkan
-            Payment::where('order_id', $order->id)->update([
-                'status'         => $transactionStatus,
-                'payment_method' => $request->payment_type,
-                'transaction_id' => $request->transaction_id,
-                'raw_response'   => json_encode($request->all()),
-            ]);
+                // Update payment record
+                $paymentData = array_merge($auditData, [
+                    'status'  => 'paid',
+                    'paid_at' => now(),
+                ]);
 
-            $order->update(['status' => 'cancelled']);
+                if ($existingPayment) {
+                    $existingPayment->update($paymentData);
+                } else {
+                    // Jika belum ada payment record, buat baru
+                    Payment::create(array_merge($paymentData, [
+                        'order_id' => $order->id,
+                    ]));
+                }
 
-            $this->notifService->sendToUser($order->user_id, [
-                'title' => 'Pembayaran Gagal ❌',
-                'body'  => "Pembayaran pesanan #{$order->order_number} gagal: {$transactionStatus}.",
-                'type'  => 'payment',
-                'data'  => ['order_id' => $order->id],
-            ]);
+                // Panggil distribusi dana — method ini punya DB::transaction sendiri
+                // Tapi karena kita sudah di dalam transaction, savepoint akan dibuat.
+                // Jika throw, rollback ke savepoint, lalu kita rollback outer transaction.
+                $this->orderController->distributePaymentFunds($lockedOrder);
 
-            Log::info('Midtrans webhook — payment failed', [
-                'order_id' => $order->id,
-                'status'   => $transactionStatus,
-            ]);
+                // Buat tracking record
+                OrderTrack::create([
+                    'order_id'    => $order->id,
+                    'status'      => 'Pembayaran Berhasil',
+                    'description' => 'Pembayaran telah dikonfirmasi. Pesanan sudah dibayar dan sedang diproses oleh penjual.',
+                ]);
+
+                DB::commit();
+
+                Log::channel('midtrans')->info('[SUCCESS] Payment settled & funds distributed', [
+                    'order_id'      => $order->id,
+                    'order_number'  => $order->order_number,
+                    'transaction_id'=> $request->transaction_id,
+                    'payment_type'  => $request->payment_type,
+                    'gross_amount'  => $request->gross_amount,
+                ]);
+
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::channel('midtrans')->error('[ERROR] Settlement failed, rolled back', [
+                    'order_id'    => $order->id,
+                    'error'       => $e->getMessage(),
+                    'trace'       => $e->getTraceAsString(),
+                ]);
+                // Return 200 agar Midtrans tidak resend terus
+                return response('', 200);
+            }
+
+        } elseif ($isFailed) {
+            // ------------------------------------------------------------
+            // CANCEL / DENY / EXPIRE (gagal)
+            // ------------------------------------------------------------
+            try {
+                DB::beginTransaction();
+
+                $existingPayment = Payment::where('order_id', $order->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existingPayment && in_array($existingPayment->status, ['paid', 'challenge'])) {
+                    // Jika sudah paid, jangan ubah status jadi cancel/expire
+                    DB::commit();
+                    Log::channel('midtrans')->info('[SKIPPED] Payment already paid, ignoring cancel/expire', [
+                        'order_id' => $order->id,
+                    ]);
+                    return response('', 200);
+                }
+
+                if ($existingPayment) {
+                    $existingPayment->update(array_merge($auditData, [
+                        'status' => $transactionStatus, // 'cancel' | 'deny' | 'expire'
+                    ]));
+                } else {
+                    Payment::create(array_merge($auditData, [
+                        'order_id' => $order->id,
+                        'status'   => $transactionStatus,
+                    ]));
+                }
+
+                $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first();
+                $lockedOrder->update(['status' => 'cancelled']);
+
+                DB::commit();
+
+                // Kirim notifikasi ke user (di luar transaction)
+                $this->notifService->sendToUser($order->user_id, [
+                    'title' => 'Pembayaran Gagal ❌',
+                    'body'  => "Pembayaran pesanan #{$order->order_number} gagal: {$transactionStatus}.",
+                    'type'  => 'payment',
+                    'data'  => ['order_id' => $order->id],
+                ]);
+
+                Log::channel('midtrans')->info('[FAILED] Payment failed', [
+                    'order_id'      => $order->id,
+                    'order_number'  => $order->order_number,
+                    'transaction_status' => $transactionStatus,
+                    'transaction_id'=> $request->transaction_id,
+                ]);
+
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::channel('midtrans')->error('[ERROR] Failed payment handling failed, rolled back', [
+                    'order_id' => $order->id,
+                    'error'    => $e->getMessage(),
+                ]);
+                return response('', 200);
+            }
 
         } elseif ($transactionStatus === 'capture' && $fraudStatus === 'challenge') {
-            // ⚠️ Transaksi challenge (menunggu verifikasi)
-            Payment::where('order_id', $order->id)->update([
-                'status'         => 'challenge',
-                'payment_method' => $request->payment_type,
-                'transaction_id' => $request->transaction_id,
-                'raw_response'   => json_encode($request->all()),
-            ]);
+            // ------------------------------------------------------------
+            // CHALLENGE (perlu verifikasi manual)
+            // ------------------------------------------------------------
+            try {
+                DB::beginTransaction();
 
-            $this->notifService->sendToUser($order->user_id, [
-                'title' => 'Pembayaran dalam Verifikasi ⏳',
-                'body'  => "Pembayaran pesanan #{$order->order_number} sedang diverifikasi.",
-                'type'  => 'payment',
-                'data'  => ['order_id' => $order->id],
+                $existingPayment = Payment::where('order_id', $order->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existingPayment) {
+                    $existingPayment->update(array_merge($auditData, ['status' => 'challenge']));
+                } else {
+                    Payment::create(array_merge($auditData, [
+                        'order_id' => $order->id,
+                        'status'   => 'challenge',
+                    ]));
+                }
+
+                DB::commit();
+
+                $this->notifService->sendToUser($order->user_id, [
+                    'title' => 'Pembayaran dalam Verifikasi ⏳',
+                    'body'  => "Pembayaran pesanan #{$order->order_number} sedang diverifikasi.",
+                    'type'  => 'payment',
+                    'data'  => ['order_id' => $order->id],
+                ]);
+
+                Log::channel('midtrans')->info('[CHALLENGE] Payment under review', [
+                    'order_id'      => $order->id,
+                    'order_number'  => $order->order_number,
+                    'transaction_id'=> $request->transaction_id,
+                ]);
+
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::channel('midtrans')->error('[ERROR] Challenge handling failed', [
+                    'order_id' => $order->id,
+                    'error'    => $e->getMessage(),
+                ]);
+                return response('', 200);
+            }
+
+        } else {
+            // ------------------------------------------------------------
+            // PENDING / status lainnya — update audit saja
+            // ------------------------------------------------------------
+            try {
+                $existingPayment = Payment::where('order_id', $order->id)->first();
+                if ($existingPayment) {
+                    $existingPayment->update($auditData);
+                }
+            } catch (\Throwable $e) {
+                Log::channel('midtrans')->error('[ERROR] Pending update failed', [
+                    'order_id' => $order->id,
+                    'error'    => $e->getMessage(),
+                ]);
+            }
+
+            Log::channel('midtrans')->info('[PENDING] Payment status update (audit only)', [
+                'order_id'      => $order->id,
+                'order_number'  => $order->order_number,
+                'transaction_status' => $transactionStatus,
+                'fraud_status'  => $fraudStatus,
             ]);
         }
 
-        return response()->json(['success' => true]);
+        // ── 5. Response minimal, tanpa detail teknis ──────────────────
+        return response('', 200);
     }
 
     /**

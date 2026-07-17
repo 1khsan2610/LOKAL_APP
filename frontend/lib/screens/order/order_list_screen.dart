@@ -50,6 +50,10 @@ class _OrderListScreenState extends State<OrderListScreen> with SingleTickerProv
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AppTheme.bg,
     appBar: AppBar(
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () => context.go('/main'),
+      ),
       title: const Text('Pesanan Saya'),
       bottom: TabBar(
         controller: _tabCtrl,

@@ -332,4 +332,4 @@
     </div>
 
 </body>
-</html><?php /**PATH D:\laragon\www\LOKAL_APP\backend\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\laragon\www\ekonomi_lokal\backend\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>

@@ -68,7 +68,7 @@
                     <div class="relative">
                         <div class="w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-600/20 rounded-full blur-3xl absolute -top-20 -right-20"></div>
                         <div class="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-12 shadow-2xl flex items-center justify-center">
-                            <img src="{{ asset('images/logo.jpg') }}" alt="LOKAL Logo" class="h-48 w-auto max-w-full">
+                            <img src="{{ asset('images/logo.png') }}" alt="LOKAL Logo" class="h-48 w-auto max-w-full">
                         </div>
                     </div>
                 </div>

@@ -15,4 +15,4 @@
     </div>
 </body>
 </html>
-<?php /**PATH D:\laragon\www\LOKAL_APP\backend\resources\views/layouts/app.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\laragon\www\ekonomi_lokal\backend\resources\views/layouts/app.blade.php ENDPATH**/ ?>

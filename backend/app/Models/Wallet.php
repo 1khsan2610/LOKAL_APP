@@ -65,12 +65,17 @@ class Wallet extends Model
 
         $balanceBefore = $this->{$column};
 
+        // Hitung balance_after, pastikan tidak negatif untuk unsigned column
+        $balanceAfter = $type === 'credit'
+            ? $balanceBefore + $amount
+            : max(0, $balanceBefore - $amount);
+
         return $this->histories()->create([
             'type'           => $type,
             'balance_type'   => $balanceType,
             'amount'         => $amount,
             'balance_before' => $balanceBefore,
-            'balance_after'  => $type === 'credit' ? $balanceBefore + $amount : $balanceBefore - $amount,
+            'balance_after'  => $balanceAfter,
             'description'    => $description,
             'reference_type' => $refType,
             'reference_id'   => $refId,

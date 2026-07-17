@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AiChatController;
 use App\Http\Controllers\Api\AnalyticsController;
+use App\Http\Controllers\Api\ChatController;
 
 // Image proxy (adds CORS headers for Flutter web)
 Route::get('/image/{path}', function (string $path) {
@@ -140,6 +141,16 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/bank-account',      [UmkmController::class, 'getBankAccount']);
         Route::post('/bank-account',     [UmkmController::class, 'storeBankAccount']);
         Route::put('/bank-account',      [UmkmController::class, 'updateBankAccount']);
+    });
+
+    // ── Chat ────────────────────────────────────────────────────────
+    Route::prefix('chat')->middleware('chat.access')->group(function () {
+        Route::get('/',                  [ChatController::class, 'index']);
+        Route::get('/unread-count',      [ChatController::class, 'unreadCount']);
+        Route::get('/{chat}',            [ChatController::class, 'show']);
+        Route::post('/send',             [ChatController::class, 'send']);
+        Route::post('/start-from-product', [ChatController::class, 'startFromProduct']);
+        Route::patch('/{chat}/mark-read', [ChatController::class, 'markAsRead']);
     });
 
     // ── Admin Role ─────────────────────────────────────────────────

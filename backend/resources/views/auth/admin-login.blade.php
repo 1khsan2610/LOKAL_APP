@@ -19,7 +19,7 @@
         <div class="hidden lg:flex lg:w-1/2 login-gradient relative items-center justify-center p-12">
             <div class="relative z-10 text-center max-w-md">
                 <div class="mb-8">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="LOKAL Logo" class="h-20 w-auto mx-auto brightness-0 invert">
+                    <img src="{{ asset('images/logo.png') }}" alt="LOKAL Logo" class="h-20 w-auto mx-auto brightness-0 invert">
                 </div>
                 <h1 class="text-4xl font-extrabold text-white mb-4">Admin Panel</h1>
                 <p class="text-gray-300 leading-relaxed">
@@ -56,7 +56,7 @@
             <div class="w-full max-w-sm">
                 {{-- Logo Mobile --}}
                 <div class="lg:hidden text-center mb-8">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="LOKAL Logo" class="h-14 w-auto mx-auto mb-3">
+                    <img src="{{ asset('images/logo.png') }}" alt="LOKAL Logo" class="h-14 w-auto mx-auto mb-3">
                     <h2 class="text-2xl font-bold text-gray-900">Admin Panel</h2>
                     <p class="text-sm text-gray-500 mt-1">Masuk ke panel admin</p>
                 </div>

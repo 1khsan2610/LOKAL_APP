@@ -30,44 +30,71 @@ class _MainNavScreenState extends State<MainNavScreen> {
     });
   }
 
-  List<Widget> _buildPages(String role) => [
-    const HomeScreen(),
-    const MapScreen(),
-    const OrderListScreen(),
-    if (role == 'umkm') const UmkmDashboardScreen(),
-    const notif_screen.NotificationScreen(),
-    const ProfileScreen(),
-  ];
+  List<Widget> _buildPages(String role) {
+    if (role != 'umkm') {
+      return const [
+        HomeScreen(),
+        MapScreen(),
+        OrderListScreen(),
+        notif_screen.NotificationScreen(),
+        ProfileScreen(),
+      ];
+    }
+    return const [
+      UmkmDashboardScreen(),
+      notif_screen.NotificationScreen(),
+      ProfileScreen(),
+    ];
+  }
 
-  List<BottomNavigationBarItem> _buildItems(String role, int notifCount, int cartCount) => [
-    const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Beranda'),
-    const BottomNavigationBarItem(icon: Icon(Icons.map_outlined), activeIcon: Icon(Icons.map), label: 'Peta'),
-    const BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_outlined), activeIcon: Icon(Icons.shopping_bag), label: 'Pesanan'),
-    if (role == 'umkm') const BottomNavigationBarItem(icon: Icon(Icons.store_outlined), activeIcon: Icon(Icons.store), label: 'Toko'),
-    BottomNavigationBarItem(
-      icon: badges.Badge(
-        showBadge: notifCount > 0,
-        badgeContent: Text('$notifCount', style: const TextStyle(color: Colors.white, fontSize: 9)),
-        child: const Icon(Icons.notifications_outlined),
+  List<BottomNavigationBarItem> _buildItems(String role, int notifCount, int cartCount) {
+    final items = <BottomNavigationBarItem>[];
+
+    if (role != 'umkm') {
+      items.add(const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Beranda'));
+      items.add(const BottomNavigationBarItem(icon: Icon(Icons.map_outlined), activeIcon: Icon(Icons.map), label: 'Peta'));
+      items.add(const BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_outlined), activeIcon: Icon(Icons.shopping_bag), label: 'Pesanan'));
+    } else {
+      // UMKM sees 'Toko' as the first tab
+      items.add(const BottomNavigationBarItem(icon: Icon(Icons.store_outlined), activeIcon: Icon(Icons.store), label: 'Toko'));
+    }
+
+    items.add(
+      BottomNavigationBarItem(
+        icon: badges.Badge(
+          showBadge: notifCount > 0,
+          badgeContent: Text('$notifCount', style: const TextStyle(color: Colors.white, fontSize: 9)),
+          child: const Icon(Icons.notifications_outlined),
+        ),
+        activeIcon: const Icon(Icons.notifications),
+        label: 'Notif',
       ),
-      activeIcon: const Icon(Icons.notifications),
-      label: 'Notif',
-    ),
-    const BottomNavigationBarItem(icon: Icon(Icons.person_outlined), activeIcon: Icon(Icons.person), label: 'Profil'),
-  ];
+    );
+
+    items.add(const BottomNavigationBarItem(icon: Icon(Icons.person_outlined), activeIcon: Icon(Icons.person), label: 'Profil'));
+
+    return items;
+  }
 
   @override
   Widget build(BuildContext context) {
     final auth   = context.watch<AuthProvider>();
     final cart   = context.watch<CartProvider>();
     final notif  = context.watch<NotificationProvider>();
-    final role   = auth.user?.role ?? 'konsumen';
-    final pages  = _buildPages(role);
+    final role   = (auth.user?.role ?? 'konsumen').toString().toLowerCase();
+    final pages = _buildPages(role);
+
+    // Clamp current index if role change removed earlier tabs to avoid OOB.
+    if (_currentIndex >= pages.length) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _currentIndex = pages.length - 1);
+      });
+    }
 
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: pages),
-      // Floating cart button
-      floatingActionButton: _currentIndex == 0
+      // Floating cart button (hanya tampil untuk non-UMKM)
+      floatingActionButton: (role != 'umkm' && _currentIndex == 0)
           ? FloatingActionButton(
               backgroundColor: AppTheme.primary,
               onPressed: () => context.push('/cart'),

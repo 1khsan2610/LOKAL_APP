@@ -4,8 +4,10 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/product_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/home_components.dart';
+import '../../widgets/dashboard_components.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/responsive_helper.dart';
 
@@ -21,7 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final CarouselSliderController _carouselCtrl = CarouselSliderController();
 
   final List<Map<String, dynamic>> _banners = [
-    {'title': 'Ramadan Sale\n-60% OFF!', 'subtitle': 'Produk UMKM pilihan terbaik', 'color1': const Color(0xFF065F46), 'color2': const Color(0xFF059669), 'emoji': '🌙', 'route': '/search?q=sale'},
     {'title': 'Lokal Coin\n2x Reward! 🪙', 'subtitle': 'Kumpulkan coin setiap pembelian', 'color1': const Color(0xFF92400E), 'color2': const Color(0xFFF59E0B), 'emoji': '🪙', 'route': '/wallet'},
     {'title': 'UMKM\ndi Sekitarmu 📍', 'subtitle': 'Belanja langsung dari pengusaha lokal', 'color1': AppTheme.primary, 'color2': const Color(0xFF3B4E6B), 'emoji': '🗺️', 'route': '/map'},
   ];
@@ -47,6 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final prod = context.watch<ProductProvider>();
+    final auth = context.watch<AuthProvider>();
+    final role = auth.user?.role ?? 'konsumen';
 
     return Scaffold(
       backgroundColor: AppTheme.bg,
@@ -63,6 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.search_rounded),
             onPressed: () => context.push('/search'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chat_outlined),
+            onPressed: () => context.push('/chats'),
+            tooltip: 'Pesan',
           ),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
@@ -90,33 +98,41 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(children: [
 
                 // ── Banner Carousel ────────────────────────────────────
-                Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    CarouselSlider(
-                      carouselController: _carouselCtrl,
-                      options: CarouselOptions(
-                        height: width >= 900 ? 220 : 170,
-                        viewportFraction: 1.0,
-                        autoPlay: true,
-                        autoPlayInterval: const Duration(seconds: 4),
-                        onPageChanged: (i, _) => setState(() => _bannerIdx = i),
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 800),
+                    child: AspectRatio(
+                      aspectRatio: width >= 600 ? 16 / 5 : 16 / 7,
+                      child: Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          CarouselSlider(
+                            carouselController: _carouselCtrl,
+                            options: CarouselOptions(
+                              height: double.infinity,
+                              viewportFraction: 1.0,
+                              autoPlay: true,
+                              autoPlayInterval: const Duration(seconds: 4),
+                              onPageChanged: (i, _) => setState(() => _bannerIdx = i),
+                            ),
+                            items: _banners.map((b) => BannerItem(banner: b)).toList(),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: AnimatedSmoothIndicator(
+                              activeIndex: _bannerIdx,
+                              count: _banners.length,
+                              effect: const WormEffect(
+                                dotWidth: 8, dotHeight: 8,
+                                activeDotColor: Colors.white,
+                                dotColor: Colors.white38,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      items: _banners.map((b) => BannerItem(banner: b)).toList(),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: AnimatedSmoothIndicator(
-                        activeIndex: _bannerIdx,
-                        count: _banners.length,
-                        effect: const WormEffect(
-                          dotWidth: 8, dotHeight: 8,
-                          activeDotColor: Colors.white,
-                          dotColor: Colors.white38,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
 
                 // ── Promo Chips ────────────────────────────────────────
@@ -210,48 +226,66 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 20),
                     ],
 
-                    // ── Products ──────────────────────────────────────
-                    SectionHeader(
-                      title: _selectedCategory == null ? '🔥 Produk Terpopuler' : '📦 ${_categories.firstWhere((c) => c["id"] == _selectedCategory)["label"]}',
-                      onSeeAll: () => context.read<ProductProvider>().loadMore(),
-                    ),
-                    const SizedBox(height: 10),
-
-                    if (prod.isLoading && prod.products.isEmpty)
-                      const ShimmerProductGrid()
-                    else if (prod.products.isEmpty)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32),
-                          child: Column(mainAxisSize: MainAxisSize.min, children: [
-                            Text('🔍', style: TextStyle(fontSize: 48)),
-                            SizedBox(height: 10),
-                            Text('Produk tidak ditemukan', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                          ]),
-                        ),
-                      )
-                    else
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: crossAxisCount,
-                          childAspectRatio: childAspectRatio,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
-                        itemCount: prod.products.length + (prod.hasMore ? 1 : 0),
-                        itemBuilder: (_, i) {
-                          if (i == prod.products.length) {
-                            context.read<ProductProvider>().loadMore();
-                            return const Center(child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary),
-                            ));
-                          }
-                          return ProductCard(product: prod.products[i]);
-                        },
+                    // ── Products / UMKM dashboard preview ───────────────
+                    if (role != 'umkm') ...[
+                      SectionHeader(
+                        title: _selectedCategory == null ? '🔥 Produk Terpopuler' : '📦 ${_categories.firstWhere((c) => c["id"] == _selectedCategory)["label"]}',
+                        onSeeAll: () => context.read<ProductProvider>().loadMore(),
                       ),
+                      const SizedBox(height: 10),
+
+                      if (prod.isLoading && prod.products.isEmpty)
+                        const ShimmerProductGrid()
+                      else if (prod.products.isEmpty)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(32),
+                            child: Column(mainAxisSize: MainAxisSize.min, children: [
+                              Text('🔍', style: TextStyle(fontSize: 48)),
+                              SizedBox(height: 10),
+                              Text('Produk tidak ditemukan', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                            ]),
+                          ),
+                        )
+                      else
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            childAspectRatio: childAspectRatio,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
+                          itemCount: prod.products.length + (prod.hasMore ? 1 : 0),
+                          itemBuilder: (_, i) {
+                            if (i == prod.products.length) {
+                              context.read<ProductProvider>().loadMore();
+                              return const Center(child: Padding(
+                                padding: EdgeInsets.all(16),
+                                child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary),
+                              ));
+                            }
+                            return ProductCard(product: prod.products[i]);
+                          },
+                        ),
+                    ] else ...[
+                      // Untuk UMKM tampilkan ringkasan dashboard singkat sebagai pengganti katalog
+                      const SectionHeader(title: '📊 Dashboard Toko', showAll: false),
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        Expanded(child: QuickActionTile(icon: Icons.inventory_2_outlined, label: 'Produk', onTap: () => context.push('/umkm/products'))),
+                        const SizedBox(width: 10),
+                        Expanded(child: QuickActionTile(icon: Icons.list_alt_outlined, label: 'Pesanan', onTap: () => context.push('/umkm/orders'))),
+                        const SizedBox(width: 10),
+                        Expanded(child: QuickActionTile(icon: Icons.bar_chart_outlined, label: 'Analitik', onTap: () => context.push('/umkm/analytics'))),
+                        const SizedBox(width: 10),
+                        Expanded(child: QuickActionTile(icon: Icons.settings_outlined, label: 'Pengaturan', onTap: () => context.push('/umkm/store-settings'))),
+                      ]),
+                      const SizedBox(height: 14),
+                      const Text('Halo, pemilik UMKM — gunakan tautan di atas untuk mengelola toko Anda.', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 18),
+                    ],
                     SizedBox(height: MediaQuery.of(context).viewPadding.bottom + 80),
                   ]),
                 ),

@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'chat.access' => \App\Http\Middleware\ChatAccessMiddleware::class,
         ]);
 
         $middleware->api(prepend: [

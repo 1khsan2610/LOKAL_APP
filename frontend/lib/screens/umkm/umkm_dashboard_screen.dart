@@ -76,6 +76,11 @@ class _UmkmDashboardScreenState extends State<UmkmDashboardScreen> {
         leading: BackButton(onPressed: () => context.pop()),
         actions: [
           IconButton(
+            icon: const Icon(Icons.chat_outlined),
+            onPressed: () => context.push('/chats'),
+            tooltip: 'Pesan',
+          ),
+          IconButton(
             icon: const Icon(Icons.add_circle_outline),
             onPressed: () => context.push('/umkm/products/form'),
             tooltip: 'Tambah Produk',

@@ -380,7 +380,7 @@ class OrderController extends Controller
                 $cashbackCoin = 1;
             }
 
-            // --- 4. Validasi saldo komisi admin ---
+            // --- 4. Dapatkan wallet admin ---
             $adminWallet = Wallet::whereHas('user', fn($q) => $q->where('role', 'admin'))
                 ->lockForUpdate()
                 ->first();
@@ -389,16 +389,8 @@ class OrderController extends Controller
                 throw new \Exception('Wallet admin tidak ditemukan. Hubungi administrator.');
             }
 
-            $totalAdminDeduction = $commissionAmount + $adminCoversCoinDiscount + ($cashbackCoin * $coinToRupiah);
-            if ($adminWallet->commission_balance < $totalAdminDeduction) {
-                throw new \Exception(
-                    "Saldo komisi admin tidak mencukupi. Dibutuhkan: Rp " .
-                    number_format($totalAdminDeduction) .
-                    ", tersedia: Rp " . number_format($adminWallet->commission_balance)
-                );
-            }
-
-            // --- 5a. Admin: commission_balance bertambah dari komisi 5% ---
+            // --- 5a. Admin: commission_balance bertambah dari komisi 5% (dulu) ---
+            // Komisi ditambahkan TERLEBIH DAHULU agar saldo cukup untuk cashback.
             $adminWallet->increment('commission_balance', $commissionAmount);
             $adminWallet->recordHistory(
                 'credit', 'commission', $commissionAmount,
@@ -419,12 +411,34 @@ class OrderController extends Controller
             // --- 5c. Admin: commission_balance berkurang untuk cashback koin konsumen ---
             if ($cashbackCoin > 0) {
                 $cashbackCost = $cashbackCoin * $coinToRupiah;
-                $adminWallet->decrement('commission_balance', $cashbackCost);
-                $adminWallet->recordHistory(
-                    'debit', 'commission', $cashbackCost,
-                    "Cashback 2% Lokal Coin untuk Order #{$order->order_number} ({$cashbackCoin} koin)",
-                    'order', $order->id
-                );
+                // Validasi bahwa setelah komisi ditambahkan, saldo cukup untuk cashback
+                if ($adminWallet->commission_balance < $cashbackCost) {
+                    // Jika tidak cukup, turunkan cashback agar saldo tidak negatif
+                    // Ambil maksimal yang bisa diberikan tanpa membuat saldo negatif
+                    $cashbackCost = $adminWallet->commission_balance;
+                    // Re-calculate how many coins we can actually give
+                    $cashbackCoin = (int)($cashbackCost / $coinToRupiah);
+                    if ($cashbackCoin < 1) {
+                        $cashbackCoin = 0;
+                        $cashbackCost = 0;
+                    } else {
+                        $cashbackCost = $cashbackCoin * $coinToRupiah;
+                    }
+                    Log::warning('Admin commission balance limited cashback', [
+                        'order_number'   => $order->order_number,
+                        'commission'     => $commissionAmount,
+                        'cashback_given' => $cashbackCost,
+                    ]);
+                }
+
+                if ($cashbackCost > 0) {
+                    $adminWallet->decrement('commission_balance', $cashbackCost);
+                    $adminWallet->recordHistory(
+                        'debit', 'commission', $cashbackCost,
+                        "Cashback 2% Lokal Coin untuk Order #{$order->order_number} ({$cashbackCoin} koin)",
+                        'order', $order->id
+                    );
+                }
             }
 
             // --- 5d. UMKM: cash_balance bertambah ---

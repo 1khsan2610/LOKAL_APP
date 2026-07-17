@@ -68,7 +68,7 @@
                     <div class="relative">
                         <div class="w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-600/20 rounded-full blur-3xl absolute -top-20 -right-20"></div>
                         <div class="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-12 shadow-2xl flex items-center justify-center">
-                            <img src="<?php echo e(asset('images/logo.jpg')); ?>" alt="LOKAL Logo" class="h-48 w-auto max-w-full">
+                            <img src="<?php echo e(asset('images/logo.png')); ?>" alt="LOKAL Logo" class="h-48 w-auto max-w-full">
                         </div>
                     </div>
                 </div>
@@ -366,4 +366,4 @@
     </footer>
 
 </body>
-</html><?php /**PATH D:\laragon\www\LOKAL_APP\backend\resources\views/landing.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\laragon\www\ekonomi_lokal\backend\resources\views/landing.blade.php ENDPATH**/ ?>

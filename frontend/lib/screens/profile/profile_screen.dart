@@ -207,6 +207,7 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     if (user.isKonsumen) ...[
                       _MenuItem(icon: Icons.shopping_bag_outlined, label: 'Pesanan Saya', onTap: () => context.push('/orders')),
+                      _MenuItem(icon: Icons.chat_outlined, label: 'Pesan', onTap: () => context.push('/chats')),
                       _MenuItem(icon: Icons.location_on_outlined, label: 'Alamat Pengiriman', onTap: () => context.push('/profile/addresses')),
                       _MenuItem(icon: Icons.favorite_border, label: 'Wishlist', onTap: () => context.push('/profile/wishlist')),
                       _MenuItem(icon: Icons.star_border, label: 'Ulasan Saya', onTap: () => context.push('/profile/reviews')),
