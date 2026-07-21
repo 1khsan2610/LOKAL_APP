@@ -2,9 +2,6 @@
 
 # Platform LOKAL --- EkonomiLokal
 
-![UKRI - Universitas Kebangsaan Republik
-Indonesia](media/image1.png){width="2.4520833333333334in"
-height="2.308333333333333in"}
 
 **Kelompok 4**
 
