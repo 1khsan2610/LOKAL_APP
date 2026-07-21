@@ -30,25 +30,25 @@ Diagram ini menggambarkan interaksi **3 aktor utama** (Konsumen, UMKM, Admin) de
 
 ```mermaid
 graph TB
-    subgraph Actors
-        KONS[Konsumen - Flutter Mobile]
-        UMKM[UMKM Penjual - Flutter Mobile]
-        ADMIN[Administrator - Web Panel]
+    subgraph Aktor[3 Aktor Utama]
+        KONS[Konsumen]
+        UMKM[UMKM Penjual]
+        ADMIN[Administrator]
     end
 
-    subgraph UseCases
-        UC01[Autentikasi - Register and Login]
-        UC02[Lihat Peta Pasar dan Cari UMKM]
-        UC03[Kelola Produk - Tambah Edit Hapus]
-        UC04[Checkout dan Bayar - Midtrans Gateway]
-        UC05[Tracking Pesanan - Lihat Status dan Resi]
-        UC06[Tanya LOKAL AI Assistant]
-        UC07[Kelola Wallet - Koin and Saldo Tunai]
-        UC08[Daftar Bank dan Ajukan Withdrawal]
-        UC09[Verifikasi UMKM - Approve Reject]
-        UC10[Verifikasi Bank - Approve Reject]
-        UC11[Monitoring Dashboard Finansial]
-        UC12[Kelola Sistem - Settings and Broadcast]
+    subgraph UC_Group[12 Use Case Sistem LOKAL]
+        UC01[Autentikasi]
+        UC02[Lihat Peta Pasar]
+        UC03[Kelola Produk]
+        UC04[Checkout dan Bayar]
+        UC05[Tracking Pesanan]
+        UC06[Tanya LOKAL AI]
+        UC07[Kelola Wallet]
+        UC08[Daftar Bank dan Withdrawal]
+        UC09[Verifikasi UMKM]
+        UC10[Verifikasi Bank]
+        UC11[Monitoring Dashboard]
+        UC12[Kelola Sistem]
     end
 
     KONS --> UC01
@@ -67,12 +67,12 @@ graph TB
     UMKM --> UC08
 
     ADMIN --> UC01
+    ADMIN --> UC03
+    ADMIN --> UC05
     ADMIN --> UC09
     ADMIN --> UC10
     ADMIN --> UC11
     ADMIN --> UC12
-    ADMIN --> UC03
-    ADMIN --> UC05
 ```
 
 ### Tabel Skenario Use Case Utama
@@ -118,7 +118,7 @@ erDiagram
     users {
         int id PK
         string name
-        string email UK
+        string email
         string password
         string phone
         string role
@@ -132,7 +132,7 @@ erDiagram
         int id PK
         int user_id FK
         string store_name
-        text description
+        string description
         string address
         string city
         string coordinates
@@ -145,7 +145,7 @@ erDiagram
         string bank_account_holder
         string status_bank_verification
         timestamp bank_verified_at
-        text rejection_notes
+        string rejection_notes
         timestamp created_at
         timestamp updated_at
     }
@@ -157,7 +157,7 @@ erDiagram
         int price
         int stock
         int weight_gram
-        text description
+        string description
         string image_url
         string images
         string category
@@ -172,7 +172,7 @@ erDiagram
         int id PK
         int user_id FK
         int umkm_id FK
-        string order_number UK
+        string order_number
         int subtotal
         int shipping_fee
         int coin_discount
@@ -199,14 +199,14 @@ erDiagram
 
     payments {
         int id PK
-        int order_id FK UK
+        int order_id FK
         string snap_token
         string snap_url
         string transaction_id
         string payment_method
         string status
         int amount
-        text raw_response
+        string raw_response
         timestamp paid_at
         timestamp expired_at
         timestamp created_at
@@ -215,7 +215,7 @@ erDiagram
 
     wallets {
         int id PK
-        int user_id FK UK
+        int user_id FK
         int umkm_id FK
         int coin_balance
         int cash_balance
@@ -245,8 +245,8 @@ erDiagram
         int amount
         int balance_after
         string description
-        date expires_at
-        boolean is_expired
+        string expires_at
+        string is_expired
         timestamp created_at
     }
 
@@ -259,7 +259,7 @@ erDiagram
         string bank_account_number
         string bank_account_holder
         string status
-        text admin_notes
+        string admin_notes
         timestamp processed_at
         timestamp created_at
         timestamp updated_at
@@ -267,7 +267,7 @@ erDiagram
 
     settings {
         int id PK
-        string key UK
+        string key
         string value
         string group
         string label
