@@ -872,7 +872,7 @@ Proyek ini dikembangkan oleh mahasiswa **Program Studi Sistem Informasi** — **
 Untuk pertanyaan teknis, saran, atau pelaporan bug:
 
 - **GitHub Issues**: [https://github.com/1khsan2610/LOKAL_APP/issues](https://github.com/1khsan2610/LOKAL_APP/issues)
-- **Dokumentasi Lengkap**: [SRS Platform LOKAL v1.5.0](SRS/SRS_Ekonomi_Lokal.md)
+- **Dokumentasi Lengkap**: [SRS_Ekonomi_Lokal](SRS/SRS_Ekonomi_Lokal.md)
 
 ---
 

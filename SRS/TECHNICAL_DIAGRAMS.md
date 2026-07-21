@@ -1,15 +1,15 @@
 # Dokumentasi Teknis Platform LOKAL v1.5.0
 
-## Diagram Arsitektur & Desain Sistem
+**Diagram Arsitektur & Desain Sistem**
 
-**Platform Digital Berbasis Mobile untuk Optimalisasi Sirkulasi Ekonomi Lokal**
+*Platform Digital Berbasis Mobile untuk Optimalisasi Sirkulasi Ekonomi Lokal*
 
-| **Dokumen** | **Detail** |
-|------------|------------|
-| Versi | 1.5.0 — Juli 2026 |
-| Aplikasi | LOKAL (EkonomiLokal) |
-| Teknologi | Flutter 3.x + Laravel 11 + MySQL 8.0 + Docker |
-| Tim Pengembang | Tim Pengembang Platform LOKAL — UKRI |
+| Dokumen            | Detail                                                  |
+|--------------------|---------------------------------------------------------|
+| **Versi**          | 1.5.0 — Juli 2026                                      |
+| **Aplikasi**       | LOKAL (EkonomiLokal)                                    |
+| **Teknologi**      | Flutter 3.x + Laravel 11 + MySQL 8.0 + Docker           |
+| **Tim Pengembang** | Tim Pengembang Platform LOKAL — UKRI                    |
 
 ---
 
@@ -28,31 +28,31 @@
 
 ## 1. Use Case Diagram & Skenario
 
-Diagram berikut menggambarkan interaksi **3 aktor utama** (Konsumen, UMKM, Admin) dengan sistem LOKAL beserta use case yang tersedia untuk masing-masing peran.
+Diagram ini menggambarkan interaksi **3 aktor utama** (Konsumen, UMKM, Admin) dengan sistem LOKAL beserta use case yang tersedia untuk masing-masing peran.
 
 ```mermaid
 graph TB
     subgraph "LOKAL Platform — Use Case Diagram"
         
         subgraph Actors
-            KONS["👤 Konsumen<br/>(Flutter Mobile)"]
-            UMKM["🏪 UMKM Penjual<br/>(Flutter Mobile)"]
-            ADMIN["👑 Administrator<br/>(Web Panel)"]
+            KONS["👤 Konsumen (Flutter Mobile)"]
+            UMKM["🏪 UMKM Penjual (Flutter Mobile)"]
+            ADMIN["👑 Administrator (Web Panel)"]
         end
 
         subgraph "Sistem LOKAL"
-            UC01["🔐 Autentikasi<br/>Register & Login"]
-            UC02["🗺️ Lihat Peta Pasar<br/>& Cari UMKM"]
-            UC03["📦 Kelola Produk<br/>Tambah/Edit/Hapus"]
-            UC04["🛒 Checkout & Bayar<br/>Midtrans Gateway"]
-            UC05["📋 Tracking Pesanan<br/>Lihat Status & Resi"]
-            UC06["🤖 Tanya LOKAL AI<br/>Assistant"]
-            UC07["🪙 Kelola Wallet<br/>Koin & Saldo Tunai"]
-            UC08["🏦 Daftar Bank &<br/>Ajukan Withdrawal"]
-            UC09["✅ Verifikasi UMKM<br/>Approve/Reject"]
-            UC10["🏦 Verifikasi Bank<br/>Approve/Reject Bank"]
-            UC11["📊 Monitoring Dashboard<br/>Finansial & Analitik"]
-            UC12["⚙️ Kelola Sistem<br/>Settings & Broadcast"]
+            UC01["🔐 Autentikasi — Register & Login"]
+            UC02["🗺️ Lihat Peta Pasar & Cari UMKM"]
+            UC03["📦 Kelola Produk — Tambah/Edit/Hapus"]
+            UC04["🛒 Checkout & Bayar — Midtrans Gateway"]
+            UC05["📋 Tracking Pesanan — Lihat Status & Resi"]
+            UC06["🤖 Tanya LOKAL AI Assistant"]
+            UC07["🪙 Kelola Wallet — Koin & Saldo Tunai"]
+            UC08["🏦 Daftar Bank & Ajukan Withdrawal"]
+            UC09["✅ Verifikasi UMKM — Approve/Reject"]
+            UC10["🏦 Verifikasi Bank — Approve/Reject"]
+            UC11["📊 Monitoring Dashboard Finansial"]
+            UC12["⚙️ Kelola Sistem — Settings & Broadcast"]
         end
 
         KONS --> UC01
@@ -80,22 +80,22 @@ graph TB
     end
 ```
 
-### Skenario Use Case Utama
+### Tabel Skenario Use Case Utama
 
-| **Kode** | **Use Case** | **Aktor** | **Deskripsi Singkat** | **Prioritas** |
-|----------|-------------|-----------|----------------------|:-------------:|
-| UC-01 | Autentikasi | Konsumen, UMKM, Admin | Register Account (backend-driven), login Email+Password, JWT RS256, reset password, verifikasi email | **Tinggi** |
-| UC-02 | Lihat Peta Pasar | Konsumen | Peta interaktif Google Maps, filter radius 0.5–10 km, marker UMKM, info window | **Tinggi** |
-| UC-03 | Kelola Produk | UMKM, Admin | CRUD produk, upload foto (max 5), atur harga & stok, approve produk | **Tinggi** |
-| UC-04 | Checkout & Bayar | Konsumen, UMKM | Keranjang multi-UMKM, checkout Midtrans (GoPay/OVO/DANA/VA/QRIS), konfirmasi otomatis via webhook | **Tinggi** |
-| UC-05 | Tracking Pesanan | Konsumen, UMKM, Admin | Timeline status real-time, input nomor resi (UMKM), view tracking (Konsumen) | **Tinggi** |
-| UC-06 | Tanya LOKAL AI | Konsumen, UMKM | Chatbot Gemini API, Bahasa Indonesia kasual, bantuan produk & bisnis | **Sedang** |
-| UC-07 | Kelola Wallet | Konsumen, UMKM | Lihat saldo koin & tunai, redeem koin (diskon max 20%), riwayat transaksi | **Sedang** |
-| UC-08 | Daftar Bank & Withdrawal | UMKM | Daftar rekening bank (pending), verifikasi Admin (approved/rejected), tarik dana (min Rp 50.000) | **Tinggi** |
-| UC-09 | Verifikasi UMKM | Admin | Approve/reject pendaftaran UMKM setelah cek NIB/SIUP | **Tinggi** |
-| UC-10 | Verifikasi Bank | Admin | Approve/reject rekening bank UMKM sebelum withdrawal | **Tinggi** |
-| UC-11 | Dashboard Finansial | Admin | Grafik pendapatan platform, total user/UMKM/order, komisi, analitik | **Tinggi** |
-| UC-12 | Kelola Sistem | Admin | Pengaturan global (komisi 5%, cashback 2%, diskon koin 20%), broadcast notifikasi | **Sedang** |
+| Kode   | Use Case              | Aktor                 | Deskripsi Singkat                                                    | Prioritas |
+|--------|-----------------------|-----------------------|----------------------------------------------------------------------|:---------:|
+| UC-01  | Autentikasi           | Konsumen, UMKM, Admin | Register Account (backend-driven), login Email+Password, JWT RS256, reset password, verifikasi email | **Tinggi** |
+| UC-02  | Lihat Peta Pasar      | Konsumen              | Peta interaktif Google Maps, filter radius 0.5–10 km, marker UMKM, info window | **Tinggi** |
+| UC-03  | Kelola Produk         | UMKM, Admin           | CRUD produk, upload foto (max 5), atur harga & stok, approve produk | **Tinggi** |
+| UC-04  | Checkout & Bayar      | Konsumen, UMKM        | Keranjang multi-UMKM, checkout Midtrans (GoPay/OVO/DANA/VA/QRIS), konfirmasi otomatis via webhook | **Tinggi** |
+| UC-05  | Tracking Pesanan      | Konsumen, UMKM, Admin | Timeline status real-time, input nomor resi (UMKM), view tracking (Konsumen) | **Tinggi** |
+| UC-06  | Tanya LOKAL AI        | Konsumen, UMKM        | Chatbot Gemini API, Bahasa Indonesia kasual, bantuan produk & bisnis | **Sedang** |
+| UC-07  | Kelola Wallet         | Konsumen, UMKM        | Lihat saldo koin & tunai, redeem koin (diskon max 20%), riwayat transaksi | **Sedang** |
+| UC-08  | Daftar Bank & Withdrawal | UMKM              | Daftar rekening bank (pending), verifikasi Admin (approved/rejected), tarik dana (min Rp 50.000) | **Tinggi** |
+| UC-09  | Verifikasi UMKM       | Admin                 | Approve/reject pendaftaran UMKM setelah cek NIB/SIUP                | **Tinggi** |
+| UC-10  | Verifikasi Bank       | Admin                 | Approve/reject rekening bank UMKM sebelum withdrawal                 | **Tinggi** |
+| UC-11  | Dashboard Finansial   | Admin                 | Grafik pendapatan platform, total user/UMKM/order, komisi, analitik | **Tinggi** |
+| UC-12  | Kelola Sistem         | Admin                 | Pengaturan global (komisi 5%, cashback 2%, diskon koin 20%), broadcast notifikasi | **Sedang** |
 
 ---
 
@@ -105,24 +105,18 @@ Diagram berikut menggambarkan hubungan antar tabel database inti platform LOKAL.
 
 ```mermaid
 erDiagram
-    users ||--o{ umkms : "memiliki"
+    users ||--o| umkms : "memiliki"
     users ||--o{ orders : "memesan"
-    users ||--o{ wallets : "memiliki"
-    users ||--o{ order_histories : "mencatat"
+    users ||--o| wallets : "memiliki"
     users ||--o{ coin_transactions : "transaksi koin"
-    users ||--o{ wallet_histories : "mutasi dompet"
     users ||--o{ withdrawals : "penarikan dana"
-    users ||--o{ settings : "dikelola oleh"
 
     umkms ||--o{ products : "menjual"
     umkms ||--o{ orders : "menerima pesanan"
-    umkms ||--o{ wallets : "dompet UMKM"
     umkms ||--o{ withdrawals : "pengajuan tarik dana"
 
-    products ||--o{ orders : "termasuk dalam"
-
     orders ||--o{ order_histories : "riwayat status"
-    orders ||--o{ payments : "pembayaran"
+    orders ||--o| payments : "pembayaran"
 
     wallets ||--o{ wallet_histories : "mutasi"
 
@@ -287,20 +281,22 @@ erDiagram
     }
 ```
 
-### Keterangan Hubungan
+### Tabel Relasi Antar Entitas
 
-| **Entitas #1** | **Relasi** | **Entitas #2** | **Makna Bisnis** |
-|---------------|:----------:|---------------|-------------------|
-| `users` | 1 ⟶ N | `umkms` | Satu user bisa memiliki satu toko UMKM (jika role=umkm) |
-| `users` | 1 ⟶ N | `orders` | Konsumen dapat memesan banyak order |
-| `users` | 1 ⟶ 1 | `wallets` | Setiap user memiliki satu dompet (coin + cash) |
-| `umkms` | 1 ⟶ N | `products` | UMKM memiliki banyak produk |
-| `umkms` | 1 ⟶ N | `orders` | UMKM menerima banyak pesanan masuk |
-| `umkms` | 1 ⟶ N | `withdrawals` | UMKM dapat mengajukan banyak penarikan dana |
-| `orders` | 1 ⟶ N | `order_histories` | Satu order memiliki banyak riwayat status |
-| `orders` | 1 ⟶ 1 | `payments` | Satu order memiliki satu record pembayaran |
-| `wallets` | 1 ⟶ N | `wallet_histories` | Satu dompet memiliki banyak mutasi |
-| `settings` | — | — | Tabel konfigurasi global (komisi 5%, cashback 2%, diskon koin 20%) |
+| Entitas #1     | Relasi | Entitas #2           | Makna Bisnis                                          |
+|----------------|:------:|----------------------|-------------------------------------------------------|
+| `users`        | 1 ⟶ 1  | `umkms`              | Satu user dapat memiliki satu toko UMKM (jika role=umkm) |
+| `users`        | 1 ⟶ N  | `orders`             | Konsumen dapat memesan banyak order                   |
+| `users`        | 1 ⟶ 1  | `wallets`            | Setiap user memiliki satu dompet (coin + cash)        |
+| `users`        | 1 ⟶ N  | `coin_transactions`  | Riwayat transaksi koin per user                       |
+| `users`        | 1 ⟶ N  | `withdrawals`        | Riwayat penarikan dana (khusus UMKM)                  |
+| `umkms`        | 1 ⟶ N  | `products`           | UMKM memiliki banyak produk                           |
+| `umkms`        | 1 ⟶ N  | `orders`             | UMKM menerima banyak pesanan masuk                    |
+| `umkms`        | 1 ⟶ N  | `withdrawals`        | UMKM dapat mengajukan banyak penarikan dana           |
+| `orders`       | 1 ⟶ N  | `order_histories`    | Satu order memiliki banyak riwayat perubahan status   |
+| `orders`       | 1 ⟶ 1  | `payments`           | Satu order memiliki satu record pembayaran            |
+| `wallets`      | 1 ⟶ N  | `wallet_histories`   | Satu dompet memiliki banyak mutasi                    |
+| `settings`     | —      | —                    | Tabel konfigurasi global (komisi 5%, cashback 2%, diskon koin 20%) |
 
 ---
 
@@ -322,7 +318,7 @@ classDiagram
         +timestamp created_at
         +timestamp updated_at
         +register() bool
-        +login() string  "returns JWT token"
+        +login() string
         +verifyEmail() bool
         +resetPassword() bool
     }
@@ -488,6 +484,7 @@ classDiagram
     }
 
     %% ── Controller Classes ──
+
     class AuthController {
         +register(Request) JsonResponse
         +login(Request) JsonResponse
@@ -504,7 +501,7 @@ classDiagram
         -OrderController orderController
         +create(Request) JsonResponse
         +status(orderId) JsonResponse
-        +notification(Request) Response  "Midtrans Webhook"
+        +notification(Request) Response
         +paymentFinish(Request) HtmlResponse
         +getTracking(id) JsonResponse
     }
@@ -516,7 +513,7 @@ classDiagram
         +cancel(id) JsonResponse
         +confirmReceived(id) JsonResponse
         +sellerOrders(Request) JsonResponse
-        +updateStatus(Request, id) JsonResponse  "UMKM update status + tracking_number"
+        +updateStatus(Request, id) JsonResponse
         +processPaymentWebhook(Request) JsonResponse
         +distributePaymentFunds(Order) void
     }
@@ -545,6 +542,7 @@ classDiagram
     }
 
     %% ── Service Classes ──
+
     class CoinService {
         +static int COIN_TO_RUPIAH = 10
         +static maxDiscountPercent() int
@@ -562,6 +560,7 @@ classDiagram
     }
 
     %% ── Relationships ──
+
     User "1" --> "0..*" Umkm : has
     User "1" --> "0..*" Order : places
     User "1" --> "1" Wallet : has
@@ -584,45 +583,46 @@ classDiagram
     OrderController --> NotificationService : sends order notifications
 
     %% ── Method Signatures ──
-    note for OrderController "distributePaymentFunds():\n1. Hitung komisi 5% → admin_wallet.commission\n2. Alokasi 95% + ongkir → umkm_wallet.cash\n3. Cashback 2% coin → konsumen wallet\n4. Catat di wallet_histories\n5. Insert order_history\n6. Kirim notifikasi push"
 
-    note for PaymentController "notification() - Webhook Midtrans:\n1. Validasi signature SHA-512\n2. Jika settlement: panggil distributePaymentFunds()\n3. Jika cancel/deny/expire: batalkan order\n4. Idempotency check\n5. DB transaction atomicity"
+    note for OrderController "distributePaymentFunds():\n1. Hitung komisi 5% ke admin wallet\n2. Alokasi 95% + ongkir ke UMKM wallet\n3. Cashback 2% coin ke konsumen\n4. Catat wallet_histories\n5. Insert order_history\n6. Kirim notifikasi push"
 
-    note for AiChatController "chat():\n1. Validasi input (max 1000 chars)\n2. Ambil GEMINI_API_KEY dari config\n3. Kirim ke Gemini API (3 endpoint fallback)\n4. Parse response dari candidates[0]\n5. Return ke Flutter"
+    note for PaymentController "notification() - Webhook Midtrans:\n1. Validasi signature SHA-512\n2. Settlement: panggil distributePaymentFunds()\n3. Cancel/deny/expire: batalkan order\n4. Idempotency check\n5. Atomic DB transaction"
 
-    note for CoinService "1 coin = Rp 10\nMax diskon = 20% subtotal\nCashback 2% otomatis saat settlement\nKoin expired 6 bulan"
+    note for AiChatController "chat():\n1. Validasi input (max 1000 chars)\n2. Ambil GEMINI_API_KEY dari config\n3. Kirim ke Gemini API (3 fallback)\n4. Parse candidates[0].content.parts[0].text\n5. Return ke Flutter"
+
+    note for CoinService "1 coin = Rp 10\nMax diskon = 20% subtotal\nCashback 2% otomatis saat settlement\nKoin expired setelah 6 bulan"
 ```
 
-### Relasi Domain Business
+### Tabel Relasi Class Diagram
 
-| **Class** | **Relasi** | **Target** | **Tipe** | **Deskripsi Bisnis** |
-|-----------|:---------:|------------|:--------:|----------------------|
-| `User` | ⟶ | `Umkm` | 1-to-1 | Satu user pemilik toko = satu UMKM (jika role=umkm) |
-| `User` | ⟶ | `Order` | 1-to-many | Konsumen dapat memiliki banyak pesanan |
-| `User` | ⟶ | `Wallet` | 1-to-1 | Setiap user memiliki 1 dompet |
-| `User` | ⟶ | `CoinTransaction` | 1-to-many | Riwayat transaksi koin per user |
-| `User` | ⟶ | `Withdrawal` | 1-to-many | Riwayat penarikan dana (UMKM) |
-| `Umkm` | ⟶ | `Product` | 1-to-many | UMKM menjual banyak produk |
-| `Umkm` | ⟶ | `Order` | 1-to-many | UMKM menerima banyak pesanan |
-| `Order` | ⟶ | `OrderHistory` | 1-to-many | Satu order memiliki banyak riwayat status |
-| `Order` | ⟶ | `Payment` | 1-to-1 | Satu order memiliki satu record pembayaran |
-| `Wallet` | ⟶ | `WalletHistory` | 1-to-many | Satu dompet memiliki banyak mutasi |
-| `PaymentController` | ⟶ | `OrderController` | Delegasi | Memanggil `distributePaymentFunds()` |
-| `OrderController` | ⟶ | `CoinService` | Dependency | Untuk proses cashback & refund koin |
-| `OrderController` | ⟶ | `NotificationService` | Dependency | Mengirim notifikasi push |
+| Class              | Relasi     | Target               | Tipe       | Deskripsi Bisnis                                  |
+|--------------------|:----------:|----------------------|:----------:|---------------------------------------------------|
+| `User`             | ⟶          | `Umkm`               | 1-to-1     | Satu user pemilik toko = satu UMKM                |
+| `User`             | ⟶          | `Order`              | 1-to-many  | Konsumen dapat memiliki banyak pesanan            |
+| `User`             | ⟶          | `Wallet`             | 1-to-1     | Setiap user memiliki 1 dompet                     |
+| `User`             | ⟶          | `CoinTransaction`    | 1-to-many  | Riwayat transaksi koin per user                   |
+| `User`             | ⟶          | `Withdrawal`         | 1-to-many  | Riwayat penarikan dana (khusus UMKM)              |
+| `Umkm`             | ⟶          | `Product`            | 1-to-many  | UMKM menjual banyak produk                        |
+| `Umkm`             | ⟶          | `Order`              | 1-to-many  | UMKM menerima banyak pesanan                      |
+| `Order`            | ⟶          | `OrderHistory`       | 1-to-many  | Satu order memiliki banyak riwayat status         |
+| `Order`            | ⟶          | `Payment`            | 1-to-1     | Satu order memiliki satu record pembayaran        |
+| `Wallet`           | ⟶          | `WalletHistory`      | 1-to-many  | Satu dompet memiliki banyak mutasi                |
+| `PaymentController`| ⟶          | `OrderController`    | Delegasi   | Memanggil `distributePaymentFunds()`              |
+| `OrderController`  | ⟶          | `CoinService`        | Dependency | Untuk proses cashback & refund koin               |
+| `OrderController`  | ⟶          | `NotificationService`| Dependency | Mengirim notifikasi push                          |
 
-### Fungsi Kunci (Key Methods)
+### Tabel Fungsi Kunci
 
-| **Method** | **Class** | **Deskripsi** |
-|-----------|-----------|---------------|
-| `distributePaymentFunds()` | OrderController | Distribusi dana setelah settlement: potong komisi 5%, alokasi 95%+ongkir ke UMKM, cashback 2% koin ke konsumen |
-| `notification()` | PaymentController | Webhook Midtrans: validasi SHA-512, update status, distribusi dana, idempotency |
-| `chat()` | AiChatController | Kirim prompt ke Gemini API, multi-endpoint fallback, parse respons |
-| `add()` / `deduct()` | CoinService | Tambah/kurang koin dengan atomic DB transaction |
-| `calculateDiscount()` | CoinService | Hitung maksimal diskon koin (min dari 20% subtotal atau saldo koin × 10) |
-| `cancel()` | OrderController | Batalkan order: refund koin, restore stok, catat history |
-| `recordHistory()` | Wallet | Catat mutasi wallet dengan balance tracking |
-| `verifyUmkm()` | AdminController | Verifikasi UMKM oleh Admin (approve/reject) |
+| Method                              | Class              | Deskripsi                                                           |
+|-------------------------------------|--------------------|----------------------------------------------------------------------|
+| `distributePaymentFunds()`          | OrderController    | Distribusi dana setelah settlement: komisi 5%, alokasi 95%+ongkir ke UMKM, cashback 2% koin |
+| `notification()`                    | PaymentController  | Webhook Midtrans: validasi SHA-512, update status, distribusi dana, idempotency |
+| `chat()`                            | AiChatController   | Kirim prompt ke Gemini API, multi-endpoint fallback, parse respons  |
+| `add()` / `deduct()`                | CoinService        | Tambah/kurang koin dengan atomic DB transaction                      |
+| `calculateDiscount()`               | CoinService        | Hitung maksimal diskon koin (min dari 20% subtotal atau saldo koin × 10) |
+| `cancel()`                          | OrderController    | Batalkan order: refund koin, restore stok, catat history             |
+| `recordHistory()`                   | Wallet             | Catat mutasi wallet dengan balance tracking                          |
+| `verifyUmkm()`                      | AdminController    | Verifikasi UMKM oleh Admin (approve/reject)                          |
 
 ---
 
@@ -641,33 +641,31 @@ sequenceDiagram
     participant Redis as ⚡ Redis Cache
     participant Gemini as 🤖 Google Gemini API
 
-    %% ── REGISTER FLOW ──
     rect rgb(230, 245, 255)
-        Note over User, Gemini: 🔐 FLOW REGISTER ACCOUNT
+        Note over User,Gemini: 🔐 FLOW REGISTER ACCOUNT
         User->>Flutter: Tekan tombol "Register Account"
         Flutter->>Flutter: Tampilkan form registrasi
         User->>Flutter: Isi data (nama, email, password, role)
         Flutter->>Laravel: POST /api/auth/register-account
-        Note right of Laravel: Validasi input, hash password (bcrypt cost 12)
+        Note right of Laravel: Validasi input\nHash password (bcrypt cost 12)
         Laravel->>DB: INSERT users (status: unverified)
         Laravel->>DB: CREATE wallet (coin_balance: 0)
         Laravel->>Redis: Cache pending verification token
         Laravel-->>Flutter: { success: true, message: "Cek email untuk verifikasi" }
         Flutter-->>User: Tampilkan "Silakan cek email"
-        
+
         User->>Flutter: Buka email, klik link verifikasi
         Flutter->>Laravel: POST /api/auth/verify-email (token)
         Laravel->>Redis: Validate token
         Laravel->>DB: UPDATE users (email_verified_at, status: active)
         Laravel->>DB: UPDATE wallets (coin_balance: 50)
         Laravel->>DB: INSERT wallet_histories (credit, coin, 50, "Bonus aktivasi")
-        Laravel-->>Flutter: { success: true, message: "Akun aktif"}
+        Laravel-->>Flutter: { success: true, message: "Akun aktif" }
         Flutter-->>User: ✅ Akun berhasil diaktifkan! +50 Koin
     end
 
-    %% ── LOGIN FLOW ──
     rect rgb(230, 255, 230)
-        Note over User, Gemini: 🔑 FLOW LOGIN
+        Note over User,Gemini: 🔑 FLOW LOGIN
         User->>Flutter: Isi email & password
         Flutter->>Laravel: POST /api/auth/login
         Laravel->>DB: SELECT * FROM users WHERE email = ?
@@ -679,22 +677,19 @@ sequenceDiagram
         Flutter-->>User: 🏠 Masuk ke halaman utama
     end
 
-    %% ── AI CHAT FLOW ──
     rect rgb(255, 245, 230)
-        Note over User, Gemini: 🤖 FLOW LOKAL AI ASSISTANT
+        Note over User,Gemini: 🤖 FLOW LOKAL AI ASSISTANT
         User->>Flutter: Buka layar AI Chat, ketik pesan
         Flutter->>Flutter: Validasi input (max 1000 chars)
         Flutter->>Laravel: POST /api/ai/chat (Authorization: Bearer JWT)
         Note right of Laravel: Payload: { message: "..." }
         Laravel->>Laravel: Validasi auth & rate limit (20 req/menit)
         Laravel->>Laravel: Build Gemini payload + system instruction
-        
-        Note over Laravel: system_instruction: "Kamu adalah LOKAL AI Assistant...\nGunakan Bahasa Indonesia kasual...\nFokus pada UMKM & produk lokal..."
-        
+        Note over Laravel: system_instruction:\n"Kamu adalah LOKAL AI Assistant...\nGunakan Bahasa Indonesia kasual...\nFokus pada UMKM & produk lokal..."
         Laravel->>Gemini: POST /v1beta/models/gemini-1.5-flash:generateContent?key=API_KEY
         Note right of Laravel: Payload: { contents: [{ parts: [{ text: "..." }] }] }
-        Note right of Laravel: generationConfig: { temperature: 0.7, maxOutputTokens: 512 }
-        
+        Note right of Laravel: generationConfig:\ntemperature: 0.7\nmaxOutputTokens: 512
+
         alt Gemini Response Success
             Gemini-->>Laravel: { candidates: [{ content: { parts: [{ text: "..." }] } }] }
             Laravel->>Laravel: Parse response text
@@ -723,11 +718,10 @@ sequenceDiagram
     participant Midtrans as 💳 Midtrans Snap
     participant Laravel as 🌐 Laravel Backend
     participant DB as 🗄️ Database
-    participant Admin as 👑 Admin Wallet
+    participant AdminW as 👑 Admin Wallet
     participant UMKM as 🏪 UMKM Wallet
     participant Coin as 🪙 CoinService
 
-    %% ── STEP 1: CHECKOUT ──
     rect rgb(230, 245, 255)
         Note over Konsumen,Coin: 🛒 STEP 1: CHECKOUT & CREATE PAYMENT
         Konsumen->>Flutter: Klik "Checkout" dari keranjang
@@ -744,13 +738,12 @@ sequenceDiagram
         Flutter->>Flutter: Buka WebView Midtrans Snap
     end
 
-    %% ── STEP 2: PEMBAYARAN ──
     rect rgb(255, 245, 230)
         Note over Konsumen,Coin: 💳 STEP 2: PEMBAYARAN VIA MIDTRANS
         Konsumen->>Flutter: Input detail pembayaran di WebView
         Flutter->>Midtrans: Midtrans Snap UI (GoPay/OVO/DANA/VA/QRIS)
         Konsumen->>Midtrans: Konfirmasi pembayaran
-        
+
         alt Pembayaran Sukses
             Midtrans->>Midtrans: Payment settlement
             Note over Midtrans: Dana masuk ke merchant Midtrans
@@ -759,15 +752,14 @@ sequenceDiagram
         end
     end
 
-    %% ── STEP 3: WEBHOOK MIDTRANS ──
     rect rgb(230, 255, 230)
         Note over Konsumen,Coin: 🔄 STEP 3: WEBHOOK MIDTRANS (OTOMATIS)
         Midtrans->>Laravel: POST /api/payment/notification (public endpoint)
         Note right of Midtrans: Payload: { order_id, transaction_status, signature_key, gross_amount }
-        
+
         Laravel->>Laravel: 🔐 Validasi signature SHA-512
         Note right of Laravel: hash('sha512', order_id + status_code + gross_amount + serverKey)
-        
+
         alt Signature Invalid
             Laravel-->>Midtrans: HTTP 403 Forbidden
             Note over Laravel: Tolak tanpa detail teknis
@@ -777,35 +769,34 @@ sequenceDiagram
             Laravel->>DB: 🔒 BEGIN TRANSACTION (lockForUpdate)
             Laravel->>DB: Cek idempotency (sudah paid? skip)
             Laravel->>DB: UPDATE payment (status: paid, paid_at, transaction_id)
-            
-            %% ── DISTRIBUSI DANA ──
+
             Note over Laravel,Coin: 💰 DISTRIBUSI DANA OTOMATIS
             Laravel->>Laravel: Hitung komisi 5% dari subtotal
             Laravel->>Laravel: Hitung hak UMKM (95% subtotal + ongkir)
             Laravel->>Laravel: Hitung cashback 2% dari total bayar
-            
-            Laravel->>Admin: ADD commission_balance +5% subtotal
+
+            Laravel->>AdminW: ADD commission_balance +5% subtotal
             Laravel->>DB: INSERT wallet_histories (commission, credit)
-            
+
             Laravel->>UMKM: ADD cash_balance + (95% subtotal + ongkir)
             Laravel->>DB: INSERT wallet_histories (cash, credit)
-            
+
             Laravel->>Coin: add(konsumen_id, cashback_amount, "Cashback 2%")
             Coin->>DB: UPDATE wallets.coin_balance + cashback
             Coin->>DB: INSERT coin_transactions (credit, expires: +6 bulan)
-            
+
             Laravel->>DB: UPDATE orders (status: processing, paid_at)
             Laravel->>DB: INSERT order_histories (status: processing, notes: "Pembayaran berhasil")
             Laravel->>DB: 🔒 COMMIT TRANSACTION
-            
+
             Laravel->>Laravel: Kirim notifikasi push ke Konsumen & UMKM
             Laravel-->>Midtrans: HTTP 200 OK
-            
+
             Flutter->>Laravel: (polling / refresh) GET /api/orders/{id}
             Laravel-->>Flutter: { order_status: "processing", payment_status: "paid" }
             Flutter-->>Konsumen: ✅ "Pembayaran berhasil! Pesanan diproses"
             Flutter->>UMKM: 📢 "Pesanan baru masuk!"
-            
+
         else Status = 'cancel' / 'deny' / 'expire' (GAGAL)
             Laravel->>DB: 🔒 BEGIN TRANSACTION
             Laravel->>DB: UPDATE payment (status: transactionStatus)
@@ -814,7 +805,7 @@ sequenceDiagram
             Laravel->>DB: 🔒 COMMIT TRANSACTION
             Laravel->>Laravel: Kirim notifikasi gagal ke konsumen
             Laravel-->>Midtrans: HTTP 200 OK
-            
+
             Flutter->>Laravel: GET /api/orders/{id}
             Laravel-->>Flutter: { order_status: "cancelled" }
             Flutter-->>Konsumen: ❌ "Pembayaran gagal"
@@ -830,24 +821,28 @@ Berikut rincian perhitungan distribusi dana saat webhook settlement:
 Order:
   subtotal        = Rp 100.000
   shipping_fee    = Rp 15.000
-  coin_discount   = Rp 5.000 (digunakan diskon koin)
+  coin_discount   = Rp   5.000 (digunakan diskon koin)
   total           = Rp 110.000 (100.000 + 15.000 - 5.000)
 
-Distribusi:
-  ┌─ Komisi Platform (5% × subtotal)
-  │    5% × 100.000 = Rp 5.000
-  │    → admin_wallet.commission_balance += 5.000
-  │
-  ├─ Hak UMKM (95% × subtotal + ongkir)
-  │    95% × 100.000 = Rp 95.000
-  │    + ongkir Rp 15.000
-  │    → umkm_wallet.cash_balance += Rp 110.000
-  │
-  └─ Cashback Koin (2% × total bayar)
-       2% × 110.000 = Rp 2.200
-       1 koin = Rp 10
-       → 220 koin ke konsumen.wallet.coin_balance
-       → expires dalam 6 bulan
+============================================================
+DISTRIBUSI DANA:
+============================================================
+
+1. KOMISI PLATFORM (5% x subtotal)
+   5% x 100.000   = Rp 5.000
+   → admin_wallet.commission_balance += 5.000
+
+2. HAK UMKM (95% x subtotal + ongkir)
+   95% x 100.000  = Rp 95.000
+   + ongkir        = Rp 15.000
+   → umkm_wallet.cash_balance += Rp 110.000
+
+3. CASHBACK KOIN (2% x total bayar)
+   2% x 110.000   = Rp 2.200
+   1 koin          = Rp 10
+   → 220 koin ke konsumen.wallet.coin_balance
+   → expires dalam 6 bulan
+============================================================
 ```
 
 ---
@@ -869,7 +864,7 @@ graph TB
 
     subgraph "Backend Services Layer (Docker)"
         LARAVEL["⚙️ Laravel 11 API (PHP 8.3)"]
-        
+
         subgraph "Laravel Modules"
             AUTH["🔐 Auth Module<br/>JWT RS256<br/>Register/Login/RBAC"]
             PROD["📦 Product Module<br/>CRUD + Flash Sale<br/>Search + Filter"]
@@ -901,7 +896,6 @@ graph TB
         SMTP["📧 SMTP Mail Server<br/>Verifikasi Email<br/>Reset Password"]
     end
 
-    %% ── Connections ──
     FM -->|"HTTPS / JSON / JWT Bearer"| N
     AW -->|"HTTPS / Session"| N
     N -->|"Proxy Pass"| LARAVEL
@@ -920,7 +914,6 @@ graph TB
     LARAVEL -.->|"Async HTTP"| ML
     LARAVEL -.->|"Webhook Trigger"| N8N
 
-    %% ── Styles ──
     classDef client fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
     classDef gateway fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     classDef backend fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
@@ -934,31 +927,31 @@ graph TB
     class MIDTRANS,GMAPS,GEMINI,FCM,SMTP external
 ```
 
-### Deskripsi Komponen
+### Tabel Deskripsi Komponen
 
-| **Komponen** | **Teknologi** | **Fungsi Utama** |
-|-------------|--------------|------------------|
-| **Flutter Mobile App** | Flutter 3.x + Provider + Riverpod | Aplikasi mobile konsumen & UMKM (Android/iOS) |
-| **Admin Web Dashboard** | Laravel Blade + Bootstrap | Panel admin berbasis web untuk manajemen & verifikasi |
-| **Nginx** | Nginx Alpine | Reverse proxy, SSL termination, rate limiting, serve static |
-| **Laravel API** | PHP 8.3 / Laravel 11 | REST API utama: auth, produk, order, payment, wallet, AI chat, admin |
-| **Auth Module** | tymon/jwt-auth (RS256) | Registrasi, login, RBAC (Konsumen/UMKM/Admin) |
-| **Product Module** | Laravel Eloquent | CRUD produk, flash sale, search, filter, kategorisasi |
-| **Order Module** | Laravel Eloquent | Keranjang, checkout, tracking, order histories |
-| **Payment Module** | Midtrans Snap API + Webhook | Pembayaran digital, webhook SHA-512, distribusi dana otomatis |
-| **Wallet Module** | Laravel Service | Manajemen koin & saldo tunai, withdrawal, coin transaction |
-| **AI Chat Module** | Google Gemini API | Chatbot AI untuk membantu konsumen & UMKM |
-| **Admin Module** | Laravel Controller | Verifikasi UMKM & bank, dashboard finansial, pengaturan sistem |
-| **ML Service** | Python FastAPI + scikit-learn | Rekomendasi harga produk UMKM secara asinkron |
-| **n8n** | n8n Workflow Engine | Otomatisasi notifikasi & workflow event-driven |
-| **MySQL** | MySQL 8.0 | Database utama dengan spatial index POINT |
-| **Redis** | Redis 7 Alpine | Cache query, queue job, session, JWT blacklist |
-| **MinIO** | MinIO S3-compatible | Object storage untuk foto produk & dokumen legalitas |
-| **Midtrans** | Midtrans Snap | Payment gateway (GoPay/OVO/DANA/VA/QRIS) + webhook |
-| **Google Maps** | Google Maps Platform | Peta interaktif, geocoding, distance matrix |
-| **Google Gemini** | Gemini 1.5 Flash | AI generatif untuk LOKAL AI Assistant |
-| **FCM** | Firebase Cloud Messaging | Push notification ke perangkat mobile |
-| **SMTP** | Mail Server | Email verifikasi, reset password, notifikasi |
+| Komponen              | Teknologi                          | Fungsi Utama                                                  |
+|-----------------------|-------------------------------------|---------------------------------------------------------------|
+| **Flutter Mobile App**| Flutter 3.x + Provider + Riverpod   | Aplikasi mobile konsumen & UMKM (Android/iOS)                 |
+| **Admin Web Dashboard**| Laravel Blade + Bootstrap          | Panel admin berbasis web untuk manajemen & verifikasi         |
+| **Nginx**             | Nginx Alpine                        | Reverse proxy, SSL termination, rate limiting, serve static   |
+| **Laravel API**       | PHP 8.3 / Laravel 11                | REST API utama: auth, produk, order, payment, wallet, AI, admin |
+| **Auth Module**       | tymon/jwt-auth (RS256)              | Registrasi, login, RBAC (Konsumen/UMKM/Admin)                 |
+| **Product Module**    | Laravel Eloquent                    | CRUD produk, flash sale, search, filter, kategorisasi         |
+| **Order Module**      | Laravel Eloquent                    | Keranjang, checkout, tracking, order histories                |
+| **Payment Module**    | Midtrans Snap API + Webhook         | Pembayaran digital, webhook SHA-512, distribusi dana otomatis |
+| **Wallet Module**     | Laravel Service                     | Manajemen koin & saldo tunai, withdrawal, coin transaction    |
+| **AI Chat Module**    | Google Gemini API                   | Chatbot AI untuk membantu konsumen & UMKM                     |
+| **Admin Module**      | Laravel Controller                  | Verifikasi UMKM & bank, dashboard finansial, pengaturan sistem |
+| **ML Service**        | Python FastAPI + scikit-learn       | Rekomendasi harga produk UMKM secara asinkron                 |
+| **n8n**               | n8n Workflow Engine                 | Otomatisasi notifikasi & workflow event-driven                |
+| **MySQL**             | MySQL 8.0                           | Database utama dengan spatial index POINT                     |
+| **Redis**             | Redis 7 Alpine                      | Cache query, queue job, session, JWT blacklist                |
+| **MinIO**             | MinIO S3-compatible                 | Object storage untuk foto produk & dokumen legalitas          |
+| **Midtrans**          | Midtrans Snap                       | Payment gateway (GoPay/OVO/DANA/VA/QRIS) + webhook            |
+| **Google Maps**       | Google Maps Platform                | Peta interaktif, geocoding, distance matrix                   |
+| **Google Gemini**     | Gemini 1.5 Flash                    | AI generatif untuk LOKAL AI Assistant                         |
+| **FCM**               | Firebase Cloud Messaging            | Push notification ke perangkat mobile                         |
+| **SMTP**              | Mail Server (Mailgun/SendGrid)      | Email verifikasi, reset password, notifikasi                  |
 
 ---
 
@@ -969,55 +962,50 @@ Diagram berikut menggambarkan arsitektur server production berbasis Docker yang 
 ```mermaid
 graph TB
     subgraph "Internet"
-        DNS["🌐 DNS: api.lokal.id<br/>HTTPS (TLS 1.2+)"]
+        DNS["🌐 DNS: api.lokal.id / HTTPS (TLS 1.2+)"]
     end
 
     subgraph "Client Devices"
-        MOBILE["📱 Mobile Devices<br/>Android / iOS<br/>Flutter App"]
-        BROWSER["💻 Admin Browser<br/>Chrome / Firefox<br/>Web Dashboard"]
+        MOBILE["📱 Mobile Devices (Android / iOS) — Flutter App"]
+        BROWSER["💻 Admin Browser (Chrome / Firefox) — Web Dashboard"]
     end
 
     subgraph "Docker Host (VPS / Server)"
         direction TB
-        
         subgraph "Network: ekonomi_lokal_network (bridge)"
-            
             subgraph "Gateway Layer"
-                NGINX["🌐 Nginx Container<br/>ekonomi_lokal_nginx<br/>Port: 8080 → 80<br/>SSL Termination<br/>Rate Limiting<br/>Static Files"]
+                NGINX["🌐 Nginx Container<br/>ekonomi_lokal_nginx<br/>Port: 8080 → 80<br/>SSL Termination / Rate Limiting / Static Files"]
             end
 
             subgraph "Application Layer"
-                LARAVEL_APP["⚙️ Laravel App Container<br/>ekonomi_lokal_app<br/>PHP-FPM 8.3<br/>Laravel 11 API<br/>Port: 9000 (internal)"]
+                LARAVEL_APP["⚙️ Laravel App Container<br/>ekonomi_lokal_app<br/>PHP-FPM 8.3 / Laravel 11 API<br/>Port: 9000 (internal)"]
             end
 
             subgraph "Data Layer"
                 MYSQL["🗄️ MySQL 8.0 Container<br/>ekonomi_lokal_mysql<br/>Port: 3306 (internal)<br/>Volume: mysql_data<br/>Database: ekonomi_lokal"]
                 REDIS["⚡ Redis 7 Container<br/>ekonomi_lokal_redis<br/>Port: 6379 (internal)<br/>Volume: redis_data<br/>Cache + Queue + Session"]
-                MINIO["📁 MinIO Container<br/>ekonomi_lokal_minio<br/>Port: 9000 (API)<br/>Port: 9001 (Console)<br/>Volume: minio_data<br/>Object Storage S3"]
+                MINIO["📁 MinIO Container<br/>ekonomi_lokal_minio<br/>Port: 9000 (API) / 9001 (Console)<br/>Volume: minio_data<br/>Object Storage S3"]
             end
 
             subgraph "Optional Services"
-                ML_SERVICE["🧠 ML Service Container<br/>(Python/FastAPI)<br/>Port: 8001 (internal)<br/>Price Recommendation"]
-                N8N["⚡ n8n Container<br/>Workflow Automation<br/>Port: 5678<br/>Notification Pipeline"]
+                ML_SERVICE["🧠 ML Service Container<br/>(Python/FastAPI)<br/>Port: 8001 (internal)<br/>Harga Rekomendasi"]
+                N8N["⚡ n8n Container<br/>Workflow Automation<br/>Port: 5678<br/>Notifikasi Pipeline"]
             end
         end
     end
 
     subgraph "External Services"
-        MIDTRANS_EXT["💳 Midtrans<br/>Payment Gateway<br/>Snap API + Webhook"]
-        GMAPS_EXT["🗺️ Google Maps<br/>Maps SDK + API"]
-        GEMINI_EXT["🤖 Google Gemini<br/>AI API"]
-        FCM_EXT["🔥 Firebase<br/>Cloud Messaging"]
+        MIDTRANS_EXT["💳 Midtrans Payment Gateway<br/>Snap API + Webhook"]
+        GMAPS_EXT["🗺️ Google Maps Platform<br/>Maps SDK + Geocoding"]
+        GEMINI_EXT["🤖 Google Gemini AI API<br/>gemini-1.5-flash"]
+        FCM_EXT["🔥 Firebase Cloud Messaging<br/>Push Notification"]
         SMTP_EXT["📧 SMTP Server<br/>Mailgun/SendGrid"]
     end
 
-    %% ── Network Connections ──
     MOBILE -->|"HTTPS /api/*"| NGINX
     BROWSER -->|"HTTPS /admin/*"| NGINX
-
     DNS -->|"TLS Termination"| NGINX
-
-    NGINX -->|"FastCGI<br/>unix socket"| LARAVEL_APP
+    NGINX -->|"FastCGI unix socket"| LARAVEL_APP
 
     LARAVEL_APP -->|"TCP 3306"| MYSQL
     LARAVEL_APP -->|"TCP 6379"| REDIS
@@ -1026,24 +1014,20 @@ graph TB
     LARAVEL_APP -.->|"Async HTTP"| ML_SERVICE
     LARAVEL_APP -.->|"Webhook"| N8N
 
-    %% ── External Connections ──
     LARAVEL_APP -->|"HTTPS / REST API"| MIDTRANS_EXT
     LARAVEL_APP -->|"HTTPS / REST API"| GMAPS_EXT
     LARAVEL_APP -->|"HTTPS / API Key"| GEMINI_EXT
     LARAVEL_APP -->|"FCM HTTP v1"| FCM_EXT
     LARAVEL_APP -->|"SMTP"| SMTP_EXT
 
-    MIDTRANS_EXT -->|"POST Webhook<br/>/api/payment/notification"| NGINX
+    MIDTRANS_EXT -->|"POST Webhook /api/payment/notification"| NGINX
 
-    %% ── Volume Mounts ──
-    MYSQL --- VOL_MYSQL["📦 Volume: mysql_data<br/>/var/lib/mysql"]
-    REDIS --- VOL_REDIS["📦 Volume: redis_data<br/>/data"]
-    MINIO --- VOL_MINIO["📦 Volume: minio_data<br/>/data"]
+    MYSQL --- VOL_MYSQL["📦 Volume: mysql_data → /var/lib/mysql"]
+    REDIS --- VOL_REDIS["📦 Volume: redis_data → /data"]
+    MINIO --- VOL_MINIO["📦 Volume: minio_data → /data"]
 
-    %% ── Styles ──
     classDef internet fill:#e8eaf6,stroke:#283593,stroke-width:2px
     classDef client fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
-    classDef network fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     classDef gateway fill:#fff8e1,stroke:#f9a825,stroke-width:2px
     classDef app fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
     classDef data fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
@@ -1061,34 +1045,32 @@ graph TB
     class VOL_MYSQL,VOL_REDIS,VOL_MINIO volume
 ```
 
-### Spesifikasi Container Docker
+### Tabel Spesifikasi Container Docker
 
-| **Container** | **Image** | **Port (Host:Container)** | **Volume** | **Environment Variables** |
-|:------------:|:---------:|:-------------------------:|:----------:|:--------------------------|
-| **Nginx** | `nginx:alpine` | `8080:80` | App code, `default.conf` | — |
-| **Laravel App** | *Custom Dockerfile* (PHP 8.3) | — (internal 9000) | App code, storage | `APP_ENV`, `DB_*`, `REDIS_*`, `MIDTRANS_*`, `GEMINI_API_KEY`, `FCM_*`, `MINIO_*` |
-| **MySQL** | `mysql:8.0` | — (internal 3306) | `mysql_data:/var/lib/mysql` | `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD` |
-| **Redis** | `redis:7-alpine` | — (internal 6379) | `redis_data:/data` | — |
-| **MinIO** | `minio/minio:latest` | `9000:9000`, `9001:9001` | `minio_data:/data` | `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` |
+| Container      | Image                     | Port (Host:Container) | Volume              | Environment Variables                                     |
+|:---------------|:--------------------------|:---------------------:|:--------------------|:----------------------------------------------------------|
+| **Nginx**      | `nginx:alpine`            | `8080:80`             | App code, `default.conf` | —                                                       |
+| **Laravel App**| *Custom Dockerfile* (PHP 8.3) | — (internal 9000) | App code, storage   | `APP_ENV`, `DB_*`, `REDIS_*`, `MIDTRANS_*`, `GEMINI_API_KEY`, `FCM_*`, `MINIO_*` |
+| **MySQL**      | `mysql:8.0`               | — (internal 3306)     | `mysql_data:/var/lib/mysql` | `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD` |
+| **Redis**      | `redis:7-alpine`          | — (internal 6379)     | `redis_data:/data`   | —                                                         |
+| **MinIO**      | `minio/minio:latest`      | `9000:9000` / `9001:9001` | `minio_data:/data`  | `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`                  |
 
 ### Docker Compose Reference
 
-Dari file `docker-compose.yml` yang sudah ada:
-
-```
+```yaml
 services:
   app:      # Laravel PHP-FPM (build dari Dockerfile)
     container_name: ekonomi_lokal_app
     restart: unless-stopped
-    volumes: [.:/var/www/html]
-    networks: [ekonomi_lokal_network]
+    volumes: [ .:/var/www/html ]
+    networks: [ ekonomi_lokal_network ]
 
   nginx:    # Web Server
     container_name: ekonomi_lokal_nginx
     image: nginx:alpine
-    ports: [8080:80]
-    volumes: [., ./docker/nginx/default.conf]
-    depends_on: [app]
+    ports: [ 8080:80 ]
+    volumes: [ ., ./docker/nginx/default.conf ]
+    depends_on: [ app ]
 
   mysql:    # Database
     container_name: ekonomi_lokal_mysql
@@ -1098,21 +1080,21 @@ services:
       MYSQL_DATABASE: ekonomi_lokal
       MYSQL_USER: ekonomi_user
       MYSQL_PASSWORD: secret
-    volumes: [mysql_data:/var/lib/mysql]
+    volumes: [ mysql_data:/var/lib/mysql ]
 
   redis:    # Cache & Queue
     container_name: ekonomi_lokal_redis
     image: redis:7-alpine
-    volumes: [redis_data:/data]
+    volumes: [ redis_data:/data ]
 
   minio:    # Object Storage
     container_name: ekonomi_lokal_minio
     image: minio/minio:latest
-    ports: [9000:9000, 9001:9001]
+    ports: [ 9000:9000, 9001:9001 ]
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
-    volumes: [minio_data:/data]
+    volumes: [ minio_data:/data ]
     command: server /data --console-address ":9001"
 
 networks:
@@ -1128,37 +1110,47 @@ volumes:
 ### Alur Deployment
 
 ```
-Developer Push → GitHub Repository
-       ↓
-GitHub Actions (CI/CD Pipeline)
-       ↓
-Pull image dari Docker Hub / Build image
-       ↓
-Deploy ke VPS Server
-       ↓
-docker-compose pull && docker-compose up -d
-       ↓
-Migrate Database: php artisan migrate --seed
-       ↓
-✅ Production Live!
+┌────────────────┐
+│ Developer Push │  → GitHub Repository
+└───────┬────────┘
+        ↓
+┌────────────────┐
+│ GitHub Actions │  → CI/CD Pipeline (Build + Test)
+└───────┬────────┘
+        ↓
+┌────────────────┐
+│ Docker Build   │  → Pull image dari Docker Hub / Build image
+└───────┬────────┘
+        ↓
+┌────────────────┐
+│ Deploy ke VPS  │  → docker-compose pull && docker-compose up -d
+└───────┬────────┘
+        ↓
+┌────────────────┐
+│ Database Migrate│ → php artisan migrate --seed
+└───────┬────────┘
+        ↓
+┌────────────────┐
+│ ✅ Production  │  → Live!
+└────────────────┘
 ```
 
 ---
 
 ## Referensi
 
-| **Dokumen** | **Lokasi** |
-|------------|-----------|
-| Software Requirements Specification (SRS) | `SRS/SRS_Ekonomi_Lokal.md` |
-| README Utama | `README.md` |
-| Backend API Routes | `backend/routes/api.php` |
-| Web Admin Routes | `backend/routes/web.php` |
-| Docker Compose | `backend/docker-compose.yml` |
-| Frontend Screens | `frontend/lib/screens/` |
+| Dokumen                        | Lokasi                           |
+|--------------------------------|----------------------------------|
+| Software Requirements Specification (SRS) | `SRS/SRS_Ekonomi_Lokal.md`      |
+| README Utama                   | `README.md`                      |
+| Backend API Routes             | `backend/routes/api.php`         |
+| Web Admin Routes               | `backend/routes/web.php`         |
+| Docker Compose                 | `backend/docker-compose.yml`     |
+| Frontend Screens               | `frontend/lib/screens/`          |
 
 ---
 
 <p align="center">
   <i>© 2026 Tim Pengembang Platform LOKAL — UKRI</i><br>
-  <i>Dokumentasi Teknis ini disusun berdasarkan implementasi kode asli dan SRS v1.5.0</i>
+  <i>Dokumentasi Teknis ini disusun berdasarkan implementasi kode asli dan SRS_Ekonomi_Lokal</i>
 </p>
