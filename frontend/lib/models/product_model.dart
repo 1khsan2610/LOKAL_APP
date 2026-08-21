@@ -52,13 +52,52 @@ class UserModel {
 class WalletModel {
   final int? id;
   final int coinBalance;
+  final int? cashBalance;
+  final int? commissionBalance;
+  final int rupiahValue;
+  final BankAccountModel? bankAccount;
 
-  const WalletModel({this.id, required this.coinBalance});
+  const WalletModel({
+    this.id,
+    required this.coinBalance,
+    this.cashBalance,
+    this.commissionBalance,
+    required this.rupiahValue,
+    this.bankAccount,
+  });
 
-  factory WalletModel.fromJson(Map<String, dynamic> j) =>
-      WalletModel(id: j['id'], coinBalance: j['coin_balance'] ?? 0);
+  factory WalletModel.fromJson(Map<String, dynamic> j) => WalletModel(
+    id: j['id'],
+    coinBalance: j['coin_balance'] ?? 0,
+    cashBalance: j['cash_balance'],
+    commissionBalance: j['commission_balance'],
+    rupiahValue: j['rupiah_value'] ?? ((j['coin_balance'] ?? 0) * 10),
+    bankAccount: j['bank_account'] != null ? BankAccountModel.fromJson(j['bank_account']) : null,
+  );
+}
 
-  int get rupiahValue => coinBalance * 10;
+class BankAccountModel {
+  final int id;
+  final String bankName;
+  final String accountNumber;
+  final String accountHolder;
+  final String status;
+
+  const BankAccountModel({
+    required this.id,
+    required this.bankName,
+    required this.accountNumber,
+    required this.accountHolder,
+    required this.status,
+  });
+
+  factory BankAccountModel.fromJson(Map<String, dynamic> j) => BankAccountModel(
+    id: j['id'],
+    bankName: j['bank_name'] ?? '',
+    accountNumber: j['account_number'] ?? '',
+    accountHolder: j['account_holder'] ?? '',
+    status: j['status'] ?? 'pending',
+  );
 }
 
 // ─── umkm_model.dart ────────────────────────────────────────────────
@@ -401,6 +440,7 @@ class NotificationModel {
   final String type;
   final bool isRead;
   final String createdAt;
+  final Map<String, dynamic>? data;
 
   const NotificationModel({
     required this.id,
@@ -409,6 +449,7 @@ class NotificationModel {
     required this.type,
     required this.isRead,
     required this.createdAt,
+    this.data,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> j) => NotificationModel(
@@ -418,6 +459,7 @@ class NotificationModel {
     type:      j['type'] ?? 'general',
     isRead:    j['is_read'] ?? false,
     createdAt: j['created_at'] ?? '',
+    data:      j['data'] is Map<String, dynamic> ? j['data'] : null,
   );
 }
 

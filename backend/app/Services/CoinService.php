@@ -22,7 +22,7 @@ class CoinService
     /**
      * Add coin to user wallet
      */
-    public function add(int $userId, int $amount, string $description, ?int $expiresInDays = 90): void
+    public function add(int $userId, int $amount, string $description, ?int $expiresInDays = 180): void
     {
         if ($amount <= 0) return;
 

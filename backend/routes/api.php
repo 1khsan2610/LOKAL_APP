@@ -90,6 +90,7 @@ Route::middleware('auth:api')->group(function () {
         Route::patch('/{id}/cancel', [OrderController::class, 'cancel']);
         Route::patch('/{id}/confirm-received', [OrderController::class, 'confirmReceived']);
         Route::get('/{id}/tracking', [OrderTrackingController::class, 'tracking']);
+        Route::get('/{id}/check-payment', [PaymentController::class, 'checkPayment']);
     });
 
     // Payment
@@ -102,7 +103,9 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('wallet')->group(function () {
         Route::get('/',              [WalletController::class, 'index']);
         Route::get('/transactions',  [WalletController::class, 'transactions']);
+        Route::get('/history',       [WalletController::class, 'history']);
         Route::post('/redeem',       [WalletController::class, 'redeem']);
+        Route::post('/withdraw',     [WalletController::class, 'withdraw']);
     });
 
     // Reviews
@@ -136,6 +139,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/orders',        [OrderController::class, 'sellerOrders']);
         Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
         Route::get('/analytics/summary', [AnalyticsController::class, 'umkmSummary']);
+        Route::get('/analytics/weekly',  [AnalyticsController::class, 'weekly']);
         Route::get('/analytics/sales',   [AnalyticsController::class, 'salesChart']);
         // Bank account for UMKM withdrawal
         Route::get('/bank-account',      [UmkmController::class, 'getBankAccount']);
@@ -155,16 +159,36 @@ Route::middleware('auth:api')->group(function () {
 
     // ── Admin Role ─────────────────────────────────────────────────
     Route::middleware('role:admin')->prefix('admin')->group(function () {
-        Route::get('/dashboard',     [AdminController::class, 'dashboard']);
-        Route::get('/users',         [AdminController::class, 'users']);
+        // Dashboard & Overview
+        Route::get('/dashboard',        [AdminController::class, 'dashboard']);
+        Route::get('/finance',          [AdminController::class, 'finance']);
+
+        // Manajemen Pengguna
+        Route::get('/users',            [AdminController::class, 'users']);
         Route::patch('/users/{id}/status', [AdminController::class, 'toggleUserStatus']);
-        Route::get('/umkm',          [AdminController::class, 'umkmList']);
+
+        // Manajemen UMKM (Verifikasi Toko & Bank)
+        Route::get('/umkm',             [AdminController::class, 'umkmList']);
         Route::patch('/umkm/{id}/verify', [AdminController::class, 'verifyUmkm']);
-        Route::get('/orders',        [AdminController::class, 'orders']);
-        Route::get('/transactions',  [AdminController::class, 'transactions']);
-        Route::get('/analytics',     [AnalyticsController::class, 'adminSummary']);
+        Route::get('/bank-accounts',    [AdminController::class, 'bankAccounts']);
+        Route::patch('/bank-accounts/{id}/approve', [AdminController::class, 'approveBankAccount']);
+        Route::patch('/bank-accounts/{id}/reject',  [AdminController::class, 'rejectBankAccount']);
+
+        // Produk Moderasi
+        Route::get('/products',         [AdminController::class, 'productList']);
         Route::post('/products/{id}/approve', [AdminController::class, 'approveProduct']);
         Route::delete('/products/{id}', [AdminController::class, 'deleteProduct']);
+
+        // Transaksi Order (Monitoring Seluruh Transaksi)
+        Route::get('/orders',           [AdminController::class, 'orders']);
+        Route::get('/transactions',     [AdminController::class, 'transactions']);
+
+        // Keuangan & Wallet
+        Route::get('/wallet-mutations', [AdminController::class, 'walletMutations']);
+        Route::get('/withdrawals',      [AdminController::class, 'withdrawals']);
+
+        // Analytics & Pengaturan
+        Route::get('/analytics',        [AnalyticsController::class, 'adminSummary']);
         Route::post('/notifications/broadcast', [NotificationController::class, 'broadcast']);
     });
 });

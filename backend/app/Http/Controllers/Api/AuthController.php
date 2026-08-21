@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Umkm;
 use App\Models\Wallet;
+use App\Models\CoinTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -18,7 +20,7 @@ class AuthController extends Controller
 {
     /**
      * POST /api/auth/register-account
-     * Daftar akun baru (konsumen / umkm)
+     * Daftar akun baru (konsumen / umkm) dengan bcrypt cost 12
      */
     public function register(Request $request)
     {
@@ -34,11 +36,11 @@ class AuthController extends Controller
             'store_description' => 'nullable|string|max:500',
         ]);
 
-        // Create user
+        // Create user with bcrypt cost 12
         $user = User::create([
             'name'              => $request->name,
             'email'             => $request->email,
-            'password'          => Hash::make($request->password),
+            'password'          => Hash::make($request->password, ['rounds' => 12]),
             'phone'             => $request->phone,
             'role'              => $request->role,
             'email_verified_at' => null,
@@ -168,6 +170,7 @@ class AuthController extends Controller
 
     /**
      * POST /api/auth/reset-password
+     * Gunakan bcrypt cost 12
      */
     public function resetPassword(Request $request)
     {
@@ -180,7 +183,7 @@ class AuthController extends Controller
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
-                $user->forceFill(['password' => Hash::make($password)])->save();
+                $user->forceFill(['password' => Hash::make($password, ['rounds' => 12])])->save();
             }
         );
 
@@ -194,6 +197,7 @@ class AuthController extends Controller
 
     /**
      * POST /api/auth/verify-email
+     * Verifikasi email + reward 50 Lokal Coin
      */
     public function verifyEmail(Request $request)
     {
@@ -208,8 +212,48 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Link verifikasi tidak valid.'], 400);
         }
 
+        // Jika sudah diverifikasi, jangan proses ulang
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['success' => true, 'message' => 'Email sudah diverifikasi sebelumnya.']);
+        }
+
         $user->markEmailAsVerified();
 
-        return response()->json(['success' => true, 'message' => 'Email berhasil diverifikasi.']);
+        // Beri 50 Lokal Coin sebagai reward verifikasi (F-01)
+        try {
+            $wallet = Wallet::where('user_id', $user->id)->lockForUpdate()->first();
+            if ($wallet) {
+                $wallet->increment('coin_balance', 50);
+                CoinTransaction::create([
+                    'user_id'      => $user->id,
+                    'type'         => 'credit',
+                    'amount'       => 50,
+                    'description'  => 'Reward verifikasi email - 50 Lokal Coin',
+                    'balance_after' => $wallet->fresh()->coin_balance,
+                    'expires_at'   => now()->addMonths(6),
+                ]);
+            } else {
+                // Jika wallet belum ada, buat baru
+                Wallet::create([
+                    'user_id'     => $user->id,
+                    'coin_balance' => 50,
+                ]);
+                CoinTransaction::create([
+                    'user_id'      => $user->id,
+                    'type'         => 'credit',
+                    'amount'       => 50,
+                    'description'  => 'Reward verifikasi email - 50 Lokal Coin',
+                    'balance_after' => 50,
+                    'expires_at'   => now()->addMonths(6),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Gagal memberi reward coin verifikasi', [
+                'user_id' => $user->id,
+                'error'   => $e->getMessage(),
+            ]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Email berhasil diverifikasi! Kamu mendapat 50 Lokal Coin 🪙']);
     }
 }

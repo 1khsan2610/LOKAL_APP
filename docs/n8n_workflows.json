@@ -1,0 +1,149 @@
+{
+  "name": "LOKAL - Workflow Otomasi Notifikasi v1.5.0",
+  "description": "Workflow n8n untuk menangani event dari backend Laravel LOKAL. Menerima webhook dari backend dan mengirim notifikasi push via OneSignal / Telegram / Email.",
+  "webhook_url": "http://lokal_app/webhook/n8n-events",
+  "events": [
+    {
+      "event": "order.new",
+      "description": "Pesanan baru dibuat oleh konsumen",
+      "trigger": "Dari OrderController.store",
+      "actions": [
+        "Kirim notifikasi push ke UMKM (ada pesanan baru)",
+        "Kirim email konfirmasi ke konsumen",
+        "Catat ke spreadsheet monitoring"
+      ]
+    },
+    {
+      "event": "payment.settlement",
+      "description": "Pembayaran berhasil (settlement)",
+      "trigger": "Dari OrderController.distributePaymentFunds",
+      "actions": [
+        "Kirim notifikasi push ke konsumen (pembayaran diterima)",
+        "Kirim notifikasi push ke UMKM (pesanan siap diproses)",
+        "Kirim email invoice ke konsumen",
+        "Update spreadsheet monitoring"
+      ]
+    },
+    {
+      "event": "order.shipped",
+      "description": "Pesanan telah dikirim oleh UMKM",
+      "trigger": "Dari OrderController.updateStatus (status: shipped)",
+      "actions": [
+        "Kirim notifikasi push ke konsumen (resi pengiriman)",
+        "Kirim email tracking ke konsumen",
+        "Catat ke spreadsheet"
+      ]
+    },
+    {
+      "event": "stock.low",
+      "description": "Stok produk menipis (< 10 unit)",
+      "trigger": "Dari observer/scheduler Laravel",
+      "actions": [
+        "Kirim notifikasi push ke UMKM (stok menipis)",
+        "Kirim email reminder ke UMKM",
+        "Buat task di Trello/Asana"
+      ]
+    },
+    {
+      "event": "bank.verified",
+      "description": "Rekening bank UMKM berhasil diverifikasi admin",
+      "trigger": "Dari AdminController.approveBankAccount",
+      "actions": [
+        "Kirim notifikasi push ke UMKM (bank diverifikasi)",
+        "Kirim email konfirmasi ke UMKM",
+        "Update status di database"
+      ]
+    },
+    {
+      "event": "user_notification",
+      "description": "Notifikasi umum untuk user tertentu",
+      "trigger": "Dari NotificationService.sendToUser",
+      "actions": [
+        "Kirim notifikasi push ke device user via OneSignal/FCM",
+        "Log ke database monitoring"
+      ]
+    },
+    {
+      "event": "broadcast",
+      "description": "Broadcast notifikasi ke semua user (oleh admin)",
+      "trigger": "Dari NotificationService.broadcast",
+      "actions": [
+        "Kirim notifikasi push broadcast ke semua user",
+        "Kirim email blast ke semua user"
+      ]
+    }
+  ],
+  "workflow_steps": {
+    "trigger": {
+      "type": "Webhook",
+      "options": {
+        "path": "lokal-events",
+        "method": "POST",
+        "responseMode": "lastNode"
+      }
+    },
+    "filter_event": {
+      "type": "Switch",
+      "options": {
+        "conditions": [
+          { "value1": "{{ $json.event }}", "operation": "equal", "value2": "order.new" },
+          { "value1": "{{ $json.event }}", "operation": "equal", "value2": "payment.settlement" },
+          { "value1": "{{ $json.event }}", "operation": "equal", "value2": "order.shipped" },
+          { "value1": "{{ $json.event }}", "operation": "equal", "value2": "stock.low" },
+          { "value1": "{{ $json.event }}", "operation": "equal", "value2": "bank.verified" },
+          { "value1": "{{ $json.event }}", "operation": "equal", "value2": "user_notification" },
+          { "value1": "{{ $json.event }}", "operation": "equal", "value2": "broadcast" }
+        ]
+      }
+    },
+    "send_push_notification": {
+      "type": "HTTP Request",
+      "options": {
+        "method": "POST",
+        "url": "https://onesignal.com/api/v1/notifications",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Basic {{ $env.ONESIGNAL_API_KEY }}"
+        },
+        "sendBody": true,
+        "body": {
+          "app_id": "{{ $env.ONESIGNAL_APP_ID }}",
+          "headings": { "en": "{{ $json.title }}" },
+          "contents": { "en": "{{ $json.body }}" },
+          "include_player_ids": ["{{ $json.device_tokens }}"],
+          "data": "{{ $json.data }}"
+        }
+      }
+    },
+    "send_email": {
+      "type": "Email",
+      "options": {
+        "fromEmail": "noreply@ekonomilokal.com",
+        "subject": "{{ $json.title }} - LOKAL",
+        "text": "{{ $json.body }}\n\nDetail: {{ $json.data }}"
+      }
+    },
+    "log_to_sheet": {
+      "type": "Google Sheets",
+      "options": {
+        "operation": "append",
+        "spreadsheetId": "{{ $env.GOOGLE_SHEET_ID }}",
+        "sheetName": "Events",
+        "columns": {
+          "timestamp": "{{ $json.timestamp }}",
+          "event": "{{ $json.event }}",
+          "title": "{{ $json.title }}",
+          "body": "{{ $json.body }}",
+          "data": "{{ $json.data }}"
+        }
+      }
+    }
+  },
+  "environment_variables": {
+    "ONESIGNAL_API_KEY": "{{ is_required }}",
+    "ONESIGNAL_APP_ID": "{{ is_required }}",
+    "GOOGLE_SHEET_ID": "{{ optional }}",
+    "TELEGRAM_BOT_TOKEN": "{{ optional }}",
+    "TELEGRAM_CHAT_ID": "{{ optional }}"
+  }
+}

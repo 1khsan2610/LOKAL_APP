@@ -1,12 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════
 //  CheckoutScreen  —  lib/screens/checkout/checkout_screen.dart
-//  Prinsip desain (sinkron dengan Beranda / LOKAL Admin Dashboard):
-//   • AppCard membungkus setiap section (Alamat, Pengiriman, dst.)
-//   • Sticky footer (tombol Bayar) dgn SafeArea utk gesture nav
-//   • Semua teks dibungkus Flexible/Expanded → tidak ada RenderFlex overflow
-//   • Palet: bg #F8FAFC, aksen utama Navy #151B26 (AppTheme.primary)
-//   Logika bisnis (API call, kalkulasi total, error handling) TIDAK
-//   diubah — hanya tampilan/layout yang dirombak.
+//  UX/UI Refactor: Better sections, scroll fix (bottom padding 120),
+//  responsive layout, proper sticky footer.
 // ═══════════════════════════════════════════════════════════════════
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -130,9 +125,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       context.push('/payment?snap_token=$snapToken&snap_url=${Uri.encodeComponent(snapUrl)}&order_id=${order.id}&total=$_total');
     } on DioException catch (e) {
       if (orderId != null) {
-        try {
-          await _api.cancelOrder(orderId);
-        } catch (_) {}
+        try { await _api.cancelOrder(orderId); } catch (_) {}
       }
       if (!mounted) return;
       var message = 'Gagal membuat pesanan. Coba lagi.';
@@ -145,9 +138,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 .expand((value) => value is List ? value : [value])
                 .map((value) => value.toString())
                 .toList();
-            if (messages.isNotEmpty) {
-              message = messages.join(' ');
-            }
+            if (messages.isNotEmpty) message = messages.join(' ');
           } else if (errors is List) {
             message = errors.join(' ');
           } else if (errors is String) {
@@ -165,7 +156,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       }
       AppSnackBar.show(context, message, isError: true);
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       AppSnackBar.show(context, 'Gagal membuat pesanan. Coba lagi.', isError: true);
     } finally {
@@ -177,7 +168,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
     final wallet = context.watch<AuthProvider>().user?.wallet;
-    // Jarak aman dari bawah utk perangkat gesture-nav (tanpa tombol fisik).
     final bottomSafe = MediaQuery.of(context).viewPadding.bottom;
 
     return Scaffold(
@@ -185,30 +175,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       appBar: AppBar(title: const Text('Checkout')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
-          // ── Konten scrollable (Expanded) + footer sticky terpisah ──
-          // Sama seperti CartScreen: footer punya slot ruang sendiri,
-          // tidak pernah menutupi konten di atasnya.
           : Column(
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                    // ⚠️ FIX SCROLL BUG: Add large bottom padding so content
+                    // is not hidden behind the sticky "Bayar Sekarang" button
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 140),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Alamat ─────────────────────────────────
+                        // ── Alamat Pengiriman ──
                         _Section(
                           title: '📍 Alamat Pengiriman',
                           child: _addresses.isEmpty
-                              ? SizedBox(
-                                  width: double.infinity,
-                                  child: OutlinedButton.icon(
-                                    onPressed: () => context.push('/profile/addresses/form')
-                                        .then((_) => _loadAddresses()),
-                                    icon: const Icon(Icons.add),
-                                    label: const Text('Tambah Alamat'),
-                                  ),
-                                )
+                              ? _emptyAddress()
                               : Column(children: [
                                   ..._addresses.map((a) => _AddressOption(
                                         address: a,
@@ -221,15 +202,54 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       onPressed: () => context.push('/profile/addresses/form')
                                           .then((_) => _loadAddresses()),
                                       icon: const Icon(Icons.add, size: 16),
-                                      label: const Text('Tambah Alamat Baru'),
+                                      label: const Text('+ Tambah Alamat Baru'),
                                     ),
                                   ),
                                 ]),
                         ),
 
-                        // ── Pengiriman ─────────────────────────────
+                        // ── Ringkasan Pesanan ──
                         _Section(
-                          title: '🚚 Layanan Pengiriman',
+                          title: '📋 Ringkasan Pesanan',
+                          child: Column(children: [
+                            ...cart.items.map((item) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Row(children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: SizedBox(
+                                        width: 50, height: 50,
+                                        child: item.product.primaryImage != null
+                                            ? Image.network(resolveImageUrl(item.product.primaryImage), fit: BoxFit.cover)
+                                            : Container(color: AppTheme.surface2, child: const Icon(Icons.image_outlined)),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(item.product.name,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                          Text('${item.quantity}x · ${item.product.umkm?.name ?? ""}',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    PriceText(item.subtotal, fontSize: 13),
+                                  ]),
+                                )),
+                          ]),
+                        ),
+
+                        // ── Metode Pengiriman ──
+                        _Section(
+                          title: '🚚 Metode Pengiriman',
                           child: Column(
                             children: _shippingOptions
                                 .map((s) => _ShippingOption(
@@ -241,13 +261,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ),
 
-                        // ── Pembayaran ─────────────────────────────
+                        // ── Metode Pembayaran ──
                         _Section(
                           title: '💳 Metode Pembayaran',
                           child: Column(children: [
-                            // LayoutBuilder: aspect ratio grid dihitung dari
-                            // lebar konstrain aktual agar label metode
-                            // pembayaran tidak overflow di layar sempit.
                             LayoutBuilder(builder: (context, c) {
                               return GridView.count(
                                 crossAxisCount: 2,
@@ -287,7 +304,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ]),
                         ),
 
-                        // ── Lokal Coin ─────────────────────────────
+                        // ── Lokal Coin ──
                         _Section(
                           title: '🪙 Lokal Coin',
                           child: Row(children: [
@@ -312,65 +329,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ]),
                         ),
 
-                        // ── Ringkasan item pesanan (tanpa total —
-                        // total ditampilkan di footer sticky) ───────
+                        // ── Ringkasan Biaya ──
                         _Section(
-                          title: '📋 Ringkasan Pesanan',
+                          title: '💰 Ringkasan Biaya',
                           child: Column(children: [
-                            ...cart.items.map((item) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Row(children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: SizedBox(
-                                        width: 50,
-                                        height: 50,
-                                        child: item.product.primaryImage != null
-                                            ? Image.network(resolveImageUrl(item.product.primaryImage), fit: BoxFit.cover)
-                                            : Container(color: AppTheme.surface2, child: const Icon(Icons.image_outlined)),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    // Expanded WAJIB: nama barang panjang tetap
-                                    // terpotong rapi (ellipsis), bukan overflow.
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(item.product.name,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                                          Text('${item.quantity}x · ${item.product.umkm?.name ?? ""}',
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    PriceText(item.subtotal, fontSize: 13),
-                                  ]),
-                                )),
-                            const Divider(),
-                            _SumRow('Subtotal', currency.format(cart.subtotal)),
+                            _SumRow('Subtotal Produk', currency.format(cart.subtotal)),
                             _SumRow('Ongkos Kirim', currency.format(_shippingFee)),
                             if (_useCoin && _coinDiscount > 0)
-                              _SumRow('Diskon Coin', '-${currency.format(_coinDiscount)}', isGreen: true),
-                            if (_useCoin && cart.subtotal > 0) ...[
-                              const SizedBox(height: 6),
-                              Text('Kamu akan mendapat +${(cart.subtotal / 1000).floor()} Lokal Coin',
-                                  style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
-                            ],
+                              _SumRow('Potongan Diskon', '-${currency.format(_coinDiscount)}', isGreen: true),
+                            const Divider(height: 16),
+                            _SumRow('Total Bayar', currency.format(_total), isBold: true),
                           ]),
                         ),
-                        // Ruang kosong ekstra supaya konten terakhir tidak
-                        // mepet ke footer sticky.
-                        const SizedBox(height: 4),
                       ],
                     ),
                   ),
                 ),
+                // ── Sticky Footer: Bayar Sekarang ──
                 _CheckoutStickyFooter(
                   total: _total,
                   currency: currency,
@@ -382,13 +357,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
     );
   }
+
+  Widget _emptyAddress() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        children: [
+          const Icon(Icons.location_off_outlined, size: 40, color: AppTheme.textHint),
+          const SizedBox(height: 8),
+          const Text(
+            'Belum ada alamat pengiriman',
+            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: () => context.push('/profile/addresses/form')
+                .then((_) => _loadAddresses()),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('+ Tambah Alamat Pengiriman'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-// ─────────────────────────────────────────────────────────────────
-//  Footer sticky Checkout: total pembayaran + tombol Bayar.
-//  Selalu di dasar layar (di luar area scroll), padding bawah
-//  memakai `bottomSafe` agar tidak terpotong gesture-bar.
-// ─────────────────────────────────────────────────────────────────
+// ── Sticky Footer ──
 class _CheckoutStickyFooter extends StatelessWidget {
   final int total;
   final NumberFormat currency;
@@ -416,7 +414,6 @@ class _CheckoutStickyFooter extends StatelessWidget {
         top: false,
         child: Row(
           children: [
-            // ── Hierarki tertinggi di footer: label + nominal total ──
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -438,7 +435,7 @@ class _CheckoutStickyFooter extends StatelessWidget {
             ElevatedButton(
               onPressed: isPlacing ? null : onPay,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accent,
+                backgroundColor: AppTheme.primary,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               ),
               child: isPlacing
@@ -446,7 +443,7 @@ class _CheckoutStickyFooter extends StatelessWidget {
                       height: 20, width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
                     )
-                  : const Text('💳 Bayar', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  : const Text('Bayar Sekarang 🔒', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
             ),
           ],
         ),
@@ -455,9 +452,7 @@ class _CheckoutStickyFooter extends StatelessWidget {
   }
 }
 
-// ─── helper widgets ─────────────────────────────────────────────────
-// _Section kini berbasis AppCard — konsisten dengan kartu produk di
-// Beranda (radius, warna border, elevation seragam di seluruh app).
+// ── Section wrapper ──
 class _Section extends StatelessWidget {
   final String title;
   final Widget child;
@@ -506,8 +501,6 @@ class _AddressOption extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Wrap mencegah overflow saat nama + telepon + badge
-                    // "Utama" tidak muat dalam satu baris di layar sempit.
                     Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
                       spacing: 8,
@@ -618,8 +611,8 @@ class _PaymentOption extends StatelessWidget {
 
 class _SumRow extends StatelessWidget {
   final String label, value;
-  final bool isGreen;
-  const _SumRow(this.label, this.value, {this.isGreen = false});
+  final bool isGreen, isBold;
+  const _SumRow(this.label, this.value, {this.isGreen = false, this.isBold = false});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -627,7 +620,7 @@ class _SumRow extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+            Text(label, style: TextStyle(fontSize: 13, fontWeight: isBold ? FontWeight.w700 : FontWeight.w400, color: AppTheme.textSecondary)),
             Flexible(
               child: Text(
                 value,
@@ -635,8 +628,8 @@ class _SumRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isGreen ? AppTheme.success : AppTheme.textPrimary,
+                  fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+                  color: isGreen ? AppTheme.success : (isBold ? AppTheme.primary : AppTheme.textPrimary),
                 ),
               ),
             ),

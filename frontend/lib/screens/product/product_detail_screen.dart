@@ -187,9 +187,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           IconButton(
             icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border, color: Colors.white, size: 22),
             onPressed: () async {
+              final wasFav = wishlist.isFavorite(product.id);
+              final messenger = ScaffoldMessenger.of(context);
               await context.read<WishlistProvider>().toggleFavorite(product);
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isFavorite ? '💔 Dihapus dari wishlist' : '❤️ Ditambahkan ke wishlist')));
+              messenger.showSnackBar(SnackBar(content: Text(wasFav ? '💔 Dihapus dari wishlist' : '❤️ Ditambahkan ke wishlist')));
             },
           ),
           IconButton(icon: const Icon(Icons.share_outlined, color: Colors.white, size: 22), onPressed: () => AppSnackBar.show(context, '🔗 Link disalin')),
@@ -391,7 +393,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       // ── BOTTOM BAR ───────────────────────────────────────────────
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        decoration: BoxDecoration(color: AppTheme.surface, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, -4))]),
+        decoration: BoxDecoration(color: AppTheme.surface, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, -4))]),
         child: SafeArea(
           top: false,
           child: SizedBox(

@@ -20,7 +20,6 @@ import '../screens/profile/address_form_screen.dart';
 import '../screens/wallet/wallet_screen.dart';
 import '../screens/notification/notification_screen.dart';
 import '../screens/map/map_screen.dart';
-import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/umkm/umkm_dashboard_screen.dart';
 import '../screens/umkm/manage_product_screen.dart';
 import '../screens/umkm/add_edit_product_screen.dart';
@@ -54,7 +53,6 @@ class AppRouter {
   static const String wallet          = '/wallet';
   static const String notifications   = '/notifications';
   static const String map             = '/map';
-  static const String adminDashboard  = '/admin';
   static const String umkmDashboard   = '/umkm/dashboard';
   static const String manageProducts  = '/umkm/products';
   static const String addEditProduct  = '/umkm/products/form';
@@ -118,8 +116,6 @@ class AppRouter {
         return _build(const NotificationScreen(), settings);
       case map:
         return _build(const MapScreen(), settings);
-      case adminDashboard:
-        return _build(const AdminDashboardScreen(), settings);
       case umkmDashboard:
         return _build(const UmkmDashboardScreen(), settings);
       case manageProducts:

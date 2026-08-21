@@ -1,4 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'Detail Order — LOKAL Admin')
 
 @section('content')
 <div class="space-y-6">

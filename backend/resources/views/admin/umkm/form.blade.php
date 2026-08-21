@@ -1,4 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'Form UMKM — LOKAL Admin')
 
 @section('content')
 <div class="p-6 max-w-2xl">

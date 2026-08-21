@@ -5,13 +5,12 @@
 //   • Label + badge "Utama" dibungkus Expanded/Wrap → tidak overflow
 //   • Palet: bg #F8FAFC, aksen utama Navy #151B26 (AppTheme.primary)
 // ═══════════════════════════════════════════════════════════════════
-import '../../widgets/product_card.dart';
-import '../../widgets/app_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/api_service.dart';
 import '../../models/product_model.dart';
 import '../../utils/app_theme.dart';
+import '../../widgets/app_card.dart';
 
 class AddressListScreen extends StatefulWidget {
   const AddressListScreen({super.key});
@@ -25,14 +24,44 @@ class _AddressListScreenState extends State<AddressListScreen> {
   bool _isLoading = true;
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   Future<void> _load() async {
     setState(() => _isLoading = true);
     try {
       final resp = await _api.getAddresses();
-      setState(() { _addresses = (resp.data['data'] as List).map((e) => AddressModel.fromJson(e)).toList(); });
-    } catch (_) {} finally { setState(() => _isLoading = false); }
+      setState(() {
+        _addresses = (resp.data['data'] as List).map((e) => AddressModel.fromJson(e)).toList();
+      });
+    } catch (_) {
+      // Silently handle error - addresses will remain empty
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _confirmDelete(AddressModel address) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Alamat'),
+        content: Text('Yakin ingin menghapus alamat "${address.label}"?'),
+        actions: [
+          TextButton(onPressed: () => ctx.pop(false), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => ctx.pop(true),
+            child: const Text('Hapus', style: TextStyle(color: AppTheme.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _api.deleteAddress(address.id);
+      _load();
+    }
   }
 
   @override
@@ -53,12 +82,32 @@ class _AddressListScreenState extends State<AddressListScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
           : _addresses.isEmpty
-              ? EmptyState(
-                  emoji: '📍',
-                  title: 'Belum Ada Alamat',
-                  subtitle: 'Tambahkan alamat pengiriman kamu',
-                  buttonLabel: 'Tambah Alamat',
-                  onButton: () => context.push('/profile/addresses/form').then((_) => _load()),
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('📍', style: TextStyle(fontSize: 64)),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Belum Ada Alamat',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Tambahkan alamat pengiriman kamu',
+                          style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: () => context.push('/profile/addresses/form').then((_) => _load()),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Tambah Alamat'),
+                        ),
+                      ],
+                    ),
+                  ),
                 )
               : ListView.separated(
                   padding: EdgeInsets.fromLTRB(16, 16, 16, bottomSafe + 88),
@@ -74,57 +123,95 @@ class _AddressListScreenState extends State<AddressListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Expanded + Wrap: label & badge "Utama" tidak
-                              // akan mendorong tombol edit/hapus keluar layar.
                               Expanded(
-                                child: Wrap(
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  spacing: 8,
-                                  runSpacing: 4,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(a.label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                                    if (a.isDefault)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.surface,
-                                          borderRadius: BorderRadius.circular(5),
-                                          border: Border.all(color: AppTheme.primary),
+                                    Wrap(
+                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      spacing: 8,
+                                      runSpacing: 4,
+                                      children: [
+                                        Text(
+                                          a.label,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                                         ),
-                                        child: const Text('Utama',
-                                            style: TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w700)),
+                                        if (a.isDefault)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.primary,
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: const Text(
+                                              'Utama',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      '${a.recipientName} · ${a.phone}',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.textPrimary,
                                       ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      a.fullAddress,
+                                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                    ),
                                   ],
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined, size: 18, color: AppTheme.textHint),
-                                onPressed: () => context.push('/profile/addresses/form?id=${a.id}').then((_) => _load()),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                              const SizedBox(width: 12),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, size: 18, color: AppTheme.danger),
-                                onPressed: () async { await _api.deleteAddress(a.id); _load(); },
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
+                              Column(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_outlined, size: 18, color: AppTheme.textHint),
+                                    onPressed: () => context.push('/profile/addresses/form?id=${a.id}').then((_) => _load()),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    tooltip: 'Edit',
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline, size: 18, color: AppTheme.danger),
+                                    onPressed: () => _confirmDelete(a),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    tooltip: 'Hapus',
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          const SizedBox(height: 6),
-                          Text('${a.recipientName} · ${a.phone}',
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                          const SizedBox(height: 3),
-                          Text(a.fullAddress, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                           if (!a.isDefault) ...[
                             const SizedBox(height: 8),
-                            TextButton(
-                              onPressed: () async { await _api.setDefaultAddress(a.id); _load(); },
-                              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                              child: const Text('Jadikan Utama', style: TextStyle(fontSize: 12, color: AppTheme.primary)),
+                            const Divider(height: 1),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: TextButton.icon(
+                                onPressed: () async {
+                                  await _api.setDefaultAddress(a.id);
+                                  _load();
+                                },
+                                icon: const Icon(Icons.star_outline, size: 16),
+                                label: const Text('Jadikan Utama'),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 6),
+                                  foregroundColor: AppTheme.primary,
+                                ),
+                              ),
                             ),
                           ],
                         ],

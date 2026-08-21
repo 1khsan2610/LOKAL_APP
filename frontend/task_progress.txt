@@ -1,0 +1,15 @@
+# TASK PROGRESS - Bug Fixes & New Modules
+
+## ✅ Completed Items
+- [x] Analyze existing codebase structure
+- [x] Add sidebar menu items: Notifications, Lokal Coin
+- [x] Fix notification bell routing from /notifications to /umkm/notifications
+- [x] Replace security AlertDialog with interactive password form modal
+- [x] Fix product images in dashboard to use resolveImageUrl() helper
+- [x] Add camera overlay button on avatar in store settings
+- [x] Create UmkmNotificationScreen with filter tabs, notification cards, sidebar
+- [x] Create UmkmAiAssistantScreen with greeting, chat, suggestion chips, mic
+- [x] Create LokalCoinScreen with banner, tier progress, tasks, transaction history
+- [x] Update BankAccountScreen to 2-column layout with security cards
+- [x] Update app_router_go.dart with new UMKM routes
+- [x] Fix flutter analyze issues (unused imports, deprecated API, unused fields, build context)

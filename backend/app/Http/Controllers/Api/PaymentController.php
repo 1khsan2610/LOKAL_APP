@@ -101,7 +101,9 @@ class PaymentController extends Controller
                 'postal_code' => $order->address->zip,
             ],
             'callbacks' => [
-                'finish' => config('app.url') . '/payment/finish',
+                'finish'   => config('services.flutter_url', 'http://localhost:61612') . '/order/success/' . $order->id,
+                'unfinish' => config('services.flutter_url', 'http://localhost:61612') . '/order/pending/' . $order->id,
+                'error'    => config('services.flutter_url', 'http://localhost:61612') . '/order/error/' . $order->id,
             ],
             'expiry' => [
                 'start_time' => now()->format('Y-m-d H:i:s O'),
@@ -131,13 +133,16 @@ class PaymentController extends Controller
         }
 
         $selectedPayment = $request->payment_method;
-        if (in_array($selectedPayment, ['bca', 'mandiri'])) {
-            $payload['enabled_payments'] = ['bank_transfer'];
-        } elseif (in_array($selectedPayment, ['gopay', 'qris'])) {
-            $payload['enabled_payments'] = ['gopay', 'qris'];
-        } else {
-            $payload['enabled_payments'] = ['bank_transfer', 'gopay', 'qris'];
-        }
+        $allowedPayments = [
+            'bca'     => ['bca_va'],
+            'mandiri' => ['echannel'],
+            'gopay'   => ['gopay'],
+            'ovo'     => ['ovo'],
+            'dana'    => ['dana'],
+            'qris'    => ['qris'],
+        ];
+        $payload['enabled_payments'] = $allowedPayments[$selectedPayment]
+            ?? ['bank_transfer', 'gopay', 'qris'];
 
         // Call Midtrans Snap API
         $serverKey = config('services.midtrans.server_key');
@@ -209,6 +214,87 @@ class PaymentController extends Controller
             'payment_method' => $payment->payment_method,
             'paid_at'        => $payment->paid_at,
         ]]);
+    }
+
+    /**
+     * GET /api/orders/{id}/check-payment
+     * Fallback manual: cek status pembayaran langsung ke Midtrans API
+     */
+    public function checkPayment($id)
+    {
+        $order = Order::with(['items.product.umkm.user', 'user.wallet'])->findOrFail($id);
+        $serverKey = config('services.midtrans.server_key');
+        $isProduction = config('services.midtrans.is_production', false);
+        $baseUrl = $isProduction ? 'https://api.midtrans.com' : 'https://api.sandbox.midtrans.com';
+
+        if (empty($serverKey)) {
+            return response()->json(['success' => false, 'message' => 'Midtrans server key belum dikonfigurasi.'], 500);
+        }
+
+        try {
+            $response = Http::withBasicAuth($serverKey, '')
+                ->timeout(15)
+                ->get("{$baseUrl}/v2/{$order->order_number}/status");
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengecek status pembayaran ke Midtrans.',
+                    'midtrans_status' => $response->status(),
+                ], 400);
+            }
+
+            $midtransData = $response->json();
+            $transactionStatus = $midtransData['transaction_status'] ?? null;
+            $fraudStatus = $midtransData['fraud_status'] ?? null;
+            $isSuccess = ($transactionStatus === 'settlement')
+                || ($transactionStatus === 'capture' && $fraudStatus !== 'challenge');
+            $isFailed = in_array($transactionStatus, ['cancel', 'deny', 'expire']);
+
+            if ($isSuccess && $order->status === 'awaiting_payment') {
+                // Auto-process pembayaran seperti webhook
+                DB::beginTransaction();
+                try {
+                    Payment::updateOrCreate(
+                        ['order_id' => $order->id],
+                        [
+                            'transaction_id' => $midtransData['transaction_id'] ?? null,
+                            'payment_method' => $midtransData['payment_type'] ?? null,
+                            'amount'         => (int)($midtransData['gross_amount'] ?? 0),
+                            'status'         => 'paid',
+                            'paid_at'        => now(),
+                        ]
+                    );
+                    $this->orderController->distributePaymentFunds($order->fresh());
+                    DB::commit();
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+                }
+            } elseif ($isFailed && in_array($order->status, ['pending', 'awaiting_payment'])) {
+                $order->update(['status' => 'cancelled']);
+                Payment::updateOrCreate(
+                    ['order_id' => $order->id],
+                    ['status' => $transactionStatus]
+                );
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'transaction_status' => $transactionStatus,
+                    'fraud_status'       => $fraudStatus,
+                    'order_status'       => $order->fresh()->status,
+                    'payment_type'       => $midtransData['payment_type'] ?? null,
+                    'gross_amount'       => $midtransData['gross_amount'] ?? 0,
+                    'transaction_id'     => $midtransData['transaction_id'] ?? null,
+                    'paid_at'            => $midtransData['transaction_time'] ?? null,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Check payment error', ['order_id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Gagal terhubung ke Midtrans: ' . $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -320,10 +406,7 @@ class PaymentController extends Controller
             // SETTLEMENT / CAPTURE (sukses)
             // ------------------------------------------------------------
             try {
-                DB::beginTransaction();
-
                 // Lock order & payment untuk cegah race condition
-                // WAJIB load relasi karena distributePaymentFunds membutuhkan items, user, wallet, dll
                 $lockedOrder = Order::with(['items.product.umkm.user', 'user.wallet'])
                     ->where('id', $order->id)
                     ->lockForUpdate()
@@ -335,8 +418,7 @@ class PaymentController extends Controller
                     ->first();
 
                 // Sudah pernah diproses? skip
-                if ($existingPayment && in_array($existingPayment->status, ['paid', 'challenge']) && $existingPayment->status !== 'pending') {
-                    DB::commit();
+                if ($existingPayment && in_array($existingPayment->status, ['paid', 'challenge'])) {
                     Log::channel('midtrans')->info('[SKIPPED] Payment already processed (paid)', [
                         'order_id'          => $order->id,
                         'payment_status_db' => $existingPayment->status,
@@ -344,7 +426,7 @@ class PaymentController extends Controller
                     return response('', 200);
                 }
 
-                // Update payment record
+                // Update payment record (diluar transaction distributePaymentFunds)
                 $paymentData = array_merge($auditData, [
                     'status'  => 'paid',
                     'paid_at' => now(),
@@ -353,15 +435,13 @@ class PaymentController extends Controller
                 if ($existingPayment) {
                     $existingPayment->update($paymentData);
                 } else {
-                    // Jika belum ada payment record, buat baru
                     Payment::create(array_merge($paymentData, [
                         'order_id' => $order->id,
                     ]));
                 }
 
                 // Panggil distribusi dana — method ini punya DB::transaction sendiri
-                // Tapi karena kita sudah di dalam transaction, savepoint akan dibuat.
-                // Jika throw, rollback ke savepoint, lalu kita rollback outer transaction.
+                // Tidak perlu di-wrap transaction lagi karena sudah handle sendiri
                 $this->orderController->distributePaymentFunds($lockedOrder);
 
                 // Buat tracking record
@@ -370,8 +450,6 @@ class PaymentController extends Controller
                     'status'      => 'Pembayaran Berhasil',
                     'description' => 'Pembayaran telah dikonfirmasi. Pesanan sudah dibayar dan sedang diproses oleh penjual.',
                 ]);
-
-                DB::commit();
 
                 Log::channel('midtrans')->info('[SUCCESS] Payment settled & funds distributed', [
                     'order_id'      => $order->id,
@@ -382,8 +460,7 @@ class PaymentController extends Controller
                 ]);
 
             } catch (\Throwable $e) {
-                DB::rollBack();
-                Log::channel('midtrans')->error('[ERROR] Settlement failed, rolled back', [
+                Log::channel('midtrans')->error('[ERROR] Settlement failed', [
                     'order_id'    => $order->id,
                     'error'       => $e->getMessage(),
                     'trace'       => $e->getTraceAsString(),

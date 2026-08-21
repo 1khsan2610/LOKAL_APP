@@ -22,7 +22,6 @@
 //   lib/screens/wallet/wallet_screen.dart
 //   lib/screens/notification/notification_screen.dart
 //   lib/screens/map/map_screen.dart
-//   lib/screens/admin/admin_dashboard_screen.dart
 //   lib/screens/umkm/umkm_dashboard_screen.dart
 //   lib/screens/umkm/manage_product_screen.dart
 //   lib/screens/umkm/add_edit_product_screen.dart

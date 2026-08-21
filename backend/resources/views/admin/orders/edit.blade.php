@@ -1,4 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'Edit Order — LOKAL Admin')
 
 @section('content')
 <div class="max-w-3xl mx-auto">

@@ -129,6 +129,7 @@ class ProductController extends Controller
 
     /**
      * POST /api/umkm/products  (UMKM only)
+     * Maks 5 foto, maks 2 MB/foto
      */
     public function store(Request $request)
     {
@@ -142,7 +143,7 @@ class ProductController extends Controller
             'weight'      => 'required|numeric|min:0',
             'variants'    => 'nullable|array',
             'images'      => 'nullable|array|max:5',
-            'images.*'    => 'image|mimes:jpeg,png,webp|max:5120',
+            'images.*'    => 'image|mimes:jpeg,png,webp|max:2048',
         ]);
 
         $umkm = Umkm::where('user_id', auth('api')->id())->first();
@@ -238,14 +239,12 @@ class ProductController extends Controller
 
     /**
      * PUT /api/umkm/products/{id}  (UMKM only)
-     */
-    /**
-     * PUT /api/umkm/products/{id}  (UMKM only)
      *
      * NOTE: For multipart/form-data uploads the frontend MUST send a POST request
      * with `_method=PUT` (HTTP method spoofing) because browsers/clients may not
      * properly send multipart bodies with real PUT requests and Laravel may not
      * populate files. Use POST + `_method=PUT` when uploading images.
+     * Maks 5 foto, maks 2 MB/foto
      */
     public function update(Request $request, $id)
     {
@@ -259,7 +258,7 @@ class ProductController extends Controller
             'weight'      => 'sometimes|numeric|min:0',
             'is_active'   => 'sometimes|boolean',
             'images'      => 'nullable|array|max:5',
-            'images.*'    => 'image|mimes:jpeg,png,webp|max:5120',
+            'images.*'    => 'image|mimes:jpeg,png,webp|max:2048',
         ]);
 
         $umkm = Umkm::where('user_id', auth('api')->id())->first();
@@ -410,6 +409,7 @@ class ProductController extends Controller
 
     /**
      * POST /api/umkm/products/{id}/images  (UMKM only)
+     * Maks 5 foto, maks 2 MB/foto
      */
     public function uploadImages(Request $request, $id)
     {
@@ -431,7 +431,7 @@ class ProductController extends Controller
 
         $request->validate([
             'images'   => 'required|array|max:5',
-            'images.*' => 'image|mimes:jpeg,png,webp|max:5120',
+            'images.*' => 'image|mimes:jpeg,png,webp|max:2048',
         ]);
 
         $umkm = Umkm::where('user_id', auth('api')->id())->first();
@@ -455,8 +455,6 @@ class ProductController extends Controller
         
         foreach ($request->file('images') as $image) {
             try {
-                // Use 'public' disk for development, which serves from storage/app/public
-                // This is more reliable than S3 in development environments
                 $disk = app()->environment('production') ? 's3' : 'public';
                 $path = $image->store("products/{$product->id}", $disk);
                 $productImage = $product->images()->create([

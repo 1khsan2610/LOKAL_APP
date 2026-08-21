@@ -1,7 +1,5 @@
-import 'custom_button.dart';
 // ═══════════════════════════════════════════════════════════════════
-//  SHARED WIDGETS
-//  File: lib/widgets/  (semua widget diimport dari sini)
+//  SHARED WIDGETS - Product Card, Badges, Shimmer, etc.
 // ═══════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -47,8 +45,6 @@ class ProductCard extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // Image - make this take the available space proportionally so
-            // the info section can size itself without causing overflow.
             Flexible(
               fit: FlexFit.tight,
               child: Stack(children: [
@@ -66,10 +62,8 @@ class ProductCard extends StatelessWidget {
                       : Container(color: AppTheme.surface2,
                           child: const Center(child: Text('📦', style: TextStyle(fontSize: 40)))),
                 ),
-                // Badge
                 if (product.badge != null)
                   Positioned(top: 8, left: 8, child: _Badge(text: product.badge!)),
-                // Wishlist
                 Positioned(
                   top: 8, right: 8,
                   child: GestureDetector(
@@ -83,7 +77,6 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Flash sale overlay
                 if (isFlashSale && product.flashSaleDiscount != null)
                   Positioned(
                     bottom: 0, left: 0, right: 0,
@@ -99,11 +92,6 @@ class ProductCard extends StatelessWidget {
                   ),
               ]),
             ),
-
-            // Info - keep this column minimal so it doesn't try to expand
-            // beyond the grid cell. Use Flexible + mainAxisSize=min inside
-            // to allow text to ellipsize and the overall card to remain
-            // within its constraints.
             Flexible(
               fit: FlexFit.loose,
               child: Padding(
@@ -156,6 +144,128 @@ class ProductCard extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────
+//  ModernProductCard (radius 20dp, soft shadow, badge jarak & rating)
+// ─────────────────────────────────────────────────────────────────
+class ModernProductCard extends StatelessWidget {
+  final ProductModel product;
+  final double? distance;
+  final double? width;
+
+  const ModernProductCard({
+    super.key,
+    required this.product,
+    this.distance,
+    this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final wishlist = context.watch<WishlistProvider>();
+    final isFavorite = wishlist.isFavorite(product.id);
+
+    return GestureDetector(
+      onTap: () => context.push('/product/detail/${product.id}'),
+      child: Container(
+        width: width,
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: Stack(children: [
+              product.primaryImage != null
+                  ? CachedNetworkImage(
+                      imageUrl: resolveImageUrl(product.primaryImage),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      placeholder: (_, __) => Container(color: AppTheme.surface2),
+                      errorWidget: (_, __, ___) => Container(color: AppTheme.surface2, child: const Icon(Icons.image_not_supported_outlined)),
+                    )
+                  : Container(color: AppTheme.surface2, child: const Center(child: Text('📦', style: TextStyle(fontSize: 32)))),
+              Positioned(
+                top: 8, left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.star_rounded, size: 12, color: AppTheme.warning),
+                    const SizedBox(width: 2),
+                    Text(product.avgRating.toStringAsFixed(1),
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                  ]),
+                ),
+              ),
+              Positioned(
+                top: 8, right: 8,
+                child: GestureDetector(
+                  onTap: () => context.read<WishlistProvider>().toggleFavorite(product),
+                  child: Container(
+                    width: 28, height: 28,
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.9), shape: BoxShape.circle),
+                    child: Icon(isFavorite ? Icons.favorite : Icons.favorite_border, size: 14, color: isFavorite ? AppTheme.danger : AppTheme.textSecondary),
+                  ),
+                ),
+              ),
+              if (distance != null)
+                Positioned(
+                  bottom: 8, right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(4)),
+                    child: Text('${distance!.toStringAsFixed(1)} km',
+                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                  ),
+                ),
+            ]),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, height: 1.3)),
+              const SizedBox(height: 4),
+              Row(children: [
+                Text(product.umkm?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
+                const Spacer(),
+                if (distance != null)
+                  Text('${distance!.toStringAsFixed(1)} km', style: const TextStyle(fontSize: 10, color: AppTheme.primary)),
+              ]),
+              const SizedBox(height: 8),
+              Text(currency.format(product.price),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primary)),
+              const SizedBox(height: 4),
+              Row(children: [
+                const Icon(Icons.star_rounded, size: 12, color: AppTheme.warning),
+                const SizedBox(width: 2),
+                Text(product.avgRating.toStringAsFixed(1), style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                const SizedBox(width: 4),
+                Text('(${_formatSold(product.soldCount)})', style: const TextStyle(fontSize: 10, color: AppTheme.textHint)),
+              ]),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  String _formatSold(int n) => n >= 1000 ? '${(n / 1000).toStringAsFixed(1)}K' : '$n';
+}
+
 extension _ProductBadge on ProductModel {
   String? get badge {
     if (hasFlashSale) return null;
@@ -182,35 +292,6 @@ class _Badge extends StatelessWidget {
       child: Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: fg)),
     );
   }
-}
-
-// ─────────────────────────────────────────────────────────────────
-//  CustomButton
-// ─────────────────────────────────────────────────────────────────
-class SectionHeader extends StatelessWidget {
-  final String title;
-  final VoidCallback? onSeeAll;
-  final bool showAll;
-
-  const SectionHeader({
-    super.key,
-    required this.title,
-    this.onSeeAll,
-    this.showAll = true,
-  });
-
-  @override
-  Widget build(BuildContext context) => Row(children: [
-    Expanded(
-      child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-    ),
-    if (showAll && onSeeAll != null)
-      TextButton(
-        onPressed: onSeeAll,
-        child: const Text('Lihat semua →',
-          style: TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.w600)),
-      ),
-  ]);
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -390,7 +471,16 @@ class EmptyState extends StatelessWidget {
         ],
         if (buttonLabel != null && onButton != null) ...[
           const SizedBox(height: 20),
-          CustomButton(label: buttonLabel!, onPressed: onButton),
+          ElevatedButton(
+            onPressed: onButton,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: Text(buttonLabel!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
         ],
       ]),
     ),

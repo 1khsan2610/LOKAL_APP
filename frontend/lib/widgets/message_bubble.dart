@@ -103,7 +103,7 @@ class MessageBubble extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -131,7 +131,7 @@ class MessageBubble extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 11,
                               color: isMe
-                                  ? Colors.white.withOpacity(0.7)
+                                    ? Colors.white.withValues(alpha: 0.7)
                                   : AppTheme.textHint,
                             ),
                           ),
@@ -165,11 +165,11 @@ class MessageBubble extends StatelessWidget {
         break;
       case 'delivered':
         icon = Icons.done_all;
-        color = Colors.white.withOpacity(0.7);
+        color = Colors.white.withValues(alpha: 0.7);
         break;
       default: // sent
         icon = Icons.done;
-        color = Colors.white.withOpacity(0.7);
+        color = Colors.white.withValues(alpha: 0.7);
         break;
     }
 

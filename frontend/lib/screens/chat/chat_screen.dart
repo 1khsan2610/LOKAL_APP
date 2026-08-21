@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/chat_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/message_bubble.dart';
+import '../../widgets/mobile_frame.dart';
 
 /// Halaman Chat Real-time antara konsumen dan UMKM.
 ///
@@ -211,10 +212,47 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final otherName = _chat?.otherUserName ??
-        widget.receiverName ??
-        widget.chat?.otherUserName ??
-        'Chat';
+    // Determine the OTHER person's name (NOT the current user)
+    // Priority: explicit receiverName > chat.otherUserName > computed from sender/receiver
+    final screen = _buildScreen(context);
+    return MobileFrame(child: screen);
+  }
+
+  Widget _buildScreen(BuildContext context) {
+    // Determine the OTHER person's name (NOT the current user)
+    // Priority: explicit receiverName > chat.otherUserName > computed from sender/receiver
+    String otherName = widget.receiverName?.isNotEmpty == true
+        ? widget.receiverName!
+        : 'Chat';
+    
+    if (_chat != null) {
+      // Explicitly compute: if currentUserId == senderId, other = receiver
+      // if currentUserId == receiverId, other = sender
+      if (_currentUserId == _chat!.senderId) {
+        // Current user is sender, so other is receiver
+        if (_chat?.receiver?['name'] != null && (_chat!.receiver!['name'] as String).isNotEmpty) {
+          otherName = _chat!.receiver!['name'];
+        } else if (_chat?.receiver?['shop_name'] != null && (_chat!.receiver!['shop_name'] as String).isNotEmpty) {
+          otherName = _chat!.receiver!['shop_name'];
+        } else if (_chat?.otherUserName.isNotEmpty == true) {
+          otherName = _chat!.otherUserName;
+        }
+      } else {
+        // Current user is receiver, so other is sender
+        if (_chat?.sender?['name'] != null && (_chat!.sender!['name'] as String).isNotEmpty) {
+          otherName = _chat!.sender!['name'];
+        } else if (_chat?.sender?['shop_name'] != null && (_chat!.sender!['shop_name'] as String).isNotEmpty) {
+          otherName = _chat!.sender!['shop_name'];
+        } else if (_chat?.otherUserName.isNotEmpty == true) {
+          otherName = _chat!.otherUserName;
+        }
+      }
+    }
+    
+    // Fallback to widget receiverName if still default
+    if (otherName == 'Chat' && widget.receiverName?.isNotEmpty == true) {
+      otherName = widget.receiverName!;
+    }
 
     return Scaffold(
       backgroundColor: AppTheme.bg,
@@ -276,17 +314,22 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Daftar Pesan ──────────────────────────────────────
-            Expanded(
-              child: _buildMessageList(),
-            ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: SafeArea(
+            child: Column(
+              children: [
+                // ── Daftar Pesan ──────────────────────────────────────
+                Expanded(
+                  child: _buildMessageList(),
+                ),
 
-            // ── Input Field ───────────────────────────────────────
-            _buildInputBar(),
-          ],
+                // ── Input Field ───────────────────────────────────────
+                _buildInputBar(),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -344,7 +387,7 @@ class _ChatScreenState extends State<ChatScreen> {
             Icon(
               Icons.chat_bubble_outline,
               size: 64,
-              color: AppTheme.textHint.withOpacity(0.5),
+              color: AppTheme.textHint.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             const Text(
@@ -433,7 +476,7 @@ class _ChatScreenState extends State<ChatScreen> {
         color: AppTheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),

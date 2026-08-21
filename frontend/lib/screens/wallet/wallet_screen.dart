@@ -87,6 +87,79 @@ class _WalletScreenState extends State<WalletScreen> {
             ),
             const SizedBox(height: 20),
 
+            // ── Cash Balance (UMKM) ─────────────────────────────
+            if (wallet.wallet?.cashBalance != null && wallet.wallet!.cashBalance! > 0) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppTheme.cardBorder),
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('💰 Saldo Tunai', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  Text(currency.format(wallet.wallet!.cashBalance),
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppTheme.success)),
+                  const SizedBox(height: 12),
+                  // Bank account status
+                  if (wallet.wallet?.bankAccount != null) ...[
+                    Row(children: [
+                      const Icon(Icons.account_balance, size: 16, color: AppTheme.textHint),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '${wallet.wallet!.bankAccount!.bankName} - ${wallet.wallet!.bankAccount!.accountNumber}',
+                          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: wallet.wallet!.bankAccount!.status == 'approved'
+                              ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          wallet.wallet!.bankAccount!.status == 'approved' ? 'Aktif' : 'Menunggu Verifikasi',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+                            color: wallet.wallet!.bankAccount!.status == 'approved'
+                                ? AppTheme.success : AppTheme.warning),
+                        ),
+                      ),
+                    ]),
+                    const SizedBox(height: 12),
+                  ],
+                  // Tombol Tarik Dana
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: (wallet.wallet?.bankAccount?.status == 'approved')
+                          ? () => context.push('/wallet/withdraw')
+                          : null, // DISABLE jika bank belum approved
+                      icon: const Icon(Icons.send_rounded, size: 18),
+                      label: const Text('Tarik Dana / Withdrawal'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        disabledBackgroundColor: AppTheme.border,
+                        disabledForegroundColor: AppTheme.textHint,
+                      ),
+                    ),
+                  ),
+                  if (wallet.wallet?.bankAccount?.status != 'approved')
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        '⚠️ Rekening bank Anda belum diverifikasi. Daftarkan rekening di menu Toko Saya.',
+                        style: TextStyle(fontSize: 11, color: AppTheme.warning),
+                      ),
+                    ),
+                ]),
+              ),
+              const SizedBox(height: 20),
+            ],
+
             // How to earn
             AppCard(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -187,7 +260,7 @@ class _WalletScreenState extends State<WalletScreen> {
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('ℹ️ Tentang Lokal Coin', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 12),
-        const Text('1 Lokal Coin = Rp 10 diskon\nMaksimum diskon 20% dari subtotal\nCoin berlaku selama 90 hari\nCoin tidak dapat ditarik tunai',
+        const Text('1 Lokal Coin = Rp 10 diskon\nMaksimum diskon 20% dari subtotal\nCoin berlaku selama 180 hari\nCoin tidak dapat ditarik tunai',
           style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.7)),
         const SizedBox(height: 16),
         SizedBox(width: double.infinity,

@@ -59,7 +59,21 @@ class ChatModel {
     'unread_count': unreadCount,
   };
 
-  String get otherUserName => otherUser?['name'] ?? 'Unknown';
+  String get otherUserName {
+    if (otherUser?['name'] != null && (otherUser!['name'] as String).isNotEmpty) {
+      return otherUser!['name'];
+    }
+    if (sender?['name'] != null && (sender!['name'] as String).isNotEmpty) {
+      return sender!['name'];
+    }
+    if (receiver?['name'] != null && (receiver!['name'] as String).isNotEmpty) {
+      return receiver!['name'];
+    }
+    if (otherUser?['shop_name'] != null && (otherUser!['shop_name'] as String).isNotEmpty) {
+      return otherUser!['shop_name'];
+    }
+    return '';
+  }
   String? get otherUserAvatar => otherUser?['avatar'];
   String get productName => product?['name'] ?? '';
 }

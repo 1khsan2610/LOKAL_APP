@@ -6,13 +6,12 @@ import '../../services/chat_service.dart';
 import '../../utils/app_theme.dart';
 import 'chat_screen.dart';
 
-/// Halaman daftar chat untuk UMKM atau Konsumen.
+/// Halaman daftar chat untuk Konsumen.
 ///
 /// Menampilkan daftar percakapan dengan:
-/// - Avatar + nama lawan bicara
-/// - Preview pesan terakhir
-/// - Waktu pesan terakhir
-/// - Badge unread count
+/// - Header + subtitle + tombol "+ Pesan Baru"
+/// - Search bar
+/// - Avatar + nama UMKM + preview pesan + order tag + waktu + badge
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
 
@@ -49,7 +48,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
-  /// Buka halaman chat
   void _openChat(ChatModel chat) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -61,15 +59,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
           productId: chat.productId,
         ),
       ),
-    ).then((_) => _loadChats()); // Reload setelah kembali
+    ).then((_) => _loadChats());
   }
 
-  /// Format waktu relatif (misal: "2 menit lalu", "1 jam lalu", "Kemarin")
   String _formatRelativeTime(DateTime? date) {
     if (date == null) return '';
     final now = DateTime.now();
     final diff = now.difference(date);
-
     if (diff.inMinutes < 1) return 'Baru saja';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m';
     if (diff.inHours < 24) return '${diff.inHours}j';
@@ -83,27 +79,81 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Scaffold(
       backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        title: Text(
-          'Pesan',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Pesan',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+            Text(
+              'Hubungi UMKM terdekat untuk pesanan Anda',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                fontWeight: FontWeight.w400,
+                color: Colors.white70,
+              ),
+            ),
+          ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, size: 20),
-            onPressed: _loadChats,
-            tooltip: 'Muat ulang',
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 20, color: Colors.white),
+              onPressed: () => {},
+              tooltip: 'Pesan Baru',
+            ),
           ),
         ],
       ),
-      body: _buildBody(),
+      body: Column(
+        children: [
+          // Search bar
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: AppTheme.border),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Cari percakapan...',
+                hintStyle: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.textHint,
+                ),
+                prefixIcon: Icon(Icons.search_rounded, size: 20, color: AppTheme.textHint),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
+            ),
+          ),
+          // Chat list
+          Expanded(child: _buildChatList()),
+        ],
+      ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildChatList() {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -150,7 +200,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             Icon(
               Icons.chat_bubble_outline,
               size: 80,
-              color: AppTheme.textHint.withOpacity(0.4),
+              color: AppTheme.textHint.withValues(alpha: 0.4),
             ),
             const SizedBox(height: 16),
             const Text(
@@ -194,7 +244,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  /// Tile untuk setiap percakapan
   Widget _buildChatTile(ChatModel chat) {
     return InkWell(
       onTap: () => _openChat(chat),
@@ -232,7 +281,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Nama
+                      // Nama UMKM
                       Expanded(
                         child: Text(
                           chat.otherUserName,
@@ -310,12 +359,28 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       ],
                     ],
                   ),
-                  // Nama produk (jika ada)
+                  // Order tag & product name
                   if (chat.productName.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Row(
                         children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '#EL-${chat.id.toString().padLeft(5, '0')}',
+                              style: const TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
                           Icon(
                             Icons.shopping_bag_outlined,
                             size: 12,

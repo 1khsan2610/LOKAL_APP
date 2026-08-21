@@ -1,4 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'Daftar UMKM — LOKAL Admin')
 
 @section('content')
 <div class="p-6">

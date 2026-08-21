@@ -36,7 +36,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     final currentLocation = GoRouter.of(context).state.uri.toString();
     if (auth.isLoggedIn) {
-      final role = auth.user?.role;
       final shouldRedirectToHome = currentLocation == '/' ||
           currentLocation == '/login' ||
           currentLocation == '/register' ||
@@ -44,11 +43,7 @@ class _SplashScreenState extends State<SplashScreen>
           currentLocation == '/reset-password';
 
       if (shouldRedirectToHome) {
-        if (role == 'admin') {
-          context.go('/admin');
-        } else {
-          context.go('/main');
-        }
+        context.go('/main');
       }
       // Otherwise, keep the current location so reload preserves the page.
     } else {

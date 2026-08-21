@@ -15,6 +15,7 @@ use App\Services\CoinService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class OrderController extends Controller
@@ -121,6 +122,14 @@ class OrderController extends Controller
             // Clear cart items for these products
             $productIds = collect($request->items)->pluck('product_id');
             Cart::where('user_id', $user->id)->whereIn('product_id', $productIds)->delete();
+
+            // Trigger n8n event: Pesanan baru (F-07)
+            $this->notifService->triggerEvent('order.new', [
+                'order_id'     => $order->id,
+                'order_number' => $order->order_number,
+                'total'        => $total,
+                'user_id'      => $user->id,
+            ]);
 
             // Notify UMKM sellers that a new order has arrived
             $sellerUserIds = Product::whereIn('id', $productIds->unique())
@@ -317,6 +326,15 @@ class OrderController extends Controller
             'data'  => ['order_id' => $order->id],
         ]);
 
+        // Trigger n8n event for shipped (F-07)
+        if ($request->status === 'shipped') {
+            $this->notifService->triggerEvent('order.shipped', [
+                'order_id'        => $order->id,
+                'order_number'    => $order->order_number,
+                'tracking_number' => $request->tracking_number,
+            ]);
+        }
+
         return response()->json(['success' => true, 'message' => 'Status pesanan diperbarui.']);
     }
 
@@ -380,13 +398,24 @@ class OrderController extends Controller
                 $cashbackCoin = 1;
             }
 
-            // --- 4. Dapatkan wallet admin ---
-            $adminWallet = Wallet::whereHas('user', fn($q) => $q->where('role', 'admin'))
+            // --- 4. Dapatkan wallet admin (auto-create jika belum ada) ---
+            $adminUser = \App\Models\User::where('role', 'admin')->first();
+            if (!$adminUser) {
+                throw new \Exception('User admin tidak ditemukan. Hubungi administrator.');
+            }
+
+            $adminWallet = Wallet::where('user_id', $adminUser->id)
                 ->lockForUpdate()
                 ->first();
 
             if (!$adminWallet) {
-                throw new \Exception('Wallet admin tidak ditemukan. Hubungi administrator.');
+                $adminWallet = Wallet::create([
+                    'user_id'           => $adminUser->id,
+                    'coin_balance'      => 0,
+                    'cash_balance'      => 0,
+                    'commission_balance' => 0,
+                ]);
+                Log::info('[WALLET] Admin wallet auto-created', ['user_id' => $adminUser->id]);
             }
 
             // --- 5a. Admin: commission_balance bertambah dari komisi 5% (dulu) ---
@@ -521,6 +550,15 @@ class OrderController extends Controller
                 'order_id' => $order->id,
                 'status'   => 'processing',
                 'notes'    => 'Pembayaran berhasil, pesanan siap diproses penjual',
+            ]);
+
+            // Trigger n8n event: Payment settlement (F-09)
+            $this->notifService->triggerEvent('payment.settlement', [
+                'order_id'        => $order->id,
+                'order_number'    => $order->order_number,
+                'total'           => $order->total,
+                'commission'      => $commissionAmount,
+                'cashback_coin'   => $cashbackCoin,
             ]);
 
             // --- 7. Kirim notifikasi ---

@@ -32,9 +32,9 @@ return [
         'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
     ],
 
-    // ── Firebase Cloud Messaging ──────────────────────────────────
-    'fcm' => [
-        'server_key' => env('FCM_SERVER_KEY', ''),
+    // ── n8n Workflow Engine ───────────────────────────────────────
+    'n8n' => [
+        'webhook_url' => env('N8N_WEBHOOK_URL', ''),
     ],
 
     // ── MinIO / S3 ────────────────────────────────────────────────
@@ -45,4 +45,7 @@ return [
         'region'   => env('MINIO_REGION',   'us-east-1'),
         'bucket'   => env('MINIO_BUCKET',   'ekonomi-lokal'),
     ],
+
+    // ── Flutter Web URL (untuk redirect setelah pembayaran) ──────
+    'flutter_url' => env('FLUTTER_WEB_URL', 'http://localhost:61612'),
 ];

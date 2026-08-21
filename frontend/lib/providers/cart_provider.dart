@@ -200,6 +200,7 @@ class NotificationProvider extends ChangeNotifier {
         type: _notifications[idx].type,
         isRead: true,
         createdAt: _notifications[idx].createdAt,
+        data: _notifications[idx].data,
       );
       notifyListeners();
     } catch (_) {}
@@ -211,6 +212,7 @@ class NotificationProvider extends ChangeNotifier {
       _notifications = _notifications.map((n) => NotificationModel(
         id: n.id, title: n.title, body: n.body,
         type: n.type, isRead: true, createdAt: n.createdAt,
+        data: n.data,
       )).toList();
       notifyListeners();
     } catch (_) {}

@@ -1,4 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'Riwayat Koin — LOKAL Admin')
 
 @section('content')
 <div class="space-y-6">

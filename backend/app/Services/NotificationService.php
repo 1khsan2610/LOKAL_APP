@@ -3,14 +3,21 @@
 namespace App\Services;
 
 use App\Models\Notification;
-use App\Models\DeviceToken;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class NotificationService
 {
     /**
-     * Send notification to a user (save to DB + push FCM)
+     * n8n Webhook base URL from config
+     */
+    private function getWebhookUrl(): ?string
+    {
+        return config('services.n8n.webhook_url');
+    }
+
+    /**
+     * Send notification to a user (save to DB + trigger n8n webhook)
      */
     public function sendToUser(int $userId, array $payload): void
     {
@@ -24,8 +31,15 @@ class NotificationService
             'is_read' => false,
         ]);
 
-        // Send FCM push notification
-        $this->sendPush($userId, $payload);
+        // Trigger n8n webhook for push notification (F-07)
+        $this->triggerN8nWebhook([
+            'event'     => 'user_notification',
+            'user_id'   => $userId,
+            'title'     => $payload['title'],
+            'body'      => $payload['body'],
+            'type'      => $payload['type'] ?? 'general',
+            'data'      => $payload['data'] ?? null,
+        ]);
     }
 
     /**
@@ -33,56 +47,63 @@ class NotificationService
      */
     public function broadcast(array $payload): void
     {
-        $tokens = DeviceToken::pluck('token')->chunk(500);
+        $this->triggerN8nWebhook([
+            'event' => 'broadcast',
+            'title' => $payload['title'],
+            'body'  => $payload['body'],
+            'type'  => $payload['type'] ?? 'general',
+            'data'  => $payload['data'] ?? null,
+        ]);
+    }
 
-        foreach ($tokens as $chunk) {
-            $this->sendFCMMulticast($chunk->toArray(), $payload);
+    /**
+     * Trigger event-specific n8n webhook (F-07: Otomasi via n8n)
+     *
+     * Events:
+     * - order.new       : Pesanan baru dibuat
+     * - payment.settlement : Pembayaran sukses
+     * - order.shipped   : Pesanan dikirim
+     * - stock.low       : Stok menipis (< 10)
+     * - bank.verified   : Verifikasi bank
+     */
+    public function triggerEvent(string $event, array $data): void
+    {
+        $this->triggerN8nWebhook(array_merge([
+            'event' => $event,
+        ], $data));
+    }
+
+    /**
+     * Send HTTP POST to n8n webhook trigger
+     */
+    private function triggerN8nWebhook(array $payload): void
+    {
+        $webhookUrl = $this->getWebhookUrl();
+
+        if (empty($webhookUrl)) {
+            // n8n not configured, skip silently
+            return;
         }
-    }
-
-    /**
-     * Send push to specific user's devices
-     */
-    private function sendPush(int $userId, array $payload): void
-    {
-        $tokens = DeviceToken::where('user_id', $userId)->pluck('token')->toArray();
-
-        if (empty($tokens)) return;
-
-        $this->sendFCMMulticast($tokens, $payload);
-    }
-
-    /**
-     * FCM Multicast send
-     */
-    private function sendFCMMulticast(array $tokens, array $payload): void
-    {
-        $serverKey = config('services.fcm.server_key');
-        if (!$serverKey) return;
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => "key={$serverKey}",
-                'Content-Type'  => 'application/json',
-            ])->post('https://fcm.googleapis.com/fcm/send', [
-                'registration_ids' => $tokens,
-                'notification'     => [
-                    'title' => $payload['title'],
-                    'body'  => $payload['body'],
-                    'sound' => 'default',
-                ],
-                'data' => array_merge($payload['data'] ?? [], [
-                    'type'  => $payload['type'] ?? 'general',
-                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-                ]),
-                'priority' => 'high',
-            ]);
+            $response = Http::timeout(5)
+                ->withHeaders([
+                    'Content-Type'  => 'application/json',
+                    'X-Source'      => 'LOKAL-Backend',
+                ])
+                ->post($webhookUrl, $payload);
 
             if (!$response->successful()) {
-                Log::warning('FCM send failed', ['response' => $response->body()]);
+                Log::warning('n8n webhook trigger failed', [
+                    'url'      => $webhookUrl,
+                    'status'   => $response->status(),
+                    'response' => $response->body(),
+                ]);
             }
         } catch (\Exception $e) {
-            Log::error('FCM exception', ['error' => $e->getMessage()]);
+            Log::error('n8n webhook exception', [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }

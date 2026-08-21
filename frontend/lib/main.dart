@@ -9,6 +9,7 @@ import 'package:url_strategy/url_strategy.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/wishlist_provider.dart';
+import 'screens/umkm/umkm_layout.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_router_go.dart';
 import 'services/notification_service.dart';
@@ -86,6 +87,7 @@ class EkonomiLokalApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => WishlistProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => WalletProvider()),
+        ChangeNotifierProvider(create: (_) => UmkmProvider()),
       ],
       child: MaterialApp.router(
         title: 'EkonomiLokal',

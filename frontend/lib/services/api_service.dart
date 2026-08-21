@@ -334,44 +334,6 @@ class ApiService {
     return _dio.post('/umkm/products/$productId/images', data: formData);
   }
 
-  // ── Admin ───────────────────────────────────────────────────────
-  Future<Response> getAdminDashboard() => _dio.get('/admin/dashboard');
-
-  Future<Response> getAdminUsers({int page = 1}) =>
-      _dio.get('/admin/users', queryParameters: {'page': page});
-
-  Future<Response> toggleUserStatus(int id) =>
-      _dio.patch('/admin/users/$id/status');
-
-  Future<Response> getAdminUmkm({int page = 1}) =>
-      _dio.get('/admin/umkm', queryParameters: {'page': page});
-
-  Future<Response> verifyUmkm(int id) => _dio.patch('/admin/umkm/$id/verify');
-
-  Future<Response> getAdminOrders({int page = 1}) =>
-      _dio.get('/admin/orders', queryParameters: {'page': page});
-
-  Future<Response> getAdminTransactions({int page = 1}) =>
-      _dio.get('/admin/transactions', queryParameters: {'page': page});
-
-  Future<Response> getAdminAnalytics() => _dio.get('/admin/analytics');
-
-  Future<Response> approveProduct(int id) =>
-      _dio.post('/admin/products/$id/approve');
-
-  Future<Response> deleteProductAdmin(int id) =>
-      _dio.delete('/admin/products/$id');
-
-  Future<Response> broadcastNotification({
-    required String title,
-    required String body,
-    String? role,
-  }) =>
-      _dio.post('/admin/notifications/broadcast', data: {
-        'title': title,
-        'body': body,
-        if (role != null) 'role': role,
-      });
 }
 
 // ─── Auth Interceptor ──────────────────────────────────────────────
